@@ -1,6 +1,6 @@
 # AMA — User guide
 
-**Audience:** business readers and technical operators. **Developer setup:** `**README.md`**.
+**Audience:** business readers and technical operators. **Developer setup:** see **README.md**.
 
 ---
 
@@ -24,7 +24,7 @@ flowchart LR
     LA[Log Analysis Engine]
     IN[Ingestion + parsing]
     AR[Alias resolution]
-    PL[Autonomous Planner]
+    PL[Planner]
     DQ[Data quality]
     RP[Reports + dashboard]
   end
@@ -47,7 +47,7 @@ flowchart LR
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | **Log Analysis Engine** (`ama.log_analysis`)      | Streams `**.jsonl`** logs, measures parse success (SQLGlot vs fallback) without loading whole files into RAM. |
 | **Ingestion** (`ama.sql_pipeline`, `ama.parsing`) | Normalizes text, parses SQL, builds stats / optional lineage.                                                 |
-| **Autonomous Planner** (`ama.planner`)            | Builds **migration waves** from **discovery inventory** in a report (priority / domain).                      |
+| **Planner** (`ama.planner`)                        | Builds **migration waves** from **discovery inventory** (grouped by domain, priority-ordered). JSON includes short **business** and **technical** rationales per wave plus metrics. |
 | **Data quality** (`ama.data_quality`)             | Checks report shape, schema version, ingestion stats, discovery consistency.                                  |
 | **Security** (`ama.security`)                     | Redacts paths in logs; **never** put API keys in source — use `**.env`** / `AMA_*` only.                      |
 
@@ -93,7 +93,7 @@ Exit code **0** if there are no **error**-severity checks; warnings may still pr
 ama-ingest plan --report report.json
 ```
 
-Requires **discovery inventory** in the report (use `**--discovery-mode`** when ingesting). Optional: `--max-tables-per-wave 25 --max-waves 20`.
+Requires **discovery inventory** in the report (use `**--discovery-mode`** when ingesting). Optional: `--max-tables-per-wave 25 --max-waves 20`. Each wave in the JSON lists tables plus **`business_rationale`**, **`technical_rationale`**, and compact **`metrics`** (priority scores are numeric, e.g. two decimal places in the text).
 
 ### 4) Log Analysis Engine (telemetry only)
 
@@ -132,14 +132,16 @@ When calling `LogAnalysisEngine` from Python, use `**LogAnalysisConfig`**:
 ## Dashboard (short)
 
 
-| Tab                    | Use                                       |
-| ---------------------- | ----------------------------------------- |
-| **Executive overview** | KPIs, impact vs readiness, risk hotspots  |
-| **Domains**            | Per-domain health                         |
-| **Business Glossary**  | Business terms ↔ columns                  |
-| **Ask the data**       | Concept search                            |
-| **Tables**             | Per-table detail + optional lineage graph |
-| **Review (HITL)**      | Approve / reject mappings                 |
+| Tab                    | Use                                                                 |
+| ---------------------- | ------------------------------------------------------------------- |
+| **Executive overview** | KPIs, impact vs readiness, risk hotspots                          |
+| **Domains**            | Per-domain health (inventory drill-down per domain)                |
+| **Planner**            | Migration **waves** from discovery — same logic as **`ama-ingest plan`**, with short business/technical blurbs per wave |
+| **Business Glossary**  | Business terms ↔ columns                                            |
+| **Ask the data**       | Concept search                                                      |
+| **Tables**             | Per-table detail + optional lineage graph                         |
+| **Data quality**       | DQ suite results on the loaded report                             |
+| **Review (HITL)**      | Approve / reject mappings                                           |
 
 
 **Reload from Disk** (sidebar, path mode) refreshes JSON and HITL sidecar after engineering regenerates files.
