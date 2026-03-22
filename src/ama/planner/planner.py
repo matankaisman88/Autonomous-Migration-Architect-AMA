@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ama.planner.lineage_order import sort_rows_by_migration_order
 from ama.planner.models import MigrationPlan, MigrationWave, PlannedTable
 from ama.planner.rationale import build_wave_rationales, enrich_planned_tables
 
@@ -25,26 +26,48 @@ class AutonomousPlanner:
         max_waves: int = 20,
     ) -> MigrationPlan:
         """
-        Build waves by sorting inventory rows by ``priority_score`` (desc) and grouping
-        by ``business_domain`` into bounded waves.
+        Build waves by grouping ``business_domain`` into bounded waves.
+
+        Table order within and across domains follows **lineage** co-query edges when present
+        (see :mod:`ama.planner.lineage_order`); otherwise **priority_score** descending.
         """
         disc = report.get("discovery") or {}
         inv = disc.get("inventory") if isinstance(disc.get("inventory"), list) else []
         target = str(disc.get("target_full_table") or report.get("target_table") or "")
 
         rows: list[dict[str, Any]] = [r for r in inv if isinstance(r, dict)]
-        rows.sort(
-            key=lambda r: (-float(r.get("priority_score") or 0.0), str(r.get("full_name", ""))),
-        )
+        rows, lineage_used = sort_rows_by_migration_order(rows, report)
 
         by_domain: dict[str, list[dict[str, Any]]] = {}
         for r in rows:
             dom = str(r.get("business_domain") or "Unclassified")
             by_domain.setdefault(dom, []).append(r)
 
+        pos: dict[str, int] = {}
+        for i, r in enumerate(rows):
+            fn = str(r.get("full_name") or "").strip()
+            if fn:
+                pos[fn] = i
+
+        def _domain_wave_key(dom: str) -> tuple[int, str]:
+            drs = by_domain.get(dom) or []
+            if not drs:
+                return (10**12, dom.lower())
+            earliest = min(pos.get(str(r.get("full_name") or "").strip(), 10**9) for r in drs)
+            return (earliest, dom.lower())
+
         plan = MigrationPlan(target_focus=target)
+        if lineage_used:
+            plan.notes.append(
+                "Inventory order respects lineage co-query edges (DAG over inventory, priority tie-break).",
+            )
         wave_id = 0
-        for domain, drs in sorted(by_domain.items(), key=lambda x: x[0].lower()):
+        domain_sort = (
+            (lambda items: sorted(items, key=lambda x: _domain_wave_key(x[0])))
+            if lineage_used
+            else (lambda items: sorted(items, key=lambda x: x[0].lower()))
+        )
+        for domain, drs in domain_sort(by_domain.items()):
             chunk: list[PlannedTable] = []
             chunk_rows: list[dict[str, Any]] = []
             domain_emitted_partial = False
