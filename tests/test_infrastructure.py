@@ -42,6 +42,23 @@ def test_plan_from_report_waves() -> None:
         "discovery": {
             "enabled": True,
             "target_full_table": "sales.orders",
+            "executive_summary": {
+                "domain_matrix": [
+                    {
+                        "business_domain": "CRM",
+                        "business_importance": 55.0,
+                        "migration_complexity": 40.0,
+                        "narrative": "CRM narrative for tests.",
+                    },
+                    {
+                        "business_domain": "Finance",
+                        "business_importance": 80.0,
+                        "migration_complexity": 60.0,
+                        "narrative": "Finance narrative for tests.",
+                    },
+                ],
+                "risk_hotspots": [{"table": "a.t1", "blast_radius_score": 42.0}],
+            },
             "inventory": [
                 {
                     "full_name": "a.t1",
@@ -62,6 +79,11 @@ def test_plan_from_report_waves() -> None:
     }
     plan = AutonomousPlanner().plan_from_report(report, max_tables_per_wave=10, max_waves=10)
     assert len(plan.waves) >= 1
+    for w in plan.waves:
+        assert w.business_rationale.strip()
+        assert w.technical_rationale.strip()
+        assert "Finance" in w.business_rationale or "CRM" in w.business_rationale
+        assert w.metrics.get("table_count") == len(w.tables)
 
 
 @pytest.mark.skipif(

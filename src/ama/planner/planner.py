@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 from ama.planner.models import MigrationPlan, MigrationWave, PlannedTable
+from ama.planner.rationale import build_wave_rationales, enrich_planned_tables
 
 
 class AutonomousPlanner:
@@ -45,6 +46,8 @@ class AutonomousPlanner:
         wave_id = 0
         for domain, drs in sorted(by_domain.items(), key=lambda x: x[0].lower()):
             chunk: list[PlannedTable] = []
+            chunk_rows: list[dict[str, Any]] = []
+            domain_emitted_partial = False
             for r in drs:
                 fn = str(r.get("full_name") or "")
                 if not fn:
@@ -57,22 +60,45 @@ class AutonomousPlanner:
                     rationale=str(r.get("status") or ""),
                 )
                 chunk.append(pt)
+                chunk_rows.append(r)
                 if len(chunk) >= max_tables_per_wave:
+                    domain_emitted_partial = True
                     wave_id += 1
                     if wave_id > max_waves:
                         plan.notes.append(f"Truncated after {max_waves} waves (cap).")
                         return plan
+                    wname = f"{domain} (part)"
                     plan.waves.append(
-                        MigrationWave(wave_id=wave_id, name=f"{domain} (part)", tables=chunk)
+                        self._wave_with_rationale(
+                            wave_id=wave_id,
+                            name=wname,
+                            domain=domain,
+                            chunk=chunk,
+                            chunk_rows=chunk_rows,
+                            report=report,
+                            is_partial_wave=True,
+                            max_tables_per_wave=max_tables_per_wave,
+                        ),
                     )
                     chunk = []
+                    chunk_rows = []
             if chunk:
                 wave_id += 1
                 if wave_id > max_waves:
                     plan.notes.append(f"Truncated after {max_waves} waves (cap).")
                     break
+                wname = domain
                 plan.waves.append(
-                    MigrationWave(wave_id=wave_id, name=domain, tables=chunk),
+                    self._wave_with_rationale(
+                        wave_id=wave_id,
+                        name=wname,
+                        domain=domain,
+                        chunk=chunk,
+                        chunk_rows=chunk_rows,
+                        report=report,
+                        is_partial_wave=domain_emitted_partial,
+                        max_tables_per_wave=max_tables_per_wave,
+                    ),
                 )
 
         es = disc.get("executive_summary") or {}
@@ -86,3 +112,33 @@ class AutonomousPlanner:
                 "No discovery inventory in report — run `ama-ingest run --discovery-mode` to populate.",
             )
         return plan
+
+    @staticmethod
+    def _wave_with_rationale(
+        *,
+        wave_id: int,
+        name: str,
+        domain: str,
+        chunk: list[PlannedTable],
+        chunk_rows: list[dict[str, Any]],
+        report: dict[str, Any],
+        is_partial_wave: bool,
+        max_tables_per_wave: int,
+    ) -> MigrationWave:
+        enriched = enrich_planned_tables(chunk, chunk_rows, report)
+        br, tr, metrics = build_wave_rationales(
+            domain=domain,
+            planned_tables=enriched,
+            inv_rows=chunk_rows,
+            report=report,
+            is_partial_wave=is_partial_wave,
+            max_tables_per_wave=max_tables_per_wave,
+        )
+        return MigrationWave(
+            wave_id=wave_id,
+            name=name,
+            tables=enriched,
+            business_rationale=br,
+            technical_rationale=tr,
+            metrics=metrics,
+        )

@@ -128,6 +128,8 @@ JSON reports include **`schema_version`** (e.g. `1.1`), **`ingestion_stats`**, *
 | **Business Glossary** | Grouped legacy → DDL stories; **full `sample_data/glossary/` inventory** in JSON report (`glossary_source`) + dashboard expander |
 | **Ask the data** | Concept search (Hebrew/English) |
 | **Tables** | Per-table merge breakdown; optional **pyvis** lineage neighborhood |
+| **Data quality** | Same checks as **`ama-ingest dq`** (boundary, schema, discovery inventory) |
+| **Autonomous Planner** | Migration waves from discovery — same as **`ama-ingest plan`** |
 | **Review (HITL)** | Approve/reject; sidecar `<report>.hitl.json` |
 
 **HITL in the dashboard:** With a **file path** (not upload), the UI merges `.hitl.json` into the loaded report on each run so Executive / Glossary / metrics reflect approvals immediately. Use **Reload from Disk** after regenerating the JSON. To produce a merged file for sharing:

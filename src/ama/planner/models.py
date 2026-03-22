@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -14,6 +15,8 @@ class PlannedTable:
     priority_score: float
     query_count: int
     rationale: str = ""
+    business_context: str = ""
+    technical_note: str = ""
 
 
 @dataclass
@@ -23,11 +26,17 @@ class MigrationWave:
     wave_id: int
     name: str
     tables: list[PlannedTable] = field(default_factory=list)
+    business_rationale: str = ""
+    technical_rationale: str = ""
+    metrics: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
             "wave_id": self.wave_id,
             "name": self.name,
+            "business_rationale": self.business_rationale,
+            "technical_rationale": self.technical_rationale,
+            "metrics": dict(self.metrics),
             "tables": [asdict(t) for t in self.tables],
         }
 

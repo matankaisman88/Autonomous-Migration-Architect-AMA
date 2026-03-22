@@ -18,7 +18,9 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
+from ama.data_quality import run_dq_suite
 from ama.hitl_apply import apply_hitl_to_report
+from ama.planner import AutonomousPlanner
 from ama.business_logic import (
     build_business_glossary_entries,
     build_impact_readiness_scatter_rows,
@@ -60,6 +62,68 @@ _DEMO_WITH_REVIEW = Path(__file__).resolve().parents[3] / "sample_data" / "dashb
 
 # No global confidence slider — merge confidence stays visual (scatter, gauges, table columns).
 _MERGE_CONF_SCOPE = 0.0
+
+
+def _render_dq_tab(report: dict[str, Any]) -> None:
+    """Data quality suite (same as ``ama-ingest dq``)."""
+    st.subheader("Data quality")
+    st.caption(
+        "Report contract checks: boundary validation, **schema_version**, **ingestion_stats**, and discovery inventory. "
+        "Aligns with **`ama-ingest dq --report report.json`**."
+    )
+    dq = run_dq_suite(report)
+    d = dq.to_dict()
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Suite status", "PASS" if d["ok"] else "FAIL")
+    c2.metric("Errors", int(d["error_count"]))
+    c3.metric("Warnings", int(d["warn_count"]))
+    chk = d.get("checks") or []
+    if chk:
+        st.dataframe(pd.DataFrame(chk), use_container_width=True, hide_index=True)
+    else:
+        st.info("No check rows returned.")
+
+
+def _render_planner_tab(report: dict[str, Any]) -> None:
+    """Migration waves from discovery inventory (same as ``ama-ingest plan``)."""
+    st.subheader("Planner")
+    st.caption(
+        "Waves by domain + priority, with **short** business/technical blurbs from *this* report’s inventory. "
+        "Same as **`ama-ingest plan --report report.json`**."
+    )
+    plan = AutonomousPlanner().plan_from_report(report, max_tables_per_wave=25, max_waves=20)
+    plan_dict = plan.to_dict()
+    st.markdown(f"**Target focus:** `{plan_dict.get('target_focus') or '—'}`")
+    notes = plan_dict.get("notes") or []
+    if notes:
+        for n in notes:
+            st.caption(str(n))
+    waves = plan_dict.get("waves") or []
+    st.metric("Migration waves", len(waves))
+    if not waves:
+        st.info(
+            "No waves — enable **discovery** and ingest SQL logs with **`--discovery-mode`** so the inventory populates."
+        )
+        return
+    for w in waves:
+        if not isinstance(w, dict):
+            continue
+        wid = w.get("wave_id", "")
+        wname = w.get("name", "")
+        tbls = w.get("tables") or []
+        with st.expander(f"Wave {wid}: {wname} ({len(tbls)} tables)", expanded=False):
+            br = str(w.get("business_rationale") or "").strip()
+            tr = str(w.get("technical_rationale") or "").strip()
+            if br:
+                st.markdown("**Business rationale**")
+                st.markdown(br)
+            if tr:
+                st.markdown("**Technical rationale**")
+                st.markdown(tr)
+            if tbls:
+                st.dataframe(pd.DataFrame(tbls), use_container_width=True, hide_index=True)
+            else:
+                st.caption("No tables in this wave.")
 
 
 def _safe_mtime(path: Path) -> float:
@@ -361,9 +425,11 @@ def main() -> None:
         [
             "Executive overview",
             "Domains",
+            "Planner",
             "Business Glossary",
             "Ask the data",
             "Tables",
+            "Data quality",
             "Review (HITL)",
         ]
     )
@@ -543,6 +609,9 @@ def main() -> None:
                     )
 
     with tabs[2]:
+        _render_planner_tab(report)
+
+    with tabs[3]:
         st.subheader("Business Translator — glossary")
         gs_inv = report.get("glossary_source") or {}
         gs_flat: list[dict[str, Any]] = []
@@ -748,7 +817,7 @@ def main() -> None:
                 if card.get("reasoning"):
                     st.caption(f"**Evidence / citations:** {card.get('reasoning')}")
 
-    with tabs[3]:
+    with tabs[4]:
         st.subheader("Ask the data")
         st.markdown(
             """
@@ -882,7 +951,7 @@ search over every raw SQL line in the logs.
                             "You have **table** hits but no merge-backed glossary yet for this query — often a wording mismatch in column names."
                         )
 
-    with tabs[4]:
+    with tabs[5]:
         st.subheader("Tables")
         st.caption(
             "Table list follows **business domain** and **portfolio** (discovery inventory). "
@@ -1101,7 +1170,10 @@ search over every raw SQL line in the logs.
                 else:
                     st.caption("No trash rows for this table.")
 
-    with tabs[5]:
+    with tabs[6]:
+        _render_dq_tab(report)
+
+    with tabs[7]:
         st.subheader("Human-in-the-loop — review queue")
         st.caption("Approve or reject suggested mappings. Decisions persist next to the JSON report.")
         decisions = st.session_state.hitl.setdefault("decisions", {})
