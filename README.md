@@ -47,6 +47,7 @@ Credentials and paths: use **`AMA_*` environment variables** and **`.env`** (see
 | **Tabular / Excel** | pandas, openpyxl |
 | **Embeddings / vector store** | numpy; optional Qdrant (`qdrant-client`) |
 | **Dashboard** | Streamlit, Plotly |
+| **Demo CLI** | [rich](https://github.com/Textualize/rich) (terminal UI for `demo_runner.py`) |
 | **Optional viz** | pyvis (interactive lineage) — `pip install -e ".[viz]"` |
 
 Core dependencies are declared in **`pyproject.toml`**.
@@ -87,6 +88,7 @@ Create a **`.env`** file in the working directory (optional) with `AMA_*` variab
 | `ama-ingest run --benchmark` | Performance benchmark → `benchmark_results.json` |
 | `ama-ingest run --stress` | Extreme log stress → `stress_report.json` |
 | `ama-dashboard --report-path report.json` | Streamlit UI |
+| `python demo_runner.py` | **Stakeholder demo** — runs the same ingest as `ama-ingest run --discovery-mode --discovery-merge-all`, writes `demo_report.json`, Rich terminal UI, optional Streamlit + browser |
 
 JSON reports include **`schema_version`** (e.g. `1.1`), **`ingestion_stats`**, **`merge_scope`** (how DDL merge was scoped: single table, top‑N, or all discovered), **`target_table`** (always the configured comms/git anchor), and with **`--discovery-mode`** additive **`lineage`** plus executive **`risk_hotspots`** when the graph has edges.
 
@@ -129,7 +131,7 @@ JSON reports include **`schema_version`** (e.g. `1.1`), **`ingestion_stats`**, *
 | **Ask the data** | Concept search (Hebrew/English) |
 | **Tables** | Per-table merge breakdown; optional **pyvis** lineage neighborhood |
 | **Data quality** | Same checks as **`ama-ingest dq`** (boundary, schema, discovery inventory) |
-| **Autonomous Planner** | Migration waves from discovery — same as **`ama-ingest plan`** |
+| **Planner** | Migration waves from discovery — same as **`ama-ingest plan`** |
 | **Review (HITL)** | Approve/reject; sidecar `<report>.hitl.json` |
 
 **HITL in the dashboard:** With a **file path** (not upload), the UI merges `.hitl.json` into the loaded report on each run so Executive / Glossary / metrics reflect approvals immediately. Use **Reload from Disk** after regenerating the JSON. To produce a merged file for sharing:
@@ -166,6 +168,7 @@ Load from **`.env`** in the working directory when present.
 | `tests/` | Pytest suite |
 | `sample_data/` | Small fixtures for CI and demos |
 | `tools/` | Generators (`generate_*`, stress helpers) |
+| `demo_runner.py` | Stakeholder demo: full discovery + merge-all ingest, plan snapshot, optional dashboard |
 | `USER_GUIDE.md` | Reader + architecture overview |
 | `CONTRIBUTING.md` | Dev quick reference |
 
@@ -175,6 +178,19 @@ Load from **`.env`** in the working directory when present.
 python tools/generate_full_db_chaos.py
 python tools/generate_extreme_chaos.py --lines 1000000 --out chaos_data/sql_logs/extreme_1m.jsonl
 ```
+
+### Demo runner (`demo_runner.py`)
+
+From the repo root (after `pip install -e .`):
+
+```bash
+python demo_runner.py
+python demo_runner.py --no-dashboard
+python demo_runner.py --skip-vectors
+python demo_runner.py --all-project-sql-logs
+```
+
+This invokes **`ama.cli.cmd_run`** with **`--discovery-mode`** and **`--discovery-merge-all`** (same feature set as `ama-ingest run` with those flags), writes **`demo_report.json`** by default, prints a **Rich** summary table, then optionally starts **Streamlit** and opens `http://localhost:8501`. Use **`--report-out`** to change the JSON path (use the same path with **`ama-dashboard --report-path`** if you launch the UI yourself).
 
 ---
 

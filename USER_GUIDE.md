@@ -112,6 +112,32 @@ ama-ingest log-scan sample_data/sql_logs/full_db_chaos.jsonl --max-records 5000
 | `--progress`      | Print progress to stderr every `--progress-every` rows.      |
 
 
+### 5) Stakeholder demo (`demo_runner.py`)
+
+The **demo runner** is a scripted walkthrough for presentations: it runs the **same ingestion** as:
+
+```bash
+ama-ingest run --discovery-mode --discovery-merge-all --format json -o demo_report.json
+```
+
+(i.e. full discovery inventory, multi-table DDL merge via manifest, comms + Git signals, glossary, lineage, **`alias_merge`**, then a migration **plan** snapshot). It uses the **[Rich](https://github.com/Textualize/rich)** library for progress and a summary table, writes **`demo_report.json`** (override with **`--report-out`**), and can launch the **Streamlit** dashboard and open the browser.
+
+```bash
+pip install -e .
+python demo_runner.py
+python demo_runner.py --no-dashboard
+python demo_runner.py --skip-vectors
+python demo_runner.py --all-project-sql-logs
+```
+
+| Flag | Meaning |
+|------|---------|
+| `--no-dashboard` | Only generate the JSON + Rich output; do not start Streamlit |
+| `--skip-vectors` | Faster run; skips building the comms/Git embedding index |
+| `--all-project-sql-logs` | Use all `**/sql_logs/**/*.jsonl` under `--data-root` (slower, more tables) |
+| `--sql-logs PATH ...` | Explicit JSONL files (default: `sample_data/sql_logs/sample_file.jsonl`) |
+| `--discovery-merge-max N` | Cap how many tables get DDL merge (same as `ama-ingest`) |
+
 ---
 
 ## Log Analysis configuration (in code)
