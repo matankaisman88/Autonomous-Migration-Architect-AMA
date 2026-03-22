@@ -47,7 +47,7 @@ class MigrationPlan:
 
     version: str = "1.0"
     source: str = "ama.planner"
-    target_focus: str = ""
+    migration_context: str = ""
     waves: list[MigrationWave] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
@@ -55,7 +55,7 @@ class MigrationPlan:
         return {
             "version": self.version,
             "source": self.source,
-            "target_focus": self.target_focus,
+            "migration_context": self.migration_context,
             "waves": [w.to_dict() for w in self.waves],
             "notes": list(self.notes),
         }

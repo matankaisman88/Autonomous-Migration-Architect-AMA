@@ -33,7 +33,13 @@ class AutonomousPlanner:
         """
         disc = report.get("discovery") or {}
         inv = disc.get("inventory") if isinstance(disc.get("inventory"), list) else []
-        target = str(disc.get("target_full_table") or report.get("target_table") or "")
+        migration_ctx = str(
+            report.get("migration_context")
+            or disc.get("scope_reference")
+            or disc.get("target_full_table")
+            or report.get("target_table")
+            or "",
+        )
 
         rows: list[dict[str, Any]] = [r for r in inv if isinstance(r, dict)]
         rows, lineage_used = sort_rows_by_migration_order(rows, report)
@@ -56,7 +62,7 @@ class AutonomousPlanner:
             earliest = min(pos.get(str(r.get("full_name") or "").strip(), 10**9) for r in drs)
             return (earliest, dom.lower())
 
-        plan = MigrationPlan(target_focus=target)
+        plan = MigrationPlan(migration_context=migration_ctx)
         if lineage_used:
             plan.notes.append(
                 "Inventory order respects lineage co-query edges (DAG over inventory, priority tie-break).",
@@ -133,6 +139,14 @@ class AutonomousPlanner:
         if not plan.waves:
             plan.notes.append(
                 "No discovery inventory in report — run `ama-ingest run --discovery-mode` to populate.",
+            )
+        ms = disc.get("migration_state") if isinstance(disc.get("migration_state"), dict) else {}
+        dpo = ms.get("domain_processing_order") or []
+        if isinstance(dpo, list) and dpo:
+            plan.notes.append(
+                f"System-wide domain order ({len(dpo)} domain(s)): "
+                + ", ".join(str(x) for x in dpo[:24])
+                + (" …" if len(dpo) > 24 else ""),
             )
         return plan
 

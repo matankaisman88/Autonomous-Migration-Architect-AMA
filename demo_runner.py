@@ -84,8 +84,7 @@ def _ingest_args(
         discovery_merge_all=True,
         discovery_merge_n=10,
         discovery_merge_max=discovery_merge_max,
-        target_schema=None,
-        target_table=None,
+        migration_context=None,
     )
 
 

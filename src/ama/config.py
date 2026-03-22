@@ -2,15 +2,36 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def split_migration_context(migration_context: str) -> tuple[str, str]:
+    """Split ``schema.table`` into (schema, table); single segment → ('', table)."""
+    mc = (migration_context or "").strip()
+    if "." in mc:
+        a, b = mc.split(".", 1)
+        return a.strip(), b.strip()
+    return "", mc
 
 
 class IngestionSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="AMA_", env_file=".env", extra="ignore")
 
-    target_schema: str = Field(default="sales", description="Legacy schema name for focus table")
-    target_table: str = Field(default="orders", description="Single table for MVP importance report")
+    migration_context: str = Field(
+        default="sales.orders",
+        description="Qualified schema.table for comms/git anchor and single-table SQL pipeline",
+    )
+    target_schema: str | None = Field(
+        default=None,
+        description="Deprecated: use AMA_MIGRATION_CONTEXT; merged when migration_context is unset/default",
+        validation_alias=AliasChoices("target_schema", "TARGET_SCHEMA"),
+    )
+    target_table: str | None = Field(
+        default=None,
+        description="Deprecated: use AMA_MIGRATION_CONTEXT; merged when migration_context is unset/default",
+        validation_alias=AliasChoices("target_table", "TARGET_TABLE"),
+    )
     sql_logs_glob: str = Field(default="**/sql_logs/**/*.jsonl")
     comms_dir: Path = Field(default=Path("sample_data/comms"))
     git_sql_roots: list[Path] = Field(
@@ -31,7 +52,7 @@ class IngestionSettings(BaseSettings):
     )
     discovery_merge_all: bool = Field(
         default=False,
-        description="With discovery mode: merge all discovered tables (per manifest); else top-N or target-only",
+        description="With discovery mode: merge all discovered tables (per manifest); else top-N or scope-only",
     )
     discovery_merge_max: int = Field(
         default=0,
@@ -67,9 +88,29 @@ class IngestionSettings(BaseSettings):
         description="Fallback SQLGlot dialect when JSONL rows omit dialect (env: AMA_DEFAULT_SQL_DIALECT)",
     )
 
+    @model_validator(mode="after")
+    def _merge_deprecated_target_into_context(self) -> IngestionSettings:
+        """If legacy AMA_TARGET_SCHEMA / AMA_TARGET_TABLE are set and context is still default, compose."""
+        ts = (self.target_schema or "").strip()
+        tt = (self.target_table or "").strip()
+        if ts and tt:
+            mc = self.migration_context.strip()
+            if mc in ("", "sales.orders"):
+                return self.model_copy(update={"migration_context": f"{ts}.{tt}"})
+        return self
+
+    @property
+    def context_schema(self) -> str:
+        return split_migration_context(self.migration_context)[0]
+
+    @property
+    def context_table(self) -> str:
+        return split_migration_context(self.migration_context)[1]
+
     @property
     def full_table(self) -> str:
-        return f"{self.target_schema}.{self.target_table}"
+        """Qualified name for comms/git filters (same as migration_context when schema.table)."""
+        return self.migration_context.strip()
 
 
 def project_root() -> Path:

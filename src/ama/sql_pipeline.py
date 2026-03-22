@@ -310,6 +310,11 @@ def table_matches_target(table_key: str, target_full_table: str) -> bool:
     return _table_matches_target(table_key, tkeys, short)
 
 
+def table_matches_scope(table_key: str, migration_context_reference: str) -> bool:
+    """Same as :func:`table_matches_target` — preferred name for system-wide migration runs."""
+    return table_matches_target(table_key, migration_context_reference)
+
+
 def _target_keys(target_full_table: str) -> set[str]:
     schema, _, table = target_full_table.partition(".")
     t = normalize_sql_identifier(table or target_full_table)

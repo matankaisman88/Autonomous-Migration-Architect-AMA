@@ -23,7 +23,7 @@ def test_run_dq_suite_minimal_ok() -> None:
         "schema_version": "1.1",
         "ingestion_stats": {"total_rows": 1, "parse_ok": 1},
         "discovery": {"enabled": False},
-        "target_table": "a.b",
+        "migration_context": "a.b",
         "columns": [],
     }
     r = run_dq_suite(report)
@@ -38,10 +38,10 @@ def test_plan_from_report_empty() -> None:
 
 def test_plan_from_report_waves() -> None:
     report = {
-        "target_table": "sales.orders",
+        "migration_context": "sales.orders",
         "discovery": {
             "enabled": True,
-            "target_full_table": "sales.orders",
+            "scope_reference": "sales.orders",
             "executive_summary": {
                 "domain_matrix": [
                     {

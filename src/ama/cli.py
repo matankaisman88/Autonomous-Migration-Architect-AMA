@@ -10,7 +10,7 @@ from pathlib import Path
 
 from ama.alias_resolver import AliasResolver, load_ddl_columns, load_glossary
 from ama.ddl_manifest import load_ddl_manifest, resolve_ddl_path_for_table
-from ama.config import IngestionSettings, project_root
+from ama.config import IngestionSettings, project_root, split_migration_context
 from ama.comms_ingest import aggregate_comms_for_table, iter_comms
 from ama.git_ingest import scan_git_sql_roots
 from ama.importance import ColumnImportance, compute_importance_v0
@@ -51,6 +51,7 @@ from ama.discovery import (
     aggregate_merges_for_tables,
     build_discovery_payload,
     discovery_anchor_key,
+    finalize_system_migration_discovery,
     resolve_target_stats_for_table,
     run_discovery,
     top_n_tables,
@@ -264,9 +265,23 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     default_db_resolved = infer_default_db_from_data_root(root, settings.default_db)
 
-    schema = args.target_schema if getattr(args, "target_schema", None) is not None else settings.target_schema
-    table = args.target_table if getattr(args, "target_table", None) is not None else settings.target_table
-    target = f"{schema}.{table}"
+    mc_override = getattr(args, "migration_context", None)
+    if mc_override is not None and str(mc_override).strip():
+        scope = str(mc_override).strip()
+    elif getattr(args, "target_schema", None) is not None or getattr(args, "target_table", None) is not None:
+        ts = (
+            str(args.target_schema).strip()
+            if getattr(args, "target_schema", None) is not None
+            else settings.context_schema
+        )
+        tt = (
+            str(args.target_table).strip()
+            if getattr(args, "target_table", None) is not None
+            else settings.context_table
+        )
+        scope = f"{ts}.{tt}" if (ts and tt) else settings.migration_context.strip()
+    else:
+        scope = settings.migration_context.strip()
     sql_paths = _glob_sql_logs(root, settings.sql_logs_glob)
     if args.sql_logs:
         sql_paths = [Path(p).resolve() for p in args.sql_logs]
@@ -300,7 +315,7 @@ def cmd_run(args: argparse.Namespace) -> int:
             cap = int(dmerge_max or 0)
             merge_keys = ranked[:cap] if cap > 0 else list(ranked)
             multi_merge = True
-            target_key = discovery_anchor_key(discovery_tables, target, fallback_keys=merge_keys)
+            target_key = discovery_anchor_key(discovery_tables, scope, fallback_keys=merge_keys)
             sql_stats = TableColumnStats()
         elif no_target:
             merge_keys = top_n_tables(discovery_tables, n=getattr(args, "discovery_merge_n", 10))
@@ -308,12 +323,12 @@ def cmd_run(args: argparse.Namespace) -> int:
             sql_stats = TableColumnStats()
             multi_merge = True
         else:
-            target_key, sql_stats = resolve_target_stats_for_table(discovery_tables, target)
+            target_key, sql_stats = resolve_target_stats_for_table(discovery_tables, scope)
             multi_merge = False
     else:
         sql_stats = run_sql_logs_pipeline(
             sql_paths,
-            target_full_table=target,
+            target_full_table=scope,
             env=args.env,
             telemetry=ingest_telemetry,
         )
@@ -374,8 +389,8 @@ def cmd_run(args: argparse.Namespace) -> int:
                         logged_by_ddl[dedupe_key] = src
                 mr = None
         else:
-            r0 = resolver_factory(target_key or target)
-            mr = r0.merge_table_stats(sql_stats, source_table=target_key or target)
+            r0 = resolver_factory(target_key or scope)
+            mr = r0.merge_table_stats(sql_stats, source_table=target_key or scope)
             for ent in mr.confirmed_entities:
                 logged_by_ddl[ent.canonical_column] = list(ent.source_columns)
             merged_report = {
@@ -395,7 +410,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     if discovery_mode and discovery_tables is not None:
         discovery_payload = build_discovery_payload(
             discovery_tables,
-            target,
+            scope,
             target_key,
             mr,
             merge_table_keys=merge_keys if multi_merge else None,
@@ -411,10 +426,11 @@ def cmd_run(args: argparse.Namespace) -> int:
             )
 
     comms_dir = root / settings.comms_dir if not args.comms_dir else Path(args.comms_dir)
+    _ctx_schema, _ctx_table = split_migration_context(scope)
     comms_score, comms_hits = aggregate_comms_for_table(
         comms_dir,
-        schema=settings.target_schema,
-        table=settings.target_table,
+        schema=_ctx_schema,
+        table=_ctx_table,
     )
 
     git_roots = [root / p for p in settings.git_sql_roots]
@@ -422,8 +438,8 @@ def cmd_run(args: argparse.Namespace) -> int:
         git_roots = [Path(args.git_root)]
     git_total, git_hits = scan_git_sql_roots(
         git_roots,
-        schema=settings.target_schema,
-        table=settings.target_table,
+        schema=_ctx_schema,
+        table=_ctx_table,
     )
 
     store: CommsGitVectorStore | None = None
@@ -576,8 +592,8 @@ def cmd_run(args: argparse.Namespace) -> int:
         discovery_merge_all=discovery_merge_all,
         no_target=no_target,
         merge_keys=merge_keys,
-        target_full_table=target,
-        target_key=target_key,
+        migration_context_reference=scope,
+        primary_table_key=target_key,
         discovery_merge_max=int(dmerge_max or 0),
         discovery_merge_n=int(dmn),
         tables_merged_distinct=tables_merged_distinct,
@@ -585,7 +601,11 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     report = {
         "schema_version": AMA_REPORT_SCHEMA_VERSION,
-        "target_table": target,
+        "migration_context": scope,
+        "system_scope": {
+            "mode": "system_wide" if discovery_mode else "single_table",
+            "migration_context": scope,
+        },
         "merge_scope": merge_scope,
         "sql_log_files": [str(p) for p in sql_paths],
         "queries_matched": sql_stats.query_count,
@@ -602,6 +622,8 @@ def cmd_run(args: argparse.Namespace) -> int:
         "discovery": discovery_payload,
         "lineage": lineage_payload,
     }
+    if discovery_mode and isinstance(discovery_payload, dict) and discovery_payload.get("enabled"):
+        finalize_system_migration_discovery(report["discovery"], report)
     n_err, samples = validate_report_boundary(report)
     ingest_stats = ingest_telemetry.to_dict()
     ingest_stats["report_validation_error_count"] = n_err
@@ -614,7 +636,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     except ValidationError as e:
         print(f"warning: report failed ReportModel validation: {e}", file=sys.stderr)
     if store:
-        q = f"{settings.target_schema}.{settings.target_table} revenue"
+        q = f"{_ctx_schema}.{_ctx_table} revenue"
         report["vector_search_demo"] = store.search(q, limit=3)
         report["vector_points"] = "in_memory" if not settings.qdrant_path else str(settings.qdrant_path)
 
@@ -653,7 +675,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         if out_spec is not None:
             out_path = resolve_report_output_path(
                 out_spec,
-                table_full_name=target,
+                table_full_name=scope,
                 extension=ext,
                 cwd=cwd,
             )
@@ -669,7 +691,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         else:
             out_path = resolve_report_output_path(
                 out_spec,
-                table_full_name=target,
+                table_full_name=scope,
                 extension=ext,
                 cwd=cwd,
             )
@@ -682,7 +704,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         if out_spec is not None:
             out_path = resolve_report_output_path(
                 out_spec,
-                table_full_name=target,
+                table_full_name=scope,
                 extension=ext,
                 cwd=cwd,
             )
@@ -723,7 +745,7 @@ def cmd_apply_hitl(args: argparse.Namespace) -> int:
 
     fmt = getattr(args, "format", "json") or "json"
     cwd = Path.cwd()
-    target = str(merged.get("target_table") or "report")
+    target = str(merged.get("migration_context") or merged.get("target_table") or "report")
 
     if fmt == "excel":
         ext = ".xlsx"
@@ -909,16 +931,23 @@ def main() -> None:
         help="With --discovery-merge-all: max tables to merge (0 or unset = unlimited; overrides AMA_DISCOVERY_MERGE_MAX)",
     )
     r.add_argument(
+        "--migration-context",
+        type=str,
+        default=None,
+        metavar="SCHEMA.TABLE",
+        help="Override AMA_MIGRATION_CONTEXT (comms/git anchor and single-table / discovery scope)",
+    )
+    r.add_argument(
         "--target-schema",
         type=str,
         default=None,
-        help="Override AMA_TARGET_SCHEMA for single-table / discovery target resolution",
+        help="Deprecated: use --migration-context; overrides schema segment only (pairs with --target-table)",
     )
     r.add_argument(
         "--target-table",
         type=str,
         default=None,
-        help="Override AMA_TARGET_TABLE (single-table mode or discovery anchor when not using --no-target)",
+        help="Deprecated: use --migration-context; overrides table segment only (pairs with --target-schema)",
     )
     r.add_argument(
         "--benchmark",

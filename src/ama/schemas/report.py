@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-AMA_REPORT_SCHEMA_VERSION = "1.1"
+AMA_REPORT_SCHEMA_VERSION = "1.2"
 
 
 class IngestionStats(BaseModel):
@@ -32,6 +32,7 @@ class ReportModel(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     schema_version: str = AMA_REPORT_SCHEMA_VERSION
+    migration_context: str = ""
     generated_at: str = Field(..., description="ISO 8601 timestamp (UTC recommended)")
     ingestion_stats: IngestionStats
     inventory: list[dict[str, Any]] | None = Field(
@@ -103,6 +104,7 @@ class AmaReportBoundarySchema(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     schema_version: str | None = None
+    migration_context: str = ""
     target_table: str = ""
     queries_matched: int = 0
     discovery: dict[str, Any] = Field(default_factory=dict)

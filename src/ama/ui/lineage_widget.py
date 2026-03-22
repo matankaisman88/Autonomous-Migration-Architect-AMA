@@ -89,18 +89,18 @@ def _inject_viewport_fit(html: str) -> str:
 
 def lineage_subgraph_html(
     lineage_data: dict[str, Any] | None,
-    target_table: str,
+    center_table: str,
     *,
     height_px: int = 440,
 ) -> str | None:
     """
-    Build an interactive HTML graph (Pyvis) for the 1-hop neighborhood of ``target_table``.
+    Build an interactive HTML graph (Pyvis) for the 1-hop neighborhood of ``center_table``.
 
     Parameters
     ----------
     lineage_data
         The ``report["lineage"]`` object (expects ``edges``: list of ``from`` / ``to`` / ``weight``).
-    target_table
+    center_table
         Fully qualified table name to center the subgraph on.
 
     Returns
@@ -108,7 +108,7 @@ def lineage_subgraph_html(
     Complete HTML document string for ``st.components.v1.html``, or ``None`` if there is nothing
     to draw or Pyvis is not installed.
     """
-    if not str(target_table).strip():
+    if not str(center_table).strip():
         return None
     lineage = lineage_data or {}
     edges = lineage.get("edges") or []
@@ -119,7 +119,7 @@ def lineage_subgraph_html(
     except ImportError:
         return None
 
-    center = target_table.strip()
+    center = center_table.strip()
     nodes: set[str] = {center}
     for e in edges:
         if not isinstance(e, dict):
@@ -218,9 +218,9 @@ def lineage_subgraph_html(
 
 def lineage_subgraph_html_from_report(
     report: dict[str, Any],
-    target_table: str,
+    center_table: str,
     *,
     height_px: int = 440,
 ) -> str | None:
-    """Convenience wrapper: ``lineage_subgraph_html(report.get(\"lineage\"), target_table)``."""
-    return lineage_subgraph_html(report.get("lineage") if isinstance(report, dict) else None, target_table, height_px=height_px)
+    """Convenience wrapper: ``lineage_subgraph_html(report.get(\"lineage\"), center_table)``."""
+    return lineage_subgraph_html(report.get("lineage") if isinstance(report, dict) else None, center_table, height_px=height_px)

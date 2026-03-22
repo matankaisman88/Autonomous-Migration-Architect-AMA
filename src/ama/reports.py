@@ -19,28 +19,26 @@ def merge_scope_metadata(
     discovery_merge_all: bool,
     no_target: bool,
     merge_keys: list[str],
-    target_full_table: str,
-    target_key: str,
+    migration_context_reference: str,
+    primary_table_key: str,
     discovery_merge_max: int,
     discovery_merge_n: int,
     tables_merged_distinct: int,
 ) -> dict[str, Any]:
     """
     Describe how this ingest run scoped SQL stats and DDL merge (for CLI summary + JSON report).
-    ``target_full_table`` is always AMA target_schema.target_table (comms/git anchor).
+    ``migration_context_reference`` is the comms/git anchor (AMA_MIGRATION_CONTEXT).
     """
-    anchor = (target_full_table or "").strip()
-    n_merge = len(merge_keys)
+    anchor = (migration_context_reference or "").strip()
     if not discovery_mode:
         return {
             "mode": "single_table_logs",
             "label": "Single-table log pipeline",
             "description": (
-                "SQL logs were filtered to the configured target table only; "
+                "SQL logs were filtered to the configured migration scope only; "
                 "no full-schema discovery scan."
             ),
-            "anchor_table": anchor,
-            "comms_git_anchor": anchor,
+            "comms_git_reference": anchor,
             "tables_merged": int(tables_merged_distinct),
         }
     if discovery_merge_all and multi_merge:
@@ -52,9 +50,8 @@ def merge_scope_metadata(
                 "Discovery scanned all qualified tables in the logs; DDL merge ran on each table in scope "
                 "(see merge_cap)."
             ),
-            "anchor_table": anchor,
-            "comms_git_anchor": anchor,
-            "resolved_anchor_in_discovery": (target_key or "").strip(),
+            "comms_git_reference": anchor,
+            "resolved_primary_table_key": (primary_table_key or "").strip(),
             "tables_merged": int(tables_merged_distinct),
             "merge_cap": cap if cap > 0 else None,
             "table_names_merged": list(merge_keys),
@@ -67,24 +64,22 @@ def merge_scope_metadata(
                 "Discovery scanned all tables; DDL merge ran on the N busiest tables "
                 f"(discovery_merge_n={discovery_merge_n})."
             ),
-            "anchor_table": anchor,
-            "comms_git_anchor": anchor,
+            "comms_git_reference": anchor,
             "tables_merged": int(tables_merged_distinct),
             "merge_cap_n": int(discovery_merge_n),
             "table_names_merged": list(merge_keys),
         }
     return {
-        "mode": "discovery_pinned_target",
+        "mode": "discovery_pinned_scope",
         "label": "Discovery + single-table merge",
         "description": (
             "Discovery lists all tables; column stats and DDL merge use the configured "
-            "target table match in the logs."
+            "migration scope match in the logs."
         ),
-        "anchor_table": anchor,
-        "comms_git_anchor": anchor,
-        "primary_discovery_key": (target_key or "").strip(),
+        "comms_git_reference": anchor,
+        "primary_scope_table_key": (primary_table_key or "").strip(),
         "tables_merged": int(tables_merged_distinct),
-        "table_names_merged": list(merge_keys) if merge_keys else ([target_key] if target_key else []),
+        "table_names_merged": list(merge_keys) if merge_keys else ([primary_table_key] if primary_table_key else []),
     }
 
 
@@ -245,32 +240,35 @@ def format_cli_run_summary(
 ) -> str:
     """Short terminal-friendly lines (no wide Markdown tables)."""
     lines: list[str] = []
-    target = str(payload.get("target_table", ""))
+    ctx = str(payload.get("migration_context") or payload.get("target_table") or "")
     ms = payload.get("merge_scope") if isinstance(payload.get("merge_scope"), dict) else {}
     mode = str(ms.get("mode") or "")
+    comms_ref = ms.get("comms_git_reference") or ms.get("comms_git_anchor") or ms.get("anchor_table") or ctx
     if mode == "all_discovered_tables":
         tm = ms.get("tables_merged", 0)
         cap = ms.get("merge_cap")
         cap_s = f" (max {cap} tables)" if cap else ""
         lines.append(f"Merge scope: {tm} tables — all discovered{cap_s}")
-        lines.append(f"Comms/git anchor (AMA_TARGET_*): {ms.get('comms_git_anchor', target)}")
+        lines.append(f"Comms/git reference (AMA_MIGRATION_CONTEXT): {comms_ref}")
     elif mode == "top_n_discovered_tables":
         tm = ms.get("tables_merged", 0)
         n = ms.get("merge_cap_n", "")
         lines.append(f"Merge scope: {tm} tables — top {n} by query volume")
-        lines.append(f"Comms/git anchor (AMA_TARGET_*): {ms.get('comms_git_anchor', target)}")
-    elif mode == "discovery_pinned_target":
-        pk = str(ms.get("primary_discovery_key") or "").strip()
+        lines.append(f"Comms/git reference (AMA_MIGRATION_CONTEXT): {comms_ref}")
+    elif mode in ("discovery_pinned_scope", "discovery_pinned_target"):
+        pk = str(
+            ms.get("primary_scope_table_key") or ms.get("primary_discovery_key") or "",
+        ).strip()
         lines.append(
-            "Merge scope: single table (pinned to configured target in discovery)"
+            "Merge scope: single table (pinned to configured migration scope in discovery)"
             + (f" — `{pk}`" if pk else "")
         )
-        lines.append(f"Comms/git anchor: {ms.get('comms_git_anchor', target)}")
+        lines.append(f"Comms/git reference: {comms_ref}")
     elif mode == "single_table_logs":
-        lines.append(f"Log target (single-table pipeline): {ms.get('anchor_table', target)}")
-        lines.append(f"Comms/git anchor: {ms.get('comms_git_anchor', target)}")
+        lines.append(f"Log scope (single-table pipeline): {comms_ref}")
+        lines.append(f"Comms/git reference: {comms_ref}")
     else:
-        lines.append(f"Target table: {target}")
+        lines.append(f"Migration context: {ctx}")
     lines.append(f"Queries matched: {payload.get('queries_matched', 0)}")
     lines.append(f"Format: {fmt}")
     md = payload.get("markdown_sections") or {}
@@ -300,9 +298,10 @@ def render_markdown_summary(payload: dict[str, Any]) -> str:
     Canonical-first Markdown: confirmed rows keyed by Target DDL only; Hebrew only in masked notes.
     """
     lines: list[str] = []
-    target = payload.get("target_table", "")
+    ctx = str(payload.get("migration_context") or payload.get("target_table") or "")
     ms = payload.get("merge_scope") if isinstance(payload.get("merge_scope"), dict) else {}
     mode = str(ms.get("mode") or "")
+    comms_ref = ms.get("comms_git_reference") or ms.get("comms_git_anchor") or ms.get("anchor_table") or ctx
     lines.append("# AMA migration column report")
     lines.append("")
     if mode == "all_discovered_tables":
@@ -310,24 +309,26 @@ def render_markdown_summary(payload: dict[str, Any]) -> str:
         cap = ms.get("merge_cap")
         cap_s = f", max **{cap}** tables" if cap else ""
         lines.append(f"**Merge scope:** all discovered tables (**{tm}** merged{cap_s})  ")
-        lines.append(f"**Comms/git anchor:** `{_esc(str(ms.get('comms_git_anchor', target)))}`  ")
+        lines.append(f"**Comms/git reference:** `{_esc(str(comms_ref))}`  ")
     elif mode == "top_n_discovered_tables":
         tm = ms.get("tables_merged", 0)
         n = ms.get("merge_cap_n", "")
         lines.append(f"**Merge scope:** top **{n}** tables by volume (**{tm}** merged)  ")
-        lines.append(f"**Comms/git anchor:** `{_esc(str(ms.get('comms_git_anchor', target)))}`  ")
-    elif mode == "discovery_pinned_target":
-        pk = str(ms.get("primary_discovery_key") or "").strip()
+        lines.append(f"**Comms/git reference:** `{_esc(str(comms_ref))}`  ")
+    elif mode in ("discovery_pinned_scope", "discovery_pinned_target"):
+        pk = str(
+            ms.get("primary_scope_table_key") or ms.get("primary_discovery_key") or "",
+        ).strip()
         lines.append(
             "**Merge scope:** discovery + single-table merge"
             + (f" (`{_esc(pk)}`)" if pk else "")
             + "  "
         )
-        lines.append(f"**Configured target:** `{_esc(str(target))}`  ")
+        lines.append(f"**Configured migration context:** `{_esc(str(ctx))}`  ")
     elif mode == "single_table_logs":
-        lines.append(f"**Log target:** `{_esc(str(ms.get('anchor_table', target)))}`  ")
+        lines.append(f"**Log scope:** `{_esc(str(comms_ref))}`  ")
     else:
-        lines.append(f"**Target table:** `{_esc(str(target))}`  ")
+        lines.append(f"**Migration context:** `{_esc(str(ctx))}`  ")
     lines.append(f"**Queries matched:** {payload.get('queries_matched', 0)}  ")
     src = payload.get("column_name_source", "")
     lines.append(f"**Column name source:** `{_esc(str(src))}`  ")
@@ -523,13 +524,13 @@ class ExcelReportGenerator:
     def _location_prefix(self) -> tuple[str, str, str, str]:
         d = self._payload.get("discovery") or {}
         default_db = str(d.get("default_database") or "")
-        tk = str(d.get("target_key") or "")
+        tk = str(d.get("primary_table_key") or d.get("target_key") or "")
         if tk:
             db, s, t = split_qualified_name(tk)
             if not db and default_db:
                 db = default_db
             return db, s, t, tk
-        tgt = str(self._payload.get("target_table") or "")
+        tgt = str(self._payload.get("migration_context") or self._payload.get("target_table") or "")
         if "." in tgt:
             a, _, b = tgt.partition(".")
             db = default_db if default_db else ""
@@ -725,9 +726,10 @@ class ExcelReportGenerator:
             columns={
                 "table_count": "Table count",
                 "total_queries": "Total queries",
-                "approx_pct_confirmed": "% Confirmed (target merge)",
-                "approx_pct_review": "% Review (target merge)",
-                "has_target_table": "Contains target table",
+                "approx_pct_confirmed": "% Confirmed (scope merge)",
+                "approx_pct_review": "% Review (scope merge)",
+                "schema_in_merge_scope": "Schema in merge scope",
+                "has_target_table": "Schema in merge scope",
             }
         )
 
@@ -864,7 +866,7 @@ class ExcelReportGenerator:
         import pandas as pd
 
         p = self._payload
-        target = str(p.get("target_table", ""))
+        target = str(p.get("migration_context") or p.get("target_table") or "")
         qm = int(p.get("queries_matched", 0) or 0)
         cols = p.get("columns") or []
         imp_ddl = p.get("importance_ddl") or []
@@ -892,7 +894,7 @@ class ExcelReportGenerator:
         pct_dead = (100.0 * dead / total_columns) if total_columns else 0.0
 
         metrics = [
-            ("Target table", target),
+            ("Migration context", target),
             ("Queries matched", qm),
             ("Total columns (scope)", total_columns),
             ("Confirmed migrations", n_conf),

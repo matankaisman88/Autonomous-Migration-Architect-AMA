@@ -8,7 +8,7 @@ from ama.hitl_apply import apply_hitl_to_report
 
 def _minimal_report() -> dict:
     return {
-        "target_table": "s.t",
+        "migration_context": "s.t",
         "alias_merge": {
             "merged_entities": [],
             "review_candidates": [

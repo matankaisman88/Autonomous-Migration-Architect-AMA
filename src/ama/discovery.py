@@ -1,19 +1,25 @@
 """
 Hierarchical schema/table discovery from SQL logs (database.schema.table paths).
+
+System-wide migration mode: full log scan, domain clustering, and iterative
+global migration state attached to the report (cross-domain lineage preserved).
 """
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import asdict
 from typing import Any, Callable
 
 from ama.alias_resolver import AliasResolver, MergeResult
 from ama.lineage import LineageGraph
+from ama.planner.lineage_order import sort_rows_by_migration_order
 from ama.sql_pipeline import (
     SqlIngestionTelemetry,
     TableColumnStats,
     merge_stats,
     run_sql_logs_discovery_pipeline,
+    table_matches_scope,
     table_matches_target,
 )
 
@@ -33,18 +39,41 @@ def split_qualified_name(key: str) -> tuple[str, str, str]:
     return parts[0], ".".join(parts[1:-1]), parts[-1]
 
 
-def resolve_target_stats_for_table(
+def resolve_scope_stats_for_table(
     discovery_tables: dict[str, TableColumnStats],
-    target_full_table: str,
+    migration_context_reference: str,
 ) -> tuple[str, TableColumnStats]:
-    """Pick the discovered table key that best matches the configured target (highest query volume)."""
+    """Pick the discovered table key that best matches the configured scope (highest query volume)."""
     best_k = ""
     best_st = TableColumnStats()
     best_q = -1
     for k, st in discovery_tables.items():
-        if table_matches_target(k, target_full_table) and st.query_count >= best_q:
+        if table_matches_scope(k, migration_context_reference) and st.query_count >= best_q:
             best_k, best_st, best_q = k, st, st.query_count
     return best_k, best_st
+
+
+def resolve_target_stats_for_table(
+    discovery_tables: dict[str, TableColumnStats],
+    target_full_table: str,
+) -> tuple[str, TableColumnStats]:
+    """Deprecated name for :func:`resolve_scope_stats_for_table`."""
+    return resolve_scope_stats_for_table(discovery_tables, target_full_table)
+
+
+def discovery_scope_primary_key(
+    discovery_tables: dict[str, TableColumnStats],
+    migration_context_reference: str,
+    *,
+    fallback_keys: list[str] | None = None,
+) -> str:
+    """Prefer the discovered key matching ``migration_context_reference``; else first of ``fallback_keys``."""
+    for k in discovery_tables:
+        if table_matches_scope(k, migration_context_reference):
+            return k
+    if fallback_keys:
+        return fallback_keys[0]
+    return ""
 
 
 def discovery_anchor_key(
@@ -53,24 +82,23 @@ def discovery_anchor_key(
     *,
     fallback_keys: list[str] | None = None,
 ) -> str:
-    """Prefer the discovered key matching ``target_full_table``; else first of ``fallback_keys``."""
-    for k in discovery_tables:
-        if table_matches_target(k, target_full_table):
-            return k
-    if fallback_keys:
-        return fallback_keys[0]
-    return ""
+    """Deprecated name for :func:`discovery_scope_primary_key`."""
+    return discovery_scope_primary_key(
+        discovery_tables,
+        target_full_table,
+        fallback_keys=fallback_keys,
+    )
 
 
 def _inventory_status(
     *,
-    is_target: bool,
+    is_primary_scope: bool,
     stats: TableColumnStats,
     mr: MergeResult | None,
 ) -> str:
     if stats.query_count <= 0 and not stats.columns:
         return "Empty/Legacy"
-    if not is_target:
+    if not is_primary_scope:
         return "Discovered (not in DDL scope)"
     if mr is None:
         return "Needs Review (no DDL merge)"
@@ -87,8 +115,8 @@ def _inventory_status(
 
 def build_discovery_payload(
     discovery_tables: dict[str, TableColumnStats],
-    target_full_table: str,
-    target_key: str,
+    migration_context_reference: str,
+    primary_table_key: str,
     mr: MergeResult | None,
     *,
     merge_table_keys: list[str] | None = None,
@@ -106,7 +134,7 @@ def build_discovery_payload(
         db, schema, table = split_qualified_name(key)
         if not db and default_database:
             db = default_database
-        in_merge = (key in merge_keys) if merge_keys else (bool(target_key) and key == target_key)
+        in_merge = (key in merge_keys) if merge_keys else (bool(primary_table_key) and key == primary_table_key)
         qc = int(st.query_count or 0)
         priority = round(100.0 * qc / max_q, 2) if max_q else 0.0
         if multi_table_merge:
@@ -115,8 +143,8 @@ def build_discovery_payload(
             else:
                 status = "Discovered (outside merge scope)"
         else:
-            is_target = bool(target_key) and key == target_key
-            status = _inventory_status(is_target=is_target, stats=st, mr=mr if is_target else None)
+            is_primary_scope = bool(primary_table_key) and key == primary_table_key
+            status = _inventory_status(is_primary_scope=is_primary_scope, stats=st, mr=mr if is_primary_scope else None)
         if "TEMP" in schema.upper() or "TEMP" in key.upper() or "JUNK" in schema.upper():
             if status.startswith("Discovered") or "outside merge" in status:
                 status = "Ephemeral (Temp)"
@@ -153,18 +181,18 @@ def build_discovery_payload(
     else:
         n_conf = n_rev = n_trash = 0
     for sk, block in by_schema.items():
-        if target_key and not multi_table_merge:
-            _, tschema, _ = split_qualified_name(target_key)
-            block["has_target_table"] = (tschema or "(default)") == sk or (
+        if primary_table_key and not multi_table_merge:
+            _, tschema, _ = split_qualified_name(primary_table_key)
+            block["schema_in_merge_scope"] = (tschema or "(default)") == sk or (
                 sk == "(default)" and not tschema
             )
         elif multi_table_merge and merge_keys:
-            block["has_target_table"] = any(
+            block["schema_in_merge_scope"] = any(
                 (split_qualified_name(k)[1] or "(default)") == sk for k in merge_keys
             )
         else:
-            block["has_target_table"] = False
-        if block.get("has_target_table") and (mr is not None or merged_summary is not None):
+            block["schema_in_merge_scope"] = False
+        if block.get("schema_in_merge_scope") and (mr is not None or merged_summary is not None):
             tot = max(n_conf + n_rev + n_trash, 1)
             block["approx_pct_confirmed"] = round(100.0 * n_conf / tot, 2)
             block["approx_pct_review"] = round(100.0 * n_rev / tot, 2)
@@ -174,8 +202,8 @@ def build_discovery_payload(
 
     return {
         "enabled": True,
-        "target_full_table": target_full_table,
-        "target_key": target_key,
+        "scope_reference": migration_context_reference,
+        "primary_table_key": primary_table_key,
         "multi_table_merge": multi_table_merge,
         "merge_table_keys": list(merge_keys) if merge_keys else [],
         "inventory": inventory,
@@ -267,6 +295,8 @@ def aggregate_merges_for_tables(
         trash.extend(asdict(u) for u in mr.trash_candidates)
         proposals.extend(asdict(p) for p in mr.proposals)
 
+    merged_entities = dedupe_merged_entities(merged_entities)
+
     return (
         {
             "merged_entities": merged_entities,
@@ -276,3 +306,165 @@ def aggregate_merges_for_tables(
         },
         combined,
     )
+
+
+def dedupe_merged_entities(merged_entities: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Idempotent merge rows: one row per (source_table, canonical_column)."""
+    seen: set[tuple[str, str]] = set()
+    out: list[dict[str, Any]] = []
+    for e in merged_entities:
+        if not isinstance(e, dict):
+            continue
+        st = str(e.get("source_table") or "").strip()
+        col = str(e.get("canonical_column") or "").strip()
+        k = (st, col)
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append(e)
+    return out
+
+
+def _undirected_pairs_with_weights(
+    edges: list[Any],
+    allowed: set[str],
+) -> dict[tuple[str, str], int]:
+    """Aggregate co-query weights (undirected)."""
+    pair_w: dict[tuple[str, str], int] = defaultdict(int)
+    for e in edges:
+        if not isinstance(e, dict):
+            continue
+        a = str(e.get("from", "") or "").strip()
+        b = str(e.get("to", "") or "").strip()
+        if not a or not b or a == b:
+            continue
+        if a not in allowed or b not in allowed:
+            continue
+        ek = (a, b) if a < b else (b, a)
+        w = int(e.get("weight") or 1)
+        pair_w[ek] += w
+    return dict(pair_w)
+
+
+def build_coquery_table_clusters(
+    lineage_payload: dict[str, Any] | None,
+    *,
+    inventory_full_names: set[str],
+    min_edge_weight: int = 1,
+) -> list[dict[str, Any]]:
+    """
+    Partition tables into connected components from co-query edges (lineage graph).
+
+    Components approximate cross-table affinity clusters for migration planning;
+    taxonomy-driven domains are still assigned in :func:`enrich_discovery_business_context`.
+    """
+    if not lineage_payload or not inventory_full_names:
+        return []
+    edges = lineage_payload.get("edges") or []
+    pair_w = _undirected_pairs_with_weights(edges, inventory_full_names)
+    adj: dict[str, list[str]] = defaultdict(list)
+    for (a, b), w in pair_w.items():
+        if w < min_edge_weight:
+            continue
+        adj[a].append(b)
+        adj[b].append(a)
+
+    visited: set[str] = set()
+    clusters: list[dict[str, Any]] = []
+    for start in sorted(inventory_full_names):
+        if start in visited:
+            continue
+        stack = [start]
+        comp: set[str] = set()
+        while stack:
+            u = stack.pop()
+            if u in visited:
+                continue
+            visited.add(u)
+            comp.add(u)
+            for v in adj.get(u, ()):
+                if v not in visited:
+                    stack.append(v)
+        if not comp:
+            continue
+        tw = 0
+        for (x, y), w in pair_w.items():
+            if x in comp and y in comp:
+                tw += w
+        clusters.append(
+            {
+                "cluster_id": f"coquery_{len(clusters)}",
+                "tables": sorted(comp),
+                "table_count": len(comp),
+                "internal_edge_weight": tw,
+            }
+        )
+        if len(clusters) >= 8000:
+            break
+    clusters.sort(key=lambda c: (-int(c.get("internal_edge_weight") or 0), -int(c.get("table_count") or 0)))
+    return clusters
+
+
+def finalize_system_migration_discovery(
+    discovery: dict[str, Any],
+    report: dict[str, Any],
+) -> None:
+    """
+    After business-domain enrichment, attach global migration state: domain iteration order
+    (lineage-aware) and co-query clusters. Safe to call repeatedly (deterministic).
+    """
+    inv = discovery.get("inventory") or []
+    if not isinstance(inv, list) or not inv:
+        discovery.setdefault(
+            "migration_state",
+            {
+                "mode": "system_wide",
+                "domains_detected": [],
+                "domain_processing_order": [],
+                "coquery_clusters": [],
+                "lineage_order_applied": False,
+            },
+        )
+        return
+
+    rows = [r for r in inv if isinstance(r, dict)]
+    sorted_rows, lineage_used = sort_rows_by_migration_order(rows, report)
+    domain_order: list[str] = []
+    seen_d: set[str] = set()
+    for r in sorted_rows:
+        d = str(r.get("business_domain") or "Unclassified")
+        if d not in seen_d:
+            seen_d.add(d)
+            domain_order.append(d)
+
+    names = {str(r.get("full_name") or "").strip() for r in rows}
+    names = {n for n in names if n}
+    lineage = report.get("lineage") if isinstance(report.get("lineage"), dict) else None
+    clusters = build_coquery_table_clusters(lineage, inventory_full_names=names)
+
+    domains_detected = sorted({str(r.get("business_domain") or "Unclassified") for r in rows})
+    discovery["migration_state"] = {
+        "mode": "system_wide",
+        "lineage_order_applied": lineage_used,
+        "domains_detected": domains_detected,
+        "domain_processing_order": domain_order,
+        "coquery_clusters": clusters,
+    }
+
+
+# Back-compat re-exports for tests
+__all__ = [
+    "aggregate_merges_for_tables",
+    "build_coquery_table_clusters",
+    "build_discovery_payload",
+    "dedupe_merged_entities",
+    "discovery_anchor_key",
+    "discovery_scope_primary_key",
+    "finalize_system_migration_discovery",
+    "resolve_scope_stats_for_table",
+    "resolve_target_stats_for_table",
+    "run_discovery",
+    "split_qualified_name",
+    "table_matches_target",
+    "top_n_tables",
+]

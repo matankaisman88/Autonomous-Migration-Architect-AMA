@@ -9,7 +9,7 @@ from ama.reports import write_excel_report
 
 def test_write_excel_report_multi_sheet(tmp_path: Path) -> None:
     payload = {
-        "target_table": "sales.orders",
+        "migration_context": "sales.orders",
         "queries_matched": 10,
         "column_name_source": "ddl",
         "importance_ddl": [
@@ -64,7 +64,7 @@ def test_write_excel_report_multi_sheet(tmp_path: Path) -> None:
 
 def test_write_excel_report_discovery_executive_summary_first_sheet(tmp_path: Path) -> None:
     payload = {
-        "target_table": "sales.orders",
+        "migration_context": "sales.orders",
         "queries_matched": 3,
         "column_name_source": "ddl",
         "alias_merge": {"merged_entities": [], "review_candidates": [], "trash_candidates": []},

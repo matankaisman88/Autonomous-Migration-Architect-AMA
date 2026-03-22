@@ -88,12 +88,12 @@ def _render_planner_tab(report: dict[str, Any]) -> None:
     """Migration waves from discovery inventory (same as ``ama-ingest plan``)."""
     st.subheader("Planner")
     st.caption(
-        "Waves by domain + priority, with **short** business/technical blurbs from *this* report’s inventory. "
+        "System-wide waves by domain + priority, with **short** business/technical blurbs from *this* report’s inventory. "
         "Same as **`ama-ingest plan --report report.json`**."
     )
     plan = AutonomousPlanner().plan_from_report(report, max_tables_per_wave=25, max_waves=20)
     plan_dict = plan.to_dict()
-    st.markdown(f"**Target focus:** `{plan_dict.get('target_focus') or '—'}`")
+    st.markdown(f"**Migration context:** `{plan_dict.get('migration_context') or plan_dict.get('target_focus') or '—'}`")
     notes = plan_dict.get("notes") or []
     if notes:
         for n in notes:
@@ -272,9 +272,9 @@ def _table_max_merge_confidence(
 
 
 def main() -> None:
-    st.set_page_config(page_title="AMA Migration Dashboard", layout="wide")
-    st.title("AMA Migration Dashboard")
-    st.caption("Business story + technical truth — same JSON as Excel export.")
+    st.set_page_config(page_title="AMA System Migration", layout="wide")
+    st.title("AMA System Migration Dashboard")
+    st.caption("Environment-wide discovery, domains, and waves — same JSON contract as Excel export.")
 
     default_path = os.environ.get("AMA_REPORT_PATH", "").strip()
     report_path_resolved: Path | None = None
@@ -363,13 +363,21 @@ def main() -> None:
 
     _sv_main = str(report.get("schema_version") or "").strip() or "— (legacy)"
     st.markdown(f"**Report schema version:** `{_sv_main}`")
+    _mctx = str(report.get("migration_context") or report.get("target_table") or "").strip()
     _ms = report.get("merge_scope") if isinstance(report.get("merge_scope"), dict) else {}
+    _mstate = (report.get("discovery") or {}).get("migration_state") if isinstance(report.get("discovery"), dict) else {}
+    _ndom = len(_mstate.get("domains_detected") or []) if isinstance(_mstate, dict) else 0
+    _ninv = len(inv_df) if not inv_df.empty else 0
+    st.markdown(
+        f"**System overview:** **{_ninv}** table(s) in inventory"
+        + (f", **{_ndom}** business domain(s) detected" if _ndom else "")
+        + "."
+    )
     if _ms.get("label"):
-        _anchor = str(report.get("target_table") or "").strip()
         st.caption(
             f"**Ingest scope:** {_ms.get('label')} · "
             f"DDL merges across **{_ms.get('tables_merged', '?')}** table(s). "
-            f"`target_table` (**{_anchor}**) is the comms/git anchor, not the merge limit."
+            f"**Migration context** (`{_mctx or '—'}`) is the comms/git anchor — not the merge limit."
         )
 
     exec_sum = disc.get("executive_summary") or {}

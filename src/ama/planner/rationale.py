@@ -123,7 +123,13 @@ def build_wave_rationales(
     ]
 
     disc = report.get("discovery") or {}
-    target_focus = str(disc.get("target_full_table") or report.get("target_table") or "")
+    migration_ctx = str(
+        report.get("migration_context")
+        or disc.get("scope_reference")
+        or disc.get("target_full_table")
+        or report.get("target_table")
+        or "",
+    )
     merge_scope = report.get("merge_scope") if isinstance(report.get("merge_scope"), dict) else {}
 
     fs = _fact_sheet_by_name(report)
@@ -166,8 +172,8 @@ def build_wave_rationales(
         tech_bits.append(f"**Alias merge:** {mp} cluster(s).")
     if risk_hits:
         tech_bits.append("Validate **lineage dependency order** before cutover for those hotspot(s).")
-    if target_focus and target_focus in names:
-        tech_bits.append(f"Includes report **target** `{target_focus}`.")
+    if migration_ctx and migration_ctx in names:
+        tech_bits.append(f"Includes report **migration context** `{migration_ctx}`.")
     if merge_scope:
         raw_keys = merge_scope.get("table_names_merged") or []
         key_set = {str(x).strip() for x in raw_keys if str(x).strip()}

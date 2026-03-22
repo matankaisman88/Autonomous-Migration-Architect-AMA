@@ -112,7 +112,7 @@ def _build_hierarchical_report(
     enrich_discovery_business_context(payload, data_root=data_root, description_top_n=12)
     qm = sum(int(st.query_count or 0) for st in discovery.values())
     return {
-        "target_table": target_full,
+        "migration_context": target_full,
         "queries_matched": qm,
         "importance_ddl": [],
         "columns": [],

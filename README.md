@@ -17,7 +17,8 @@
 | **`ama.parsing`** | SQLGlot-backed parse + regex fallback |
 | **`ama.sql_pipeline`** | Streaming JSONL ingestion, telemetry, optional lineage |
 | **`ama.log_analysis`** | **Log Analysis Engine** — streaming scan + parse telemetry facade (`LogAnalysisEngine`) |
-| **`ama.planner`** | **Autonomous Planner** — migration **waves** from discovery inventory |
+| **`ama.discovery`** | Full-log scan, domain enrichment, **`migration_state`** (domain order, co-query clusters) |
+| **`ama.planner`** | **Autonomous Planner** — system-wide migration **waves** from discovery inventory + lineage |
 | **`ama.data_quality`** | **DQ** — report boundary + contract checks (`run_dq_suite`) |
 | **`ama.security`** | Path redaction, safe path helpers (no secrets in logs) |
 | **`ama.schemas`** | Pydantic report contracts |
@@ -79,8 +80,9 @@ Create a **`.env`** file in the working directory (optional) with `AMA_*` variab
 | `ama-ingest run --help` | Full ingestion (SQL logs, comms, Git, importance) |
 | `ama-ingest run --format json -o report.json` | JSON report |
 | `ama-ingest run --format excel -o report.xlsx` | Excel workbook |
-| `ama-ingest run --discovery-mode` | Discovery inventory + lineage (for planner / risk hotspots) |
+| `ama-ingest run --discovery-mode` | **System-wide** discovery: full inventory + lineage (planner, risk hotspots, domain processing order) |
 | `ama-ingest run --discovery-mode --discovery-merge-all` | DDL merge on **every** discovered table using `ddl_manifest.json` + default `orders_columns.json` fallback |
+| `ama-ingest run --migration-context SCHEMA.TABLE` | Override **`AMA_MIGRATION_CONTEXT`** (comms/Git anchor and single-table scope); replaces legacy `--target-schema` / `--target-table` for most uses |
 | `ama-ingest dq --report report.json` | **Data quality** checks on a report JSON |
 | `ama-ingest plan --report report.json` | **Migration plan** JSON (waves from inventory) |
 | `ama-ingest log-scan PATH [PATH...]` | Stream-scan SQL **`.jsonl`** logs → parse telemetry JSON |
@@ -90,7 +92,7 @@ Create a **`.env`** file in the working directory (optional) with `AMA_*` variab
 | `ama-dashboard --report-path report.json` | Streamlit UI |
 | `python demo_runner.py` | **Stakeholder demo** — runs the same ingest as `ama-ingest run --discovery-mode --discovery-merge-all`, writes `demo_report.json`, Rich terminal UI, optional Streamlit + browser |
 
-JSON reports include **`schema_version`** (e.g. `1.1`), **`ingestion_stats`**, **`merge_scope`** (how DDL merge was scoped: single table, top‑N, or all discovered), **`target_table`** (always the configured comms/git anchor), and with **`--discovery-mode`** additive **`lineage`** plus executive **`risk_hotspots`** when the graph has edges.
+JSON reports include **`schema_version`** (e.g. **`1.2`**), **`ingestion_stats`**, **`migration_context`** (qualified `schema.table` for comms/Git anchor — not the merge limit when discovery is on), **`system_scope`** (e.g. `system_wide` vs `single_table`), **`merge_scope`** (how DDL merge was scoped: single-table logs, top‑N, or all discovered; uses **`comms_git_reference`**), and with **`--discovery-mode`** additive **`lineage`**, **`discovery.migration_state`** (domains detected, lineage-aware **domain processing order**, co-query clusters), plus executive **`risk_hotspots`** when the graph has edges. Legacy field **`target_table`** may still appear in older exports; tools accept **`migration_context`** or **`target_table`**.
 
 ---
 
@@ -125,13 +127,13 @@ JSON reports include **`schema_version`** (e.g. `1.1`), **`ingestion_stats`**, *
 
 | Tab | Content |
 |-----|---------|
-| **Executive overview** | KPIs, impact vs readiness scatter, domain importance, risk hotspots |
+| **Executive overview** | System overview metrics, KPIs, impact vs readiness scatter, domain importance, risk hotspots |
 | **Domains** | Per-domain health and inventory |
 | **Business Glossary** | Grouped legacy → DDL stories; **full `sample_data/glossary/` inventory** in JSON report (`glossary_source`) + dashboard expander |
 | **Ask the data** | Concept search (Hebrew/English) |
 | **Tables** | Per-table merge breakdown; optional **pyvis** lineage neighborhood |
 | **Data quality** | Same checks as **`ama-ingest dq`** (boundary, schema, discovery inventory) |
-| **Planner** | Migration waves from discovery — same as **`ama-ingest plan`** |
+| **Planner** | System-wide migration waves by domain (lineage-aware order) — same as **`ama-ingest plan`** |
 | **Review (HITL)** | Approve/reject; sidecar `<report>.hitl.json` |
 
 **HITL in the dashboard:** With a **file path** (not upload), the UI merges `.hitl.json` into the loaded report on each run so Executive / Glossary / metrics reflect approvals immediately. Use **Reload from Disk** after regenerating the JSON. To produce a merged file for sharing:
@@ -146,7 +148,8 @@ ama-ingest apply-hitl --report report.json --format excel -o report.with_hitl.xl
 
 | Variable | Purpose |
 |----------|---------|
-| `AMA_TARGET_SCHEMA` / `AMA_TARGET_TABLE` | Default focus table |
+| `AMA_MIGRATION_CONTEXT` | Default **`schema.table`** for comms/Git anchor and single-table SQL pipeline (preferred) |
+| `AMA_TARGET_SCHEMA` / `AMA_TARGET_TABLE` | Deprecated: merged into **`migration_context`** when set and context is still the default (`sales.orders`) |
 | `AMA_DEFAULT_DB` | Catalog when logs use `schema.table` only |
 | `AMA_DEFAULT_SQL_DIALECT` | Optional SQLGlot dialect fallback when JSONL rows omit `dialect` |
 | `AMA_MERGE_CONFIDENCE_FLOOR` | Merge floor (default `0.4`) |
