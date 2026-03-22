@@ -50,4 +50,5 @@ chaos_data/
 
 # Root ingest output / Windows path artifacts
 /report.json
+/demo_report.json
 /NUL.json

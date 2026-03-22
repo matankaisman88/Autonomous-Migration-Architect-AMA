@@ -5,6 +5,7 @@ description = "Autonomous Migration Architect: SQL log ingestion, DDL alignment,
 requires-python = ">=3.11"
 readme = "README.md"
 dependencies = [
+    "rich>=13.0.0",
     "sqlglot>=23.0.0",
     "qdrant-client>=1.7.0",
     "numpy>=1.26.0",
