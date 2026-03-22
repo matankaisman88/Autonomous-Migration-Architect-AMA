@@ -1,103 +1,160 @@
-# AMA — User guide (non-technical)
+# AMA — User guide
 
-| Audience | Managers, analysts, sponsors |
-|------------|------------------------------|
-| **Technical setup** | See **`README.md`** |
+**Audience:** business readers and technical operators. **Developer setup:** `**README.md`**.
 
 ---
 
-## First 5 minutes
+## What AMA is
 
-| Question | Answer |
-|----------|--------|
-| **What do I get?** | An **Excel** workbook (`.xlsx`) and/or a **JSON** report from your engineering team |
-| **Where is the Excel file?** | Shared folder or artifact store your team uses; names often like `ama_report_<table>_<timestamp>.xlsx` |
-| **How do I open it?** | **Microsoft Excel** or any compatible spreadsheet app |
-| **Optional UI** | **Streamlit** dashboard — your team provides a **JSON path** or runs the app; sidebar **Report path** or upload |
+AMA (**Autonomous Migration Architect**) helps teams **plan and govern** legacy-to-cloud moves using real **SQL activity**, **repo SQL**, and **comms**. You get **Excel** and/or **JSON** reports and an optional **browser dashboard**.
 
 ---
 
-## Excel & dashboard — how to read outputs
+## High-level architecture
 
-### Impact vs readiness (executive)
+```mermaid
+flowchart LR
+  subgraph inputs [Inputs]
+    L[SQL JSONL logs]
+    G[Git SQL]
+    C[Comms]
+    D[DDL / glossary]
+  end
+  subgraph core [AMA core]
+    LA[Log Analysis Engine]
+    IN[Ingestion + parsing]
+    AR[Alias resolution]
+    PL[Autonomous Planner]
+    DQ[Data quality]
+    RP[Reports + dashboard]
+  end
+  L --> LA
+  L --> IN
+  G --> IN
+  C --> IN
+  D --> AR
+  IN --> AR
+  AR --> RP
+  IN --> PL
+  RP --> PL
+  RP --> DQ
+```
 
-| Zone | Meaning |
-|------|---------|
-| **High importance + high readiness** | Strong candidates to schedule **early** in migration waves |
-| **High importance + lower readiness** | Valuable but expect **more design / cleanup** |
-| **Lower importance** | Often **defer** (unless compliance needs it) |
 
-Use this to **sequence work**, not as the only go/no-go.
 
-### Confidence colors
 
-| Color | Meaning for the business |
-|-------|---------------------------|
-| **Green** | Strong evidence (glossary/exact/strong blend) — **planning-ready** per your governance |
-| **Yellow** | Possible mapping — usually needs **human review** before calling it final |
-| **Red** | Weak / unsafe for cutover — often **review** or **trash** in technical sheets |
+| Layer                                             | Meaning                                                                                                       |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Log Analysis Engine** (`ama.log_analysis`)      | Streams `**.jsonl`** logs, measures parse success (SQLGlot vs fallback) without loading whole files into RAM. |
+| **Ingestion** (`ama.sql_pipeline`, `ama.parsing`) | Normalizes text, parses SQL, builds stats / optional lineage.                                                 |
+| **Autonomous Planner** (`ama.planner`)            | Builds **migration waves** from **discovery inventory** in a report (priority / domain).                      |
+| **Data quality** (`ama.data_quality`)             | Checks report shape, schema version, ingestion stats, discovery consistency.                                  |
+| **Security** (`ama.security`)                     | Redacts paths in logs; **never** put API keys in source — use `**.env`** / `AMA_*` only.                      |
 
-Confidence is **technical evidence**, not a legal guarantee.
-
-### Portfolio filter
-
-| Filter | Use |
-|--------|-----|
-| **Technical Debt** | Isolate scratch/temp/low-continuity objects — plan **separately** from core cutover |
-
-“Technical debt” here does **not** mean “delete data” — it means **different milestone**.
 
 ---
 
-## Dashboard — quick steps
+## Install & launch dashboard
 
-### Business Translator (Glossary tab)
+```bash
+pip install -e .
+ama-dashboard --report-path path/to/your_report.json
+```
 
-| Step | Action |
-|------|--------|
-| 1 | Open **Business Glossary** |
-| 2 | Use **Filter glossary** (Hebrew/English, table names, targets) |
-| 3 | Read the **summary table** |
-| 4 | **Expand** rows for full text, confidence gauge, affected tables |
+The browser opens (often `http://localhost:8501`). Use a real path to your `**.json**` file.
 
-### HITL (Review tab)
+---
 
-| Step | Action |
-|------|--------|
-| 1 | Open **Review (HITL)** |
-| 2 | Review each **legacy → suggested DDL** row |
-| 3 | **Approve** or **Reject** |
-| 4 | Decisions save to **`<report>.hitl.json`** when using a file path (not upload-only) |
+## Usage examples (CLI)
 
-| After approvals | Ask engineering to **merge HITL** into a new Excel/JSON so **Migration** shows confirmed rows — `ama-ingest apply-hitl` |
+### 1) Full ingest → JSON report
+
+```bash
+ama-ingest run --format json -o report.json
+```
+
+With discovery + lineage (for planner + risk hotspots):
+
+```bash
+ama-ingest run --discovery-mode --format json -o report.json
+```
+
+### 2) Data quality (DQ) on a report
+
+```bash
+ama-ingest dq --report report.json
+```
+
+Exit code **0** if there are no **error**-severity checks; warnings may still print.
+
+### 3) Migration plan (waves from inventory)
+
+```bash
+ama-ingest plan --report report.json
+```
+
+Requires **discovery inventory** in the report (use `**--discovery-mode`** when ingesting). Optional: `--max-tables-per-wave 25 --max-waves 20`.
+
+### 4) Log Analysis Engine (telemetry only)
+
+Scan one or more SQL `**.jsonl**` files (streaming):
+
+```bash
+ama-ingest log-scan sample_data/sql_logs/full_db_chaos.jsonl --max-records 5000
+```
+
+
+| Flag              | Meaning                                                      |
+| ----------------- | ------------------------------------------------------------ |
+| `--env prod`      | Only rows whose JSON field `env` matches (default **prod**). |
+| `--all-envs`      | Do not filter by `env`.                                      |
+| `--max-records N` | Stop after **N** records **per file**.                       |
+| `--progress`      | Print progress to stderr every `--progress-every` rows.      |
+
+
+---
+
+## Log Analysis configuration (in code)
+
+When calling `LogAnalysisEngine` from Python, use `**LogAnalysisConfig`**:
+
+
+| Field                  | Role                                               |
+| ---------------------- | -------------------------------------------------- |
+| `env_filter`           | Match JSONL `env` (or `None` / empty = no filter). |
+| `default_sql_dialect`  | Fallback dialect name if a row omits `dialect`.    |
+| `max_records_per_file` | Cap records per file for quick scans.              |
+| `progress_every`       | How often to log progress when `progress=True`.    |
+
+
+---
+
+## Dashboard (short)
+
+
+| Tab                    | Use                                       |
+| ---------------------- | ----------------------------------------- |
+| **Executive overview** | KPIs, impact vs readiness, risk hotspots  |
+| **Domains**            | Per-domain health                         |
+| **Business Glossary**  | Business terms ↔ columns                  |
+| **Ask the data**       | Concept search                            |
+| **Tables**             | Per-table detail + optional lineage graph |
+| **Review (HITL)**      | Approve / reject mappings                 |
+
+
+**Reload from Disk** (sidebar, path mode) refreshes JSON and HITL sidecar after engineering regenerates files.
 
 ---
 
 ## FAQ
 
-| Term | Meaning |
-|------|---------|
-| **Trash** | Low-trust tokens kept **out** of the confirmed list — **not** “bad people,” **don’t auto-trust** this mapping |
-| **Unmapped** | Legacy name did **not** merge to DDL this run — may still matter for volume/comms; may need glossary or manual model |
-| **Hebrew looks odd in a terminal** | Display quirk; **Excel** and the **dashboard** are authoritative |
-| **Numbers look wrong** | Give **examples** (table, column, sheet name) to engineering for re-run or config changes |
 
----
+| Question                 | Answer                                                                        |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| **Where do secrets go?** | `**.env`** or environment variables (`AMA_*`). Never commit keys.             |
+| **What is Trash?**       | Low-trust mapping — not “delete data.”                                        |
+| **No plan output?**      | Run ingest with `**--discovery-mode`** so `discovery.inventory` is populated. |
 
-## Operators — benchmarks & stress
-
-| Goal | Command | Output |
-|------|---------|--------|
-| **Benchmark** (10k / 50k / 100k Tier-5 rows) | `ama-ingest run --benchmark` | `benchmark_results.json` |
-| **Extreme stress** (million-row style logs) | Generate with `python tools/generate_extreme_chaos.py`, then `ama-ingest run --stress` | `stress_report.json` |
-
-| Override | Env / flag |
-|----------|------------|
-| Benchmark path | `--benchmark-results PATH` |
-| Stress log | `AMA_STRESS_LOG` or default under `chaos_data/sql_logs/` |
-| Cap records | `AMA_STRESS_MAX_LINES` or `--stress-lines` |
-
-Full million-row **parsing** of very heavy SQL can take **hours** depending on hardware.
 
 ---
 

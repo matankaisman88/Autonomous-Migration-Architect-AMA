@@ -23,6 +23,9 @@ embed = [
     "sentence-transformers>=2.2.0",
     "torch>=2.0.0",
 ]
+viz = [
+    "pyvis>=0.3.2",
+]
 dev = [
     "pytest>=8.0.0",
 ]

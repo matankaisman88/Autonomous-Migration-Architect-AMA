@@ -1,23 +1,21 @@
 from __future__ import annotations
 
 import json
-import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Iterator
 
-import sqlglot
-from sqlglot import exp
-from sqlglot.errors import ParseError
-
+from ama.lineage import LineageGraph
+from ama.parsing.backend import ParseResult, default_parse_backend
 from ama.sanitize import normalize_sql_identifier, sanitize_sql_text
 
 # Safeguards: very large logs or pathological lines should warn instead of failing silently or OOMing.
 _MAX_SQL_LOG_BYTES = 500 * 1024 * 1024
 _MAX_JSONL_LINE_CHARS = 2 * 1024 * 1024
 _MAX_JSON_WARN_LINES = 8
+_MAX_COLUMN_COPEERS = 48
 
 
 def _warn_sql_log_path(path: Path) -> None:
@@ -33,17 +31,39 @@ def _warn_sql_log_path(path: Path) -> None:
         )
 
 
-def qualified_key_from_table(node: exp.Table) -> str:
-    """
-    Stable database.schema.table key from sqlglot (supports multi-part names).
-    Uses rendered SQL so 4-part names stay consistent with the parser.
-    """
-    raw = node.sql()
-    s = raw.replace('"', "").replace("`", "").strip()
-    if not s:
-        return ""
-    parts = [normalize_sql_identifier(p) for p in s.split(".") if p.strip()]
-    return ".".join(parts) if parts else ""
+@dataclass
+class SqlIngestionTelemetry:
+    """Counters for SQL log processing (never aborts stream)."""
+
+    total_rows: int = 0
+    parse_ok: int = 0
+    regex_fallback: int = 0
+    skipped_empty_sql: int = 0
+    skipped_env_mismatch: int = 0
+    unparsed_no_chunks: int = 0
+
+    def record_parse_result(self, pr: ParseResult, *, had_sql_field: bool) -> None:
+        if pr.mode == "sqlglot":
+            self.parse_ok += 1
+        elif pr.mode == "regex":
+            self.regex_fallback += 1
+        elif pr.mode == "skipped_empty":
+            if had_sql_field:
+                self.skipped_empty_sql += 1
+        elif pr.mode == "empty":
+            if had_sql_field:
+                self.unparsed_no_chunks += 1
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "total_rows": self.total_rows,
+            "parse_ok": self.parse_ok,
+            "regex_fallback": self.regex_fallback,
+            "skipped_empty": self.skipped_empty_sql,
+            "skipped_empty_sql": self.skipped_empty_sql,
+            "skipped_env_mismatch": self.skipped_env_mismatch,
+            "unparsed_no_chunks": self.unparsed_no_chunks,
+        }
 
 
 @dataclass
@@ -59,106 +79,31 @@ class ColumnStats:
 class TableColumnStats:
     columns: dict[str, ColumnStats] = field(default_factory=lambda: defaultdict(ColumnStats))
     query_count: int = 0
+    # Normalized column name -> peers seen in same query (bounded).
+    co_peers: dict[str, set[str]] = field(default_factory=dict)
+
+    def merge_cooccurrence(self, column_names: list[str]) -> None:
+        norm = [normalize_sql_identifier(c) or c for c in column_names if c]
+        norm = list(dict.fromkeys(norm))
+        for i, a in enumerate(norm):
+            for b in norm[i + 1 :]:
+                if a == b:
+                    continue
+                sa = self.co_peers.setdefault(a, set())
+                if len(sa) < _MAX_COLUMN_COPEERS:
+                    sa.add(b)
+                sb = self.co_peers.setdefault(b, set())
+                if len(sb) < _MAX_COLUMN_COPEERS:
+                    sb.add(a)
 
 
-def _norm_ident(name: str | None) -> str | None:
-    if name is None:
-        return None
-    out = normalize_sql_identifier(str(name))
-    return out if out else None
-
-
-def _table_key(schema: str | None, table: str) -> str:
-    s = _norm_ident(schema) or ""
-    t = _norm_ident(table) or table
-    if s:
-        return f"{s}.{t}"
-    return t
-
-
-def _collect_columns(
-    node: exp.Expression | None,
-    role: str,
-    alias_to_table: dict[str, str],
-    default_table: str | None,
-    acc: dict[str, dict[str, int]],
-) -> None:
-    if node is None:
-        return
-
-    if isinstance(node, exp.Column):
-        parts = [p.name for p in node.parts if p.name]
-        if not parts:
-            return
-        col = _norm_ident(parts[-1]) or parts[-1]
-        if len(parts) >= 2:
-            tbl_hint = _norm_ident(parts[-2]) or parts[-2]
-            resolved = alias_to_table.get(tbl_hint, tbl_hint)
-            if "." not in resolved and default_table:
-                resolved = default_table
-            key = resolved if "." in str(resolved) else _table_key(None, str(resolved))
-        else:
-            key = default_table or ""
-        if not key:
-            return
-        bucket = acc.setdefault(key, defaultdict(int))
-        bucket[f"{role}:{col}"] += 1
-        return
-
-    if isinstance(node, exp.Star):
-        return
-
-    for child in node.iter_expressions():
-        _collect_columns(child, role, alias_to_table, default_table, acc)
-
-
-def _resolve_aliases(select_expr: exp.Select) -> tuple[dict[str, str], str | None]:
-    alias_to_table: dict[str, str] = {}
-    default_table: str | None = None
-    for frm in select_expr.find_all(exp.From):
-        if not frm.this:
-            continue
-        node = frm.this
-        alias = None
-        if isinstance(node, exp.Alias):
-            alias = _norm_ident(node.alias)
-            inner = node.this
-        else:
-            inner = node
-
-        if isinstance(inner, exp.Table):
-            key = qualified_key_from_table(inner)
-            if not default_table:
-                default_table = key
-            if alias:
-                alias_to_table[alias] = key
-            short = _norm_ident(str(inner.name)) or str(inner.name)
-            alias_to_table[short] = key
-    return alias_to_table, default_table
-
-
-def _extract_from_select(sel: exp.Select) -> dict[str, dict[str, int]]:
-    """Returns table_key -> {role:col -> count} flattened for one SELECT."""
-    alias_map, default_table = _resolve_aliases(sel)
-    acc: dict[str, dict[str, int]] = {}
-
-    for proj in sel.expressions:
-        _collect_columns(proj, "select", alias_map, default_table, acc)
-
-    if sel.args.get("where"):
-        _collect_columns(sel.args["where"], "where", alias_map, default_table, acc)
-
-    for g in sel.find_all(exp.Group):
-        _collect_columns(g, "group_by", alias_map, default_table, acc)
-
-    for o in sel.find_all(exp.Order):
-        _collect_columns(o, "order_by", alias_map, default_table, acc)
-
-    for join in sel.find_all(exp.Join):
-        if join.args.get("on"):
-            _collect_columns(join.args["on"], "join_on", alias_map, default_table, acc)
-
-    return acc
+def _column_names_from_role_map(role_cols: dict[str, int]) -> list[str]:
+    out: list[str] = []
+    for rk in role_cols:
+        _, _, col = rk.partition(":")
+        if col and col != "*":
+            out.append(col)
+    return list(dict.fromkeys(out))
 
 
 def _table_matches_target(tl: str, target_keys: set[str], short: str) -> bool:
@@ -200,44 +145,98 @@ def _merge_role_counts_into_stats(
 
 
 def parse_sql_query(sql_text: str, dialect: str | None = None) -> tuple[list[dict[str, dict[str, int]]], bool]:
-    text = sanitize_sql_text(sql_text)
-    if not text or text.startswith("--"):
-        return [], False
-    try:
-        parsed = sqlglot.parse_one(text, dialect=dialect)
-    except ParseError:
-        return [], False
-
-    chunks: list[dict[str, dict[str, int]]] = []
-    for sel in parsed.find_all(exp.Select):
-        chunks.append(_extract_from_select(sel))
-    if chunks:
-        return chunks, True
-
-    # UNION etc. — try full tree
-    if isinstance(parsed, exp.Select):
-        return [_extract_from_select(parsed)], True
-    return [], False
+    """Backward-compatible: returns (chunks, True iff SQLGlot produced chunks)."""
+    pr = default_parse_backend().parse(sql_text, dialect=dialect)
+    return pr.chunks, pr.mode == "sqlglot"
 
 
-def _fallback_regex_extract(text: str) -> list[dict[str, dict[str, int]]]:
-    per_table: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    t = sanitize_sql_text(text)
-    for m in re.finditer(
-        r"\bfrom\s+([\w]+)\s*\.\s*([\w]+)",
-        t,
-        re.IGNORECASE,
-    ):
-        a = normalize_sql_identifier(m.group(1))
-        b = normalize_sql_identifier(m.group(2))
-        key = f"{a}.{b}" if a and b else ""
-        if key:
-            per_table[key]["select:*"] += 1
-    for m in re.finditer(r"\bfrom\s+([\w]+)\b", t, re.IGNORECASE):
-        w = normalize_sql_identifier(m.group(1))
-        if w and w not in ("select", "lateral", "unnest"):
-            per_table[w]["select:*"] += 1
-    return [dict(per_table)] if per_table else []
+def _ingest_one_record_discovery(
+    rec: dict[str, Any],
+    *,
+    env: str | None,
+    per_table: dict[str, TableColumnStats],
+    telemetry: SqlIngestionTelemetry | None = None,
+    lineage: LineageGraph | None = None,
+) -> None:
+    if env and rec.get("env") and str(rec["env"]).lower() != str(env).lower():
+        if telemetry is not None:
+            telemetry.skipped_env_mismatch += 1
+        return
+    sql_raw = rec.get("sql") or rec.get("query") or rec.get("statement")
+    had_sql = bool(sql_raw and isinstance(sql_raw, str))
+    if not had_sql:
+        if telemetry is not None:
+            telemetry.skipped_empty_sql += 1
+        return
+    sql = sanitize_sql_text(str(sql_raw))
+    dialect = rec.get("dialect") if isinstance(rec.get("dialect"), str) else None
+    pr = default_parse_backend().parse(sql, dialect=dialect)
+    if telemetry is not None:
+        telemetry.record_parse_result(pr, had_sql_field=True)
+    chunks = pr.chunks
+    if not chunks:
+        return
+
+    if lineage is not None:
+        lineage.ingest_parse_result(pr)
+
+    touched: set[str] = set()
+    for flat in chunks:
+        for tbl in flat:
+            touched.add(tbl)
+    for tbl in touched:
+        per_table[tbl].query_count += 1
+
+    for flat in chunks:
+        for tbl, role_cols in flat.items():
+            merge_flat_into_table_stats(flat, tbl, per_table[tbl])
+            per_table[tbl].merge_cooccurrence(_column_names_from_role_map(role_cols))
+
+
+def _ingest_one_record_target(
+    rec: dict[str, Any],
+    *,
+    env: str | None,
+    tkeys: set[str],
+    short: str,
+    out: TableColumnStats,
+    telemetry: SqlIngestionTelemetry | None = None,
+) -> None:
+    if env and rec.get("env") and str(rec["env"]).lower() != str(env).lower():
+        if telemetry is not None:
+            telemetry.skipped_env_mismatch += 1
+        return
+    sql_raw = rec.get("sql") or rec.get("query") or rec.get("statement")
+    if not sql_raw or not isinstance(sql_raw, str):
+        if telemetry is not None:
+            telemetry.skipped_empty_sql += 1
+        return
+    sql = sanitize_sql_text(sql_raw)
+    dialect = rec.get("dialect") if isinstance(rec.get("dialect"), str) else None
+    pr = default_parse_backend().parse(sql, dialect=dialect)
+    if telemetry is not None:
+        telemetry.record_parse_result(pr, had_sql_field=True)
+    chunks = pr.chunks
+    if not chunks:
+        return
+
+    matched = False
+    for flat in chunks:
+        for tbl in flat:
+            if _table_matches_target(tbl, tkeys, short):
+                matched = True
+                break
+        if matched:
+            break
+    if not matched:
+        return
+
+    out.query_count += 1
+    for flat in chunks:
+        _merge_role_counts_into_stats(flat, tkeys, short, out)
+        for tbl, role_cols in flat.items():
+            if _table_matches_target(tbl, tkeys, short):
+                out.merge_cooccurrence(_column_names_from_role_map(role_cols))
 
 
 def iter_sql_log_records(
@@ -321,74 +320,6 @@ def _target_keys(target_full_table: str) -> set[str]:
     return keys
 
 
-def _discovery_record_into_stats(
-    rec: dict[str, Any],
-    *,
-    env: str | None,
-    per_table: dict[str, TableColumnStats],
-) -> None:
-    if env and rec.get("env") and str(rec["env"]).lower() != str(env).lower():
-        return
-    sql = rec.get("sql") or rec.get("query") or rec.get("statement")
-    if not sql or not isinstance(sql, str):
-        return
-    sql = sanitize_sql_text(sql)
-    dialect = rec.get("dialect") if isinstance(rec.get("dialect"), str) else None
-    chunks, ok = parse_sql_query(sql, dialect=dialect)
-    if not ok:
-        chunks = _fallback_regex_extract(sql)
-        if not chunks:
-            return
-
-    touched: set[str] = set()
-    for flat in chunks:
-        for tbl in flat:
-            touched.add(tbl)
-    for tbl in touched:
-        per_table[tbl].query_count += 1
-
-    for flat in chunks:
-        for tbl in flat:
-            merge_flat_into_table_stats(flat, tbl, per_table[tbl])
-
-
-def _target_record_into_stats(
-    rec: dict[str, Any],
-    *,
-    env: str | None,
-    tkeys: set[str],
-    short: str,
-    out: TableColumnStats,
-) -> None:
-    if env and rec.get("env") and str(rec["env"]).lower() != str(env).lower():
-        return
-    sql = rec.get("sql") or rec.get("query") or rec.get("statement")
-    if not sql or not isinstance(sql, str):
-        return
-    sql = sanitize_sql_text(sql)
-    dialect = rec.get("dialect") if isinstance(rec.get("dialect"), str) else None
-    chunks, ok = parse_sql_query(sql, dialect=dialect)
-    if not ok:
-        chunks = _fallback_regex_extract(sql)
-        if not chunks:
-            return
-
-    matched = False
-    for flat in chunks:
-        for tbl in flat:
-            if _table_matches_target(tbl, tkeys, short):
-                matched = True
-                break
-        if matched:
-            break
-    if not matched:
-        return
-
-    out.query_count += 1
-    for flat in chunks:
-        _merge_role_counts_into_stats(flat, tkeys, short, out)
-
-
 def process_sql_log_file(
     path: Path,
     *,
@@ -397,13 +328,18 @@ def process_sql_log_file(
     batch_size: int | None = None,
     progress: bool = False,
     max_records: int | None = None,
+    telemetry: SqlIngestionTelemetry | None = None,
 ) -> TableColumnStats:
     out = TableColumnStats()
     tkeys = _target_keys(target_full_table)
     short = normalize_sql_identifier(target_full_table.split(".")[-1])
 
     def _one(rec: dict[str, Any]) -> None:
-        _target_record_into_stats(rec, env=env, tkeys=tkeys, short=short, out=out)
+        if telemetry is not None:
+            telemetry.total_rows += 1
+        _ingest_one_record_target(
+            rec, env=env, tkeys=tkeys, short=short, out=out, telemetry=telemetry
+        )
 
     if batch_size is None:
         stream = iter_sql_log_records(path, max_records=max_records)
@@ -442,6 +378,11 @@ def merge_stats(into: TableColumnStats, other: TableColumnStats) -> None:
         ic.join_on += oc.join_on
         ic.group_by += oc.group_by
         ic.order_by += oc.order_by
+    for k, peers in other.co_peers.items():
+        tgt = into.co_peers.setdefault(k, set())
+        for p in peers:
+            if len(tgt) < _MAX_COLUMN_COPEERS:
+                tgt.add(p)
 
 
 def merge_flat_into_table_stats(
@@ -479,6 +420,8 @@ def process_sql_log_file_discovery(
     max_records: int | None = None,
     on_batch_complete: Callable[[int], None] | None = None,
     records_counter: list[int] | None = None,
+    telemetry: SqlIngestionTelemetry | None = None,
+    lineage: LineageGraph | None = None,
 ) -> dict[str, TableColumnStats]:
     """
     Aggregate column stats per qualified table key (no target filter).
@@ -494,7 +437,11 @@ def process_sql_log_file_discovery(
     def _one(rec: dict[str, Any]) -> None:
         if records_counter is not None:
             records_counter[0] += 1
-        _discovery_record_into_stats(rec, env=env, per_table=per_table)
+        if telemetry is not None:
+            telemetry.total_rows += 1
+        _ingest_one_record_discovery(
+            rec, env=env, per_table=per_table, telemetry=telemetry, lineage=lineage
+        )
 
     if batch_size is None:
         stream = iter_sql_log_records(path, max_records=max_records)
@@ -535,6 +482,8 @@ def run_sql_logs_discovery_pipeline(
     max_records_per_file: int | None = None,
     on_batch_complete: Callable[[int], None] | None = None,
     records_counter: list[int] | None = None,
+    telemetry: SqlIngestionTelemetry | None = None,
+    lineage: LineageGraph | None = None,
 ) -> dict[str, TableColumnStats]:
     total: dict[str, TableColumnStats] = defaultdict(TableColumnStats)
     for p in sql_log_paths:
@@ -546,6 +495,8 @@ def run_sql_logs_discovery_pipeline(
             max_records=max_records_per_file,
             on_batch_complete=on_batch_complete,
             records_counter=records_counter,
+            telemetry=telemetry,
+            lineage=lineage,
         )
         for k, st in part.items():
             merge_stats(total[k], st)
@@ -560,6 +511,7 @@ def run_sql_logs_pipeline(
     batch_size: int | None = None,
     progress: bool = False,
     max_records_per_file: int | None = None,
+    telemetry: SqlIngestionTelemetry | None = None,
 ) -> TableColumnStats:
     total = TableColumnStats()
     for p in sql_log_paths:
@@ -570,6 +522,7 @@ def run_sql_logs_pipeline(
             batch_size=batch_size,
             progress=progress and len(sql_log_paths) == 1,
             max_records=max_records_per_file,
+            telemetry=telemetry,
         )
         merge_stats(total, other)
     return total

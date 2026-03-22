@@ -8,7 +8,14 @@ from dataclasses import asdict
 from typing import Any, Callable
 
 from ama.alias_resolver import AliasResolver, MergeResult
-from ama.sql_pipeline import TableColumnStats, merge_stats, run_sql_logs_discovery_pipeline, table_matches_target
+from ama.lineage import LineageGraph
+from ama.sql_pipeline import (
+    SqlIngestionTelemetry,
+    TableColumnStats,
+    merge_stats,
+    run_sql_logs_discovery_pipeline,
+    table_matches_target,
+)
 
 
 def split_qualified_name(key: str) -> tuple[str, str, str]:
@@ -171,6 +178,8 @@ def run_discovery(
     max_records_per_file: int | None = None,
     on_batch_complete: Callable[[int], None] | None = None,
     records_counter: list[int] | None = None,
+    telemetry: SqlIngestionTelemetry | None = None,
+    lineage: LineageGraph | None = None,
 ) -> dict[str, TableColumnStats]:
     """Scan all qualified tables in SQL logs."""
     return run_sql_logs_discovery_pipeline(
@@ -181,6 +190,8 @@ def run_discovery(
         max_records_per_file=max_records_per_file,
         on_batch_complete=on_batch_complete,
         records_counter=records_counter,
+        telemetry=telemetry,
+        lineage=lineage,
     )
 
 

@@ -4,6 +4,7 @@ import argparse
 import json
 import sys
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 from ama.alias_resolver import AliasResolver, load_ddl_columns, load_glossary
@@ -23,9 +24,24 @@ from ama.reports import (
     write_report_file,
 )
 from ama.sanitize import has_rtl_script, mirror_rtl_identifier_for_ltr_console, normalize_sql_identifier
-from ama.sql_pipeline import run_sql_logs_pipeline
-from ama.business_logic import enrich_discovery_business_context, infer_default_db_from_data_root
+from pydantic import ValidationError
+
+from ama.schemas.report import (
+    AMA_REPORT_SCHEMA_VERSION,
+    validate_report_boundary,
+    validate_report_model,
+)
+from ama.sql_pipeline import LineageGraph, SqlIngestionTelemetry, run_sql_logs_pipeline
+from ama.business_logic import (
+    enrich_discovery_business_context,
+    enrich_executive_risk_hotspots,
+    infer_default_db_from_data_root,
+)
+from ama.data_quality import run_dq_suite
 from ama.hitl_apply import apply_hitl_to_report, load_hitl_sidecar
+from ama.log_analysis import LogAnalysisConfig, LogAnalysisEngine
+from ama.planner import AutonomousPlanner
+from ama.report_sinks import ExcelReportSink, JsonReportSink
 from ama.discovery import (
     aggregate_merges_for_tables,
     build_discovery_payload,
@@ -201,12 +217,19 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     discovery_mode = getattr(args, "discovery_mode", False)
     no_target = getattr(args, "no_target", False)
+    ingest_telemetry = SqlIngestionTelemetry()
+    lineage_graph: LineageGraph | None = LineageGraph() if discovery_mode else None
     discovery_tables = None
     target_key = ""
     multi_merge = False
     merge_keys: list[str] = []
     if discovery_mode:
-        discovery_tables = run_discovery(sql_paths, args.env)
+        discovery_tables = run_discovery(
+            sql_paths,
+            args.env,
+            telemetry=ingest_telemetry,
+            lineage=lineage_graph,
+        )
         if no_target:
             merge_keys = top_n_tables(discovery_tables, n=getattr(args, "discovery_merge_n", 10))
             target_key = merge_keys[0] if merge_keys else ""
@@ -219,6 +242,7 @@ def cmd_run(args: argparse.Namespace) -> int:
             sql_paths,
             target_full_table=target,
             env=args.env,
+            telemetry=ingest_telemetry,
         )
 
     merged_report: dict | None = None
@@ -290,6 +314,11 @@ def cmd_run(args: argparse.Namespace) -> int:
             default_database=default_db_resolved,
         )
         enrich_discovery_business_context(discovery_payload, data_root=root, description_top_n=10)
+        if lineage_graph is not None:
+            enrich_executive_risk_hotspots(
+                discovery_payload,
+                lineage_graph.to_report_dict(),
+            )
 
     comms_dir = root / settings.comms_dir if not args.comms_dir else Path(args.comms_dir)
     comms_score, comms_hits = aggregate_comms_for_table(
@@ -440,7 +469,13 @@ def cmd_run(args: argparse.Namespace) -> int:
                 row["source_table"] = st_part
             importance_ddl.append(row)
 
+    lineage_payload = lineage_graph.to_report_dict() if lineage_graph is not None else None
+    # Stable keys for dashboard (lineage widgets, risk hotspots) even without --discovery-mode
+    if lineage_payload is None:
+        lineage_payload = {"edges": [], "edge_count_undirected": 0}
+
     report = {
+        "schema_version": AMA_REPORT_SCHEMA_VERSION,
         "target_table": target,
         "sql_log_files": [str(p) for p in sql_paths],
         "queries_matched": sql_stats.query_count,
@@ -454,7 +489,19 @@ def cmd_run(args: argparse.Namespace) -> int:
         "markdown_sections": markdown_sections,
         "importance_ddl": importance_ddl,
         "discovery": discovery_payload,
+        "lineage": lineage_payload,
     }
+    n_err, samples = validate_report_boundary(report)
+    ingest_stats = ingest_telemetry.to_dict()
+    ingest_stats["report_validation_error_count"] = n_err
+    if samples:
+        ingest_stats["report_validation_samples"] = samples
+    report["ingestion_stats"] = ingest_stats
+    report["generated_at"] = datetime.now(timezone.utc).isoformat()
+    try:
+        validate_report_model(report)
+    except ValidationError as e:
+        print(f"warning: report failed ReportModel validation: {e}", file=sys.stderr)
     if store:
         q = f"{settings.target_schema}.{settings.target_table} revenue"
         report["vector_search_demo"] = store.search(q, limit=3)
@@ -561,6 +608,7 @@ def cmd_apply_hitl(args: argparse.Namespace) -> int:
 
     hitl = load_hitl_sidecar(hitl_path)
     merged = apply_hitl_to_report(report, hitl)
+    merged.setdefault("schema_version", AMA_REPORT_SCHEMA_VERSION)
 
     fmt = getattr(args, "format", "json") or "json"
     cwd = Path.cwd()
@@ -569,31 +617,80 @@ def cmd_apply_hitl(args: argparse.Namespace) -> int:
     if fmt == "excel":
         ext = ".xlsx"
         if args.out_file is not None:
-            out_path = resolve_report_output_path(
-                args.out_file,
-                table_full_name=target,
-                extension=ext,
-                cwd=cwd,
-            )
+            out_spec = args.out_file
         else:
-            out_path = report_path.with_name(f"{report_path.stem}.with_hitl{ext}")
-        write_excel_report(merged, out_path)
+            out_spec = str(report_path.with_name(f"{report_path.stem}.with_hitl{ext}"))
+        out_path = ExcelReportSink().write(merged, target=target, out_spec=out_spec, cwd=cwd)
         print(f"Applied HITL ({hitl_path.name}) → Excel: {out_path}")
     else:
         ext = ".json"
         if args.out_file is not None:
-            out_path = resolve_report_output_path(
-                args.out_file,
-                table_full_name=target,
-                extension=ext,
-                cwd=cwd,
-            )
+            out_spec = args.out_file
         else:
-            out_path = report_path.with_name(f"{report_path.stem}.with_hitl{ext}")
-        write_report_file(out_path, json.dumps(merged, indent=2, ensure_ascii=False))
+            out_spec = str(report_path.with_name(f"{report_path.stem}.with_hitl{ext}"))
+        out_path = JsonReportSink().write(merged, target=target, out_spec=out_spec, cwd=cwd)
         print(f"Applied HITL ({hitl_path.name}) → JSON: {out_path}")
         _print_dashboard_hint(json_path=out_path)
 
+    return 0
+
+
+def cmd_dq(args: argparse.Namespace) -> int:
+    """Run DQ suite on an AMA report JSON."""
+    report_path = Path(args.report).expanduser().resolve()
+    if not report_path.is_file():
+        print(f"Report not found: {report_path}", file=sys.stderr)
+        return 1
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"Invalid report JSON: {e}", file=sys.stderr)
+        return 1
+    result = run_dq_suite(report)
+    print(json.dumps(result.to_dict(), indent=2, ensure_ascii=False))
+    return 0 if result.ok else 1
+
+
+def cmd_plan(args: argparse.Namespace) -> int:
+    """Emit migration plan JSON derived from discovery inventory in a report."""
+    report_path = Path(args.report).expanduser().resolve()
+    if not report_path.is_file():
+        print(f"Report not found: {report_path}", file=sys.stderr)
+        return 1
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"Invalid report JSON: {e}", file=sys.stderr)
+        return 1
+    plan = AutonomousPlanner().plan_from_report(
+        report,
+        max_tables_per_wave=getattr(args, "max_tables_per_wave", 25),
+        max_waves=getattr(args, "max_waves", 20),
+    )
+    print(json.dumps(plan.to_dict(), indent=2, ensure_ascii=False))
+    return 0
+
+
+def cmd_log_scan(args: argparse.Namespace) -> int:
+    """Stream-scan SQL JSONL files and print LogAnalysisSummary JSON."""
+    paths = [Path(p).expanduser().resolve() for p in (args.sql_logs or [])]
+    for p in paths:
+        if not p.is_file():
+            print(f"Not a file: {p}", file=sys.stderr)
+            return 1
+    if getattr(args, "all_envs", False):
+        env: str | None = None
+    else:
+        raw = getattr(args, "env", None)
+        env = None if raw in (None, "") else str(raw)
+    cfg = LogAnalysisConfig(
+        env_filter=env,
+        max_records_per_file=args.max_records,
+        progress_every=args.progress_every,
+    )
+    eng = LogAnalysisEngine(cfg)
+    summary = eng.analyze_paths(paths, progress=args.progress)
+    print(json.dumps(summary.to_dict(), indent=2, ensure_ascii=False))
     return 0
 
 
@@ -759,6 +856,86 @@ def main() -> None:
         help="Write merged JSON or Excel workbook (Migration sheet uses merged_entities)",
     )
     h.set_defaults(func=cmd_apply_hitl)
+
+    dq = sub.add_parser(
+        "dq",
+        help="Run data quality checks on an AMA report JSON (schema boundary, ingestion_stats, discovery)",
+    )
+    dq.add_argument(
+        "--report",
+        type=str,
+        required=True,
+        help="Path to report.json from ama-ingest run --format json",
+    )
+    dq.set_defaults(func=cmd_dq)
+
+    pl = sub.add_parser(
+        "plan",
+        help="Print an autonomous migration plan (JSON) from discovery inventory in a report",
+    )
+    pl.add_argument(
+        "--report",
+        type=str,
+        required=True,
+        help="Path to report.json (use discovery-mode ingestion for inventory)",
+    )
+    pl.add_argument(
+        "--max-tables-per-wave",
+        type=int,
+        default=25,
+        metavar="N",
+        help="Split large domains into multiple waves (default: 25)",
+    )
+    pl.add_argument(
+        "--max-waves",
+        type=int,
+        default=20,
+        metavar="N",
+        help="Cap total waves (default: 20)",
+    )
+    pl.set_defaults(func=cmd_plan)
+
+    ls = sub.add_parser(
+        "log-scan",
+        help="Stream-scan SQL JSONL log files and print parse telemetry (no full ingest report)",
+    )
+    ls.add_argument(
+        "sql_logs",
+        nargs="+",
+        metavar="PATH",
+        help="One or more .jsonl SQL log files",
+    )
+    ls.add_argument(
+        "--env",
+        type=str,
+        default="prod",
+        help="Filter JSONL rows by env (default: prod)",
+    )
+    ls.add_argument(
+        "--all-envs",
+        action="store_true",
+        help="Do not filter by env (include all rows)",
+    )
+    ls.add_argument(
+        "--max-records",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Max records per file (default: all)",
+    )
+    ls.add_argument(
+        "--progress",
+        action="store_true",
+        help="Print progress to stderr every N records",
+    )
+    ls.add_argument(
+        "--progress-every",
+        type=int,
+        default=50_000,
+        metavar="N",
+        help="With --progress, emit every N records (default: 50000)",
+    )
+    ls.set_defaults(func=cmd_log_scan)
 
     args = p.parse_args()
     if args.cmd == "run" and args.env == "":

@@ -25,6 +25,22 @@ HITL_THRESHOLD = 0.8
 DEFAULT_MERGE_FLOOR = 0.4
 DEFAULT_CONFIRMED_THRESHOLD = 0.8
 _MAX_PAIRWISE_DDL = 256
+_AMBIGUOUS_TOKENS = frozenset(
+    {
+        "id",
+        "key",
+        "code",
+        "name",
+        "type",
+        "status",
+        "date",
+        "ts",
+        "dt",
+        "num",
+        "no",
+        "ref",
+    }
+)
 
 
 class LLMReasoner(Protocol):
@@ -37,6 +53,8 @@ class LLMReasoner(Protocol):
         ddl_column: str,
         vector_similarity: float,
         glossary_hit: bool,
+        co_occurring_columns: tuple[str, ...] | None = None,
+        ddl_column_list: tuple[str, ...] | None = None,
     ) -> tuple[float, str] | None: ...
 
 
@@ -114,6 +132,24 @@ def _ascii_ratio(s: str) -> float:
     if not s:
         return 0.0
     return sum(1 for c in s if ord(c) < 128) / len(s)
+
+
+def _co_peer_boost(ddl_col: str, peers: frozenset[str]) -> float:
+    if not peers:
+        return 0.0
+    dlow = (ddl_col or "").lower()
+    for p in peers:
+        pl = (normalize_sql_identifier(p) or p).lower()
+        if not pl:
+            continue
+        if pl in dlow or dlow in pl:
+            return 0.14
+    return 0.0
+
+
+def _is_ambiguous_token(log_s: str) -> bool:
+    n = (normalize_sql_identifier(log_s) or log_s).lower()
+    return len(n) <= 2 or n in _AMBIGUOUS_TOKENS
 
 
 def _lexical_similarity(a: str, b: str) -> float:
@@ -279,7 +315,12 @@ class AliasResolver:
             return "trash"
         return "review"
 
-    def propose_merge(self, log_column: str) -> MergeCandidate:
+    def propose_merge(
+        self,
+        log_column: str,
+        *,
+        co_peers: frozenset[str] | None = None,
+    ) -> MergeCandidate:
         log_s = sanitize_text(log_column)
         gl = self._glossary_lookup(log_s)
         if gl is not None and gl in self.ddl_columns:
@@ -321,7 +362,14 @@ class AliasResolver:
 
         if self.ddl_columns and len(self.ddl_columns) <= _MAX_PAIRWISE_DDL:
             pairs = self._pairwise_ddl_scores(log_s)
-            if pairs:
+            if pairs and co_peers and _is_ambiguous_token(log_s):
+                boosted: list[tuple[str, float, float, float, float]] = []
+                for d, v, lx, bl in pairs[:24]:
+                    b = bl + _co_peer_boost(d, co_peers)
+                    boosted.append((d, v, lx, bl, b))
+                boosted.sort(key=lambda x: -x[4])
+                best_ddl, vector_sim, lex, blended, _ = boosted[0]
+            elif pairs:
                 best_ddl, vector_sim, lex, blended = pairs[0]
         elif self.ddl_columns:
             hits = self._store.search_log_column(log_s, limit=8)
@@ -341,6 +389,8 @@ class AliasResolver:
                 ddl_column=best_ddl,
                 vector_similarity=vector_sim,
                 glossary_hit=False,
+                co_occurring_columns=tuple(sorted(co_peers)) if co_peers else None,
+                ddl_column_list=tuple(self.ddl_columns),
             )
             if maybe is not None:
                 llm_c, llm_cite = maybe
@@ -394,7 +444,9 @@ class AliasResolver:
         unmapped_stats = TableColumnStats(query_count=stats.query_count)
 
         for raw_col, cs in stats.columns.items():
-            mc = self.propose_merge(raw_col)
+            nk = normalize_sql_identifier(raw_col)
+            peers = frozenset(stats.co_peers.get(nk, set())) if nk else frozenset()
+            mc = self.propose_merge(raw_col, co_peers=peers if peers else None)
             proposed.append(mc)
             if self._merge_allowed_to_ddl(raw_col, mc):
                 canon = self._canonical_bucket(raw_col, mc)

@@ -88,6 +88,13 @@ def _merge_rows_for_filters(
 
 def _high_risk_tables(inv: pd.DataFrame, report: dict[str, Any], threshold: float = 70.0) -> set[str]:
     out: set[str] = set()
+    disc = report.get("discovery") or {}
+    es = disc.get("executive_summary") or {}
+    for row in es.get("risk_hotspots") or []:
+        if isinstance(row, dict):
+            t = str(row.get("table") or "")
+            if t:
+                out.add(t)
     if not inv.empty and "priority_score" in inv.columns:
         for _, r in inv.iterrows():
             try:

@@ -16,14 +16,22 @@ from typing import Any
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
+from ama.hitl_apply import apply_hitl_to_report
 from ama.business_logic import (
     build_business_glossary_entries,
     build_impact_readiness_scatter_rows,
     domain_data_health,
+    enrich_executive_risk_hotspots,
     group_glossary_entries,
     review_row_signature,
     semantic_concept_search,
+)
+from ama.ui.lineage_widget import (
+    PYVIS_INSTALL_HINT,
+    lineage_subgraph_html,
+    pyvis_available,
 )
 from ama.ui.report_helpers import (
     _domain_for_table,
@@ -45,8 +53,23 @@ except ImportError:  # pragma: no cover
 _DEMO_WITH_REVIEW = Path(__file__).resolve().parents[3] / "sample_data" / "dashboard" / "demo_with_review.json"
 
 
+def _safe_mtime(path: Path) -> float:
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return 0.0
+
+
 @st.cache_data(show_spinner=False)
-def load_report_cached(path_str: str) -> dict[str, Any]:
+def load_report_cached(path_str: str, mtime_report: float, reload_bust: int) -> dict[str, Any]:
+    """
+    Raw report JSON.
+
+    **Cache key must include** `mtime_report` and `reload_bust`. Parameters prefixed with `_`
+    are excluded from Streamlit's cache hash, so a previous `_mtime_report` arg never
+    invalidated when the file changed — only `path_str` was keyed.
+    """
+    _ = (mtime_report, reload_bust)  # participate in cache key only
     return load_report_json(path_str)
 
 
@@ -109,12 +132,15 @@ def main() -> None:
 
     with st.sidebar:
         st.header("Report")
+        if "report_reload_bust" not in st.session_state:
+            st.session_state.report_reload_bust = 0
         uploaded = st.file_uploader("Or upload JSON", type=["json"], key="json_up")
         path_in = st.text_input("Report path", value=default_path, placeholder="path/to/report.json")
 
+        raw_report: dict[str, Any]
         if uploaded is not None:
             try:
-                report = json.loads(uploaded.getvalue().decode("utf-8"))
+                raw_report = json.loads(uploaded.getvalue().decode("utf-8"))
             except json.JSONDecodeError as e:
                 st.error(f"Invalid JSON: {e}")
                 return
@@ -126,7 +152,11 @@ def main() -> None:
                 return
             try:
                 report_path_resolved = Path(path).resolve()
-                report = load_report_cached(str(report_path_resolved))
+                raw_report = load_report_cached(
+                    str(report_path_resolved),
+                    _safe_mtime(report_path_resolved),
+                    int(st.session_state.report_reload_bust),
+                )
             except OSError as e:
                 st.error(f"Cannot read report: {e}")
                 return
@@ -139,6 +169,35 @@ def main() -> None:
                     "A `.js` path will not load the ingestion report."
                 )
 
+        hitl_file = _hitl_path(report_path_resolved) if report_path_resolved else None
+        rp_key = str(report_path_resolved) if report_path_resolved else "upload"
+        if st.session_state.get("hitl_report_key") != rp_key:
+            st.session_state.hitl_report_key = rp_key
+            if hitl_file and hitl_file.is_file():
+                st.session_state.hitl = _load_hitl(hitl_file)
+            else:
+                st.session_state.hitl = {"version": 1, "decisions": {}}
+
+        report = apply_hitl_to_report(raw_report, st.session_state.hitl)
+        _disc0 = report.get("discovery") or {}
+        _es0 = _disc0.get("executive_summary") or {}
+        if not (_es0.get("risk_hotspots") or []) and (report.get("lineage") or {}).get("edges"):
+            enrich_executive_risk_hotspots(report)
+
+        _sv_disp = str(report.get("schema_version") or "").strip() or "— (legacy)"
+        st.metric("Schema version", _sv_disp)
+        if _sv_disp == "1.1":
+            st.success("Schema Version: **1.1**", icon="✅")
+        else:
+            st.caption(f"Legacy or unknown schema (`{_sv_disp}`). Regenerate with `ama-ingest run` for full v1.1.")
+
+        if report_path_resolved and st.button("Reload from Disk", key="reload_report"):
+            st.session_state.report_reload_bust = int(st.session_state.report_reload_bust) + 1
+            st.session_state.hitl_report_key = ""
+            load_report_cached.clear()
+            st.session_state.hitl_report_key = ""
+            st.rerun()
+
         st.header("Filters")
         disc = report.get("discovery") or {}
         inv_df = _inventory_df(report)
@@ -149,6 +208,9 @@ def main() -> None:
         domains = st.multiselect("Business domain", options=domain_opts, default=[])
         portfolio = st.selectbox("Portfolio section", options=["All", "Core Business", "Technical Debt"])
         conf_min = st.slider("Min confidence", min_value=0.0, max_value=1.0, value=0.0, step=0.05)
+
+    _sv_main = str(report.get("schema_version") or "").strip() or "— (legacy)"
+    st.markdown(f"**Report schema version:** `{_sv_main}`")
 
     exec_sum = disc.get("executive_summary") or {}
     domain_matrix = exec_sum.get("domain_matrix") or []
@@ -167,13 +229,6 @@ def main() -> None:
     )
 
     hitl_file = _hitl_path(report_path_resolved) if report_path_resolved else None
-    rp_key = str(report_path_resolved) if report_path_resolved else ""
-    if st.session_state.get("hitl_report_key") != rp_key:
-        st.session_state.hitl_report_key = rp_key
-        if hitl_file:
-            st.session_state.hitl = _load_hitl(hitl_file)
-        else:
-            st.session_state.hitl = {"version": 1, "decisions": {}}
 
     raw_glossary = build_business_glossary_entries(report)
     glossary = group_glossary_entries(raw_glossary)
@@ -252,6 +307,54 @@ def main() -> None:
                     title="Importance by business domain",
                 )
                 st.plotly_chart(fig_b, use_container_width=True, key="exec_bar_domain_importance")
+
+        rh_exec = exec_sum.get("risk_hotspots") or []
+        st.markdown("### Risk Hotspots (Blast Radius)")
+        st.caption(
+            "Tables with the highest downstream reach in the lineage graph: more domains touched "
+            "and more co-queried neighbors imply a larger blast radius for migration changes."
+        )
+        if rh_exec:
+            rdf = pd.DataFrame(rh_exec)
+            display_cols = [c for c in ("table", "blast_radius_score", "domains_touched", "downstream_tables_reached") if c in rdf.columns]
+            if display_cols:
+                view = rdf[display_cols].copy()
+                if "domains_touched" in view.columns:
+                    view["domains_touched"] = view["domains_touched"].apply(
+                        lambda x: ", ".join(x) if isinstance(x, list) else str(x)
+                    )
+                view = view.rename(
+                    columns={
+                        "table": "Table",
+                        "blast_radius_score": "Blast radius score",
+                        "domains_touched": "Domains touched",
+                        "downstream_tables_reached": "Downstream tables (reach)",
+                    }
+                )
+                st.dataframe(view, use_container_width=True, hide_index=True)
+            else:
+                st.dataframe(rdf, use_container_width=True, hide_index=True)
+        else:
+            _disc_h = report.get("discovery") or {}
+            _lin_h = report.get("lineage") or {}
+            _edges_h = _lin_h.get("edges") or []
+            if not _disc_h.get("enabled"):
+                st.info(
+                    "No **discovery** inventory in this report. Regenerate with "
+                    "**`ama-ingest run --discovery-mode`** (plus your usual flags) so tables and domains exist."
+                )
+            elif not _edges_h:
+                st.info(
+                    "No **lineage** edges in this report. Regenerate with **`--discovery-mode`** so the "
+                    "co-query graph can be built from SQL logs."
+                )
+            else:
+                st.info(
+                    "No risk hotspots were scored for this export: the lineage graph may be **sparse** or "
+                    "no table had enough **cross-domain / neighbor reach** in this run. "
+                    "Try richer SQL logs, or ask engineering to adjust hotspot thresholds. "
+                    "The dashboard **recomputes** hotspots when you load a report when the JSON list is empty."
+                )
 
     with tabs[1]:
         st.subheader("Domain deep dives")
@@ -438,6 +541,31 @@ def main() -> None:
             if fs:
                 st.info(fs)
 
+            lineage_block = report.get("lineage") or {}
+            lg_html = lineage_subgraph_html(lineage_block, pick)
+            has_edges = bool(lineage_block.get("edges"))
+            if lg_html:
+                with st.expander("Lineage Graph (Interactive)", expanded=False):
+                    components.html(lg_html, height=480, scrolling=True)
+            elif has_edges:
+                with st.expander("Lineage Graph (Interactive)", expanded=False):
+                    if pyvis_available():
+                        st.caption("No neighborhood edges for this table in the current graph.")
+                    else:
+                        st.warning(PYVIS_INSTALL_HINT)
+            else:
+                st.caption("No lineage edges for this report (run with `--discovery-mode` to build the graph).")
+
+            rh = exec_sum.get("risk_hotspots") or []
+            rh_row = next((x for x in rh if isinstance(x, dict) and str(x.get("table")) == pick), None)
+            if rh_row:
+                st.markdown("**Blast radius (lineage)**")
+                st.write(
+                    f"Score **{rh_row.get('blast_radius_score', '')}** — "
+                    f"domains: {', '.join(rh_row.get('domains_touched') or [])} — "
+                    f"reach: **{rh_row.get('downstream_tables_reached', '')}** tables"
+                )
+
             me = [e for e in (am.get("merged_entities") or []) if str(e.get("source_table")) == pick]
             rev = [e for e in (am.get("review_candidates") or []) if str(e.get("source_table")) == pick]
             st.markdown("**Confirmed → DDL**")
@@ -515,7 +643,8 @@ def main() -> None:
                     st.session_state.hitl["decisions"] = decisions
                     if hitl_file:
                         _save_hitl(hitl_file, st.session_state.hitl)
-                    st.success("Saved: approved")
+                    st.success("Saved: approved — refreshing KPIs…")
+                    st.rerun()
                 if c2.button("Reject", key=f"rj_{sig}_{i}"):
                     decisions[sig] = {
                         "action": "rejected",
@@ -529,7 +658,8 @@ def main() -> None:
                     st.session_state.hitl["decisions"] = decisions
                     if hitl_file:
                         _save_hitl(hitl_file, st.session_state.hitl)
-                    st.warning("Saved: rejected")
+                    st.warning("Saved: rejected — refreshing…")
+                    st.rerun()
                 status = prior.get("action", "—")
                 c3.caption(f"Last decision: **{status}**")
 

@@ -469,6 +469,27 @@ class ExcelReportGenerator:
             for c in range(1, 5):
                 ws.cell(row=r, column=c).alignment = Alignment(wrap_text=True, vertical="top")
             r += 1
+        risk_hot = es.get("risk_hotspots") or []
+        if risk_hot:
+            r += 1
+            ws.cell(row=r, column=1, value="Lineage risk — cross-domain blast radius (additive)")
+            ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=6)
+            ws.cell(row=r, column=1).font = Font(bold=True, size=11)
+            r += 1
+            hrh = ["Table", "Blast radius score", "Domains touched", "Downstream reach"]
+            for c, h in enumerate(hrh, 1):
+                cell = ws.cell(row=r, column=c, value=h)
+                cell.font = hdr_font
+                cell.fill = hdr_fill
+            r += 1
+            for row in risk_hot[:40]:
+                if not isinstance(row, dict):
+                    continue
+                ws.cell(row=r, column=1, value=row.get("table", ""))
+                ws.cell(row=r, column=2, value=row.get("blast_radius_score", ""))
+                ws.cell(row=r, column=3, value=", ".join(row.get("domains_touched") or []))
+                ws.cell(row=r, column=4, value=row.get("downstream_tables_reached", ""))
+                r += 1
         ws.freeze_panes = ws.cell(row=hdr_row + 1, column=1).coordinate
         for col_letter, w in (
             ("A", 26),

@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 TABLE_METADATA_REL = Path("sample_data/ddl/table_metadata.json")
+DOMAIN_TAXONOMY_REL = Path("sample_data/ddl/domain_taxonomy.json")
 
 
 def infer_default_db_from_data_root(data_root: Path, explicit: str | None) -> str:
@@ -124,15 +125,15 @@ def _two_sentence_blurb(
         return t
     c = comment.strip()
     s1 = (
-        f"Table `{full_name}` belongs to the {domain} area and shows roughly {query_count} "
-        f"query references in captured logs, signaling how often downstream workloads touch it."
+        f"`{full_name}` sits in the {domain} portfolio; log activity (~{query_count} qualifying queries) "
+        f"indicates how tightly coupled downstream reporting and operations are to this object."
     )
     if c:
-        s2 = f"Metadata notes: {c}"
+        s2 = f"Documented context: {c} — validate against source-of-truth owners before locking cutover scope."
     else:
         s2 = (
-            f"It is a primary candidate for sequencing within the {domain} migration wave "
-            f"because of its footprint in operational and analytic SQL."
+            f"Recommend prioritizing it in the {domain} wave with explicit regression tests on consuming dashboards "
+            f"and batch jobs that reference this table."
         )
     return f"{s1} {s2}"
 
@@ -155,18 +156,22 @@ def _openai_enrich(
     for it in items[:120]:
         lines.append(
             f"- full_name={it['full_name']!r} schema={it['schema']!r} table={it['table']!r} "
+            f"semantic_cluster={it.get('dynamic_cluster_id') or ''!r} "
             f"comment={it.get('comment') or ''!r}"
         )
     desc_lines = "\n".join(lines)
     top_s = ", ".join(repr(x) for x in top_for_desc[:12])
-    prompt = f"""You classify SQL tables into business domains for an enterprise migration program.
+    prompt = f"""You are a senior data migration consultant writing for CIO and data steering committees.
+Classify SQL tables into business domains for an enterprise cloud migration program.
 Domains must be one of: Finance, Logistics, CRM, Marketing, Analytics, Operations, Legacy Core, Technical Debt.
 Return a JSON object with keys:
   "domains": [ {{"full_name": string, "domain": string}} , ... ]  (every input table listed exactly once)
   "descriptions": [ {{"full_name": string, "text": string}} , ... ]  (only for these top tables: {top_s})
-Each description must be exactly two sentences, business-focused (not SQL tutorial), suitable for an executive.
+Each description: exactly two sentences — (1) business impact and dependencies, (2) concrete migration recommendation
+(de-risk sequencing, stakeholder alignment, or validation). Avoid generic filler like "shows query volume" or SQL tutorials.
+Use decisive consultant language; no exclamation marks.
 
-Tables:
+Tables (semantic_cluster_id may hint related entities):
 {desc_lines}
 """
     try:
@@ -211,6 +216,152 @@ Tables:
     return dom_map, desc_map
 
 
+def _load_domain_taxonomy(data_root: Path) -> dict[str, str]:
+    p = data_root / DOMAIN_TAXONOMY_REL
+    if not p.is_file():
+        return {}
+    try:
+        raw = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, str] = {}
+    for k, v in raw.items():
+        if isinstance(k, str) and isinstance(v, str):
+            out[k] = v
+    return out
+
+
+def apply_semantic_domain_clusters(
+    prep: list[dict[str, Any]],
+    *,
+    data_root: Path,
+    similarity_threshold: float = 0.88,
+) -> None:
+    """
+    Deterministic hash-embedding clusters over table identity text; optional rollup via domain_taxonomy.json.
+    Mutates each prep row with dynamic_cluster_id and optional dynamic_domain_rollup.
+    """
+    from ama.embeddings import cosine_similarity, hash_embedding
+
+    tax = _load_domain_taxonomy(data_root)
+    default_rollup = tax.get("default", "")
+    centroids: list[tuple[str, list[float]]] = []
+    for row in prep:
+        fn = str(row.get("full_name", ""))
+        blob = f"{fn} {row.get('schema', '')} {row.get('table', '')} {row.get('comment', '')}".lower()
+        vec = hash_embedding(blob, 64)
+        label = None
+        for lab, cv in centroids:
+            if cosine_similarity(vec, cv) >= similarity_threshold:
+                label = lab
+                break
+        if label is None:
+            label = f"semantic_cluster_{len(centroids)}"
+            centroids.append((label, vec))
+        row["dynamic_cluster_id"] = label
+        row["dynamic_domain_rollup"] = tax.get(label, default_rollup) or ""
+
+
+def enrich_executive_risk_hotspots(
+    discovery_or_report: dict[str, Any],
+    lineage_payload: dict[str, Any] | None = None,
+    *,
+    max_depth: int = 3,
+    top_k: int = 30,
+    min_priority: float = 10.0,
+) -> None:
+    """
+    Attach ``discovery.executive_summary.risk_hotspots`` using lineage edges + domain spread (additive).
+
+    Call either as ``enrich_executive_risk_hotspots(discovery, lineage_payload)`` (CLI) or as
+    ``enrich_executive_risk_hotspots(report)`` when ``report`` contains top-level ``discovery`` and
+    ``lineage`` (dashboard convenience).
+    """
+    if lineage_payload is None and isinstance(discovery_or_report.get("lineage"), dict):
+        discovery = discovery_or_report.get("discovery") or {}
+        lineage_payload = discovery_or_report.get("lineage")
+    else:
+        discovery = discovery_or_report
+    if not discovery.get("enabled") or not lineage_payload:
+        return
+    edges = lineage_payload.get("edges") or []
+    if not edges:
+        return
+    inv = discovery.get("inventory") or []
+    table_domain: dict[str, str] = {}
+    table_priority: dict[str, float] = {}
+    for row in inv:
+        if isinstance(row, dict):
+            fn = str(row.get("full_name", ""))
+            if fn:
+                table_domain[fn] = str(row.get("business_domain", "") or "")
+                try:
+                    table_priority[fn] = float(row.get("priority_score") or 0.0)
+                except (TypeError, ValueError):
+                    table_priority[fn] = 0.0
+
+    adj: dict[str, set[str]] = defaultdict(set)
+    for e in edges:
+        if not isinstance(e, dict):
+            continue
+        a, b = str(e.get("from", "")), str(e.get("to", ""))
+        if a and b:
+            adj[a].add(b)
+
+    from collections import deque
+
+    hotspots: list[dict[str, Any]] = []
+    for row in inv:
+        if not isinstance(row, dict):
+            continue
+        seed = str(row.get("full_name", ""))
+        if not seed or float(table_priority.get(seed, 0.0) or 0.0) < min_priority:
+            continue
+        reached: set[str] = set()
+        domains: set[str] = set()
+        q: deque[tuple[str, int]] = deque([(seed, 0)])
+        while q:
+            u, depth = q.popleft()
+            if u in reached or depth > max_depth:
+                continue
+            reached.add(u)
+            d = table_domain.get(u, "")
+            if d:
+                domains.add(d)
+            for v in adj.get(u, ()):
+                if v not in reached:
+                    q.append((v, depth + 1))
+        spread = len(domains)
+        n_reach = len(reached)
+        # Cross-domain blast, broad BFS reach, or any co-query neighbor (lineage aliases may not
+        # appear in inventory, so "domains touched" can stay 1 even when the graph has edges).
+        has_neighbor = len(adj.get(seed, ())) > 0
+        if (
+            spread >= 2
+            or n_reach >= 4
+            or (spread >= 1 and n_reach >= 3)
+            or (n_reach >= 2 and has_neighbor)
+        ):
+            score = min(
+                100.0,
+                spread * 22.0 + len(reached) * 2.5 + table_priority.get(seed, 0.0) * 0.15,
+            )
+            hotspots.append(
+                {
+                    "table": seed,
+                    "blast_radius_score": round(score, 1),
+                    "domains_touched": sorted(domains),
+                    "downstream_tables_reached": len(reached),
+                }
+            )
+
+    hotspots.sort(key=lambda x: (-float(x.get("blast_radius_score", 0)), str(x.get("table", ""))))
+    es = discovery.setdefault("executive_summary", {})
+    es["risk_hotspots"] = hotspots[:top_k]
+
+
 def enrich_discovery_business_context(
     discovery: dict[str, Any],
     *,
@@ -251,6 +402,7 @@ def enrich_discovery_business_context(
         )
 
     prep.sort(key=lambda x: (-x["query_count"], x["full_name"]))
+    apply_semantic_domain_clusters(prep, data_root=data_root)
     top_names = [p["full_name"] for p in prep[: max(0, description_top_n)]]
 
     llm_domains, llm_desc = _openai_enrich(prep, top_for_desc=top_names)
@@ -288,6 +440,12 @@ def enrich_discovery_business_context(
         out["portfolio_section"] = portfolio
         out["business_description"] = desc
         out["table_comment"] = comment
+        pmatch = next((p for p in prep if p.get("full_name") == fn), None)
+        if isinstance(pmatch, dict):
+            if pmatch.get("dynamic_cluster_id"):
+                out["dynamic_cluster_id"] = pmatch["dynamic_cluster_id"]
+            if pmatch.get("dynamic_domain_rollup"):
+                out["dynamic_domain_rollup"] = pmatch["dynamic_domain_rollup"]
         enriched_rows.append(out)
 
     # Sort: Core Business first (by domain, then priority), Technical Debt last

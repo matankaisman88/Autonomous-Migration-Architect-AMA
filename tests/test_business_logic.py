@@ -5,6 +5,7 @@ from pathlib import Path
 from ama.business_logic import (
     _heuristic_domain,
     enrich_discovery_business_context,
+    enrich_executive_risk_hotspots,
     infer_default_db_from_data_root,
 )
 
@@ -58,3 +59,66 @@ def test_enrich_adds_domains(tmp_path: Path) -> None:
     assert inv[-1]["portfolio_section"] == "Technical Debt"
     assert "executive_summary" in out
     assert len(out["executive_summary"]["domain_matrix"]) >= 1
+    assert "dynamic_cluster_id" in inv[0]
+
+
+def test_enrich_executive_risk_hotspots_adds_rows() -> None:
+    disc: dict = {
+        "enabled": True,
+        "inventory": [
+            {
+                "full_name": "a.orders",
+                "business_domain": "Finance",
+                "priority_score": 90.0,
+                "query_count": 10,
+            },
+            {
+                "full_name": "b.customers",
+                "business_domain": "CRM",
+                "priority_score": 80.0,
+                "query_count": 8,
+            },
+        ],
+        "executive_summary": {"domain_matrix": [], "table_fact_sheets": []},
+    }
+    lineage = {
+        "edges": [
+            {"from": "a.orders", "to": "b.customers", "weight": 3, "kind": "coquery"},
+            {"from": "b.customers", "to": "a.orders", "weight": 3, "kind": "coquery"},
+        ]
+    }
+    enrich_executive_risk_hotspots(disc, lineage, min_priority=35.0, max_depth=4)
+    rh = disc["executive_summary"].get("risk_hotspots") or []
+    assert len(rh) >= 1
+    assert any(str(r.get("table")) == "a.orders" for r in rh if isinstance(r, dict))
+
+
+def test_enrich_executive_risk_hotspots_accepts_full_report() -> None:
+    disc: dict = {
+        "enabled": True,
+        "inventory": [
+            {
+                "full_name": "a.orders",
+                "business_domain": "Finance",
+                "priority_score": 90.0,
+                "query_count": 10,
+            },
+            {
+                "full_name": "b.customers",
+                "business_domain": "CRM",
+                "priority_score": 80.0,
+                "query_count": 8,
+            },
+        ],
+        "executive_summary": {"domain_matrix": [], "table_fact_sheets": []},
+    }
+    lineage = {
+        "edges": [
+            {"from": "a.orders", "to": "b.customers", "weight": 3, "kind": "coquery"},
+            {"from": "b.customers", "to": "a.orders", "weight": 3, "kind": "coquery"},
+        ]
+    }
+    report = {"discovery": disc, "lineage": lineage, "schema_version": "1.1"}
+    enrich_executive_risk_hotspots(report, min_priority=35.0, max_depth=4)
+    rh = disc["executive_summary"].get("risk_hotspots") or []
+    assert len(rh) >= 1

@@ -45,6 +45,10 @@ class IngestionSettings(BaseSettings):
         default=None,
         description="Catalog/database name when logs only reference schema.table (env: AMA_DEFAULT_DB)",
     )
+    default_sql_dialect: str | None = Field(
+        default=None,
+        description="Fallback SQLGlot dialect when JSONL rows omit dialect (env: AMA_DEFAULT_SQL_DIALECT)",
+    )
 
     @property
     def full_table(self) -> str:
