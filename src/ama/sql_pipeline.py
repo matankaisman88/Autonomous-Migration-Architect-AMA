@@ -2,16 +2,35 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 import sqlglot
 from sqlglot import exp
 from sqlglot.errors import ParseError
 
 from ama.sanitize import normalize_sql_identifier, sanitize_sql_text
+
+# Safeguards: very large logs or pathological lines should warn instead of failing silently or OOMing.
+_MAX_SQL_LOG_BYTES = 500 * 1024 * 1024
+_MAX_JSONL_LINE_CHARS = 2 * 1024 * 1024
+_MAX_JSON_WARN_LINES = 8
+
+
+def _warn_sql_log_path(path: Path) -> None:
+    try:
+        sz = path.stat().st_size
+    except OSError as e:
+        print(f"warning: cannot read SQL log size ({e}): {path}", file=sys.stderr)
+        return
+    if sz > _MAX_SQL_LOG_BYTES:
+        print(
+            f"warning: SQL log is very large ({sz / (1024 * 1024):.1f} MiB); ingestion may be slow: {path}",
+            file=sys.stderr,
+        )
 
 
 def qualified_key_from_table(node: exp.Table) -> str:
@@ -221,16 +240,68 @@ def _fallback_regex_extract(text: str) -> list[dict[str, dict[str, int]]]:
     return [dict(per_table)] if per_table else []
 
 
-def iter_sql_log_records(path: Path) -> Iterator[dict[str, Any]]:
+def iter_sql_log_records(
+    path: Path,
+    *,
+    max_records: int | None = None,
+) -> Iterator[dict[str, Any]]:
+    """
+    Stream JSONL records (one dict per line). Does not load the whole file into memory.
+    ``max_records`` stops after that many successfully parsed records (invalid lines do not count).
+    """
+    _warn_sql_log_path(path)
+    bad_json = 0
+    yielded = 0
     with path.open(encoding="utf-8", errors="replace") as f:
-        for line in f:
+        for line_no, line in enumerate(f, 1):
+            if max_records is not None and yielded >= max_records:
+                break
+            if len(line) > _MAX_JSONL_LINE_CHARS:
+                print(
+                    f"warning: skipping oversized line ({len(line)} chars) at {line_no} in {path}",
+                    file=sys.stderr,
+                )
+                continue
             line = line.replace("\x00", "").strip()
             if not line:
                 continue
             try:
-                yield json.loads(line)
+                rec = json.loads(line)
             except json.JSONDecodeError:
+                bad_json += 1
+                if bad_json <= _MAX_JSON_WARN_LINES:
+                    print(
+                        f"warning: invalid JSON on line {line_no} in {path} (skipped)",
+                        file=sys.stderr,
+                    )
                 continue
+            yield rec
+            yielded += 1
+    if bad_json > _MAX_JSON_WARN_LINES:
+        print(
+            f"warning: {bad_json - _MAX_JSON_WARN_LINES} additional invalid JSON lines skipped in {path}",
+            file=sys.stderr,
+        )
+
+
+def iter_sql_log_record_batches(
+    path: Path,
+    *,
+    batch_size: int = 5000,
+    max_records: int | None = None,
+) -> Iterator[list[dict[str, Any]]]:
+    """
+    Yield bounded batches of parsed records for batched processing and progress reporting.
+    Still streams the underlying file; only one batch is held at a time.
+    """
+    batch: list[dict[str, Any]] = []
+    for rec in iter_sql_log_records(path, max_records=max_records):
+        batch.append(rec)
+        if len(batch) >= batch_size:
+            yield batch
+            batch = []
+    if batch:
+        yield batch
 
 
 def table_matches_target(table_key: str, target_full_table: str) -> bool:
@@ -250,44 +321,114 @@ def _target_keys(target_full_table: str) -> set[str]:
     return keys
 
 
+def _discovery_record_into_stats(
+    rec: dict[str, Any],
+    *,
+    env: str | None,
+    per_table: dict[str, TableColumnStats],
+) -> None:
+    if env and rec.get("env") and str(rec["env"]).lower() != str(env).lower():
+        return
+    sql = rec.get("sql") or rec.get("query") or rec.get("statement")
+    if not sql or not isinstance(sql, str):
+        return
+    sql = sanitize_sql_text(sql)
+    dialect = rec.get("dialect") if isinstance(rec.get("dialect"), str) else None
+    chunks, ok = parse_sql_query(sql, dialect=dialect)
+    if not ok:
+        chunks = _fallback_regex_extract(sql)
+        if not chunks:
+            return
+
+    touched: set[str] = set()
+    for flat in chunks:
+        for tbl in flat:
+            touched.add(tbl)
+    for tbl in touched:
+        per_table[tbl].query_count += 1
+
+    for flat in chunks:
+        for tbl in flat:
+            merge_flat_into_table_stats(flat, tbl, per_table[tbl])
+
+
+def _target_record_into_stats(
+    rec: dict[str, Any],
+    *,
+    env: str | None,
+    tkeys: set[str],
+    short: str,
+    out: TableColumnStats,
+) -> None:
+    if env and rec.get("env") and str(rec["env"]).lower() != str(env).lower():
+        return
+    sql = rec.get("sql") or rec.get("query") or rec.get("statement")
+    if not sql or not isinstance(sql, str):
+        return
+    sql = sanitize_sql_text(sql)
+    dialect = rec.get("dialect") if isinstance(rec.get("dialect"), str) else None
+    chunks, ok = parse_sql_query(sql, dialect=dialect)
+    if not ok:
+        chunks = _fallback_regex_extract(sql)
+        if not chunks:
+            return
+
+    matched = False
+    for flat in chunks:
+        for tbl in flat:
+            if _table_matches_target(tbl, tkeys, short):
+                matched = True
+                break
+        if matched:
+            break
+    if not matched:
+        return
+
+    out.query_count += 1
+    for flat in chunks:
+        _merge_role_counts_into_stats(flat, tkeys, short, out)
+
+
 def process_sql_log_file(
     path: Path,
     *,
     target_full_table: str,
     env: str | None = "prod",
+    batch_size: int | None = None,
+    progress: bool = False,
+    max_records: int | None = None,
 ) -> TableColumnStats:
     out = TableColumnStats()
     tkeys = _target_keys(target_full_table)
     short = normalize_sql_identifier(target_full_table.split(".")[-1])
 
-    for rec in iter_sql_log_records(path):
-        if env and rec.get("env") and str(rec["env"]).lower() != str(env).lower():
-            continue
-        sql = rec.get("sql") or rec.get("query") or rec.get("statement")
-        if not sql or not isinstance(sql, str):
-            continue
-        sql = sanitize_sql_text(sql)
-        dialect = rec.get("dialect") if isinstance(rec.get("dialect"), str) else None
-        chunks, ok = parse_sql_query(sql, dialect=dialect)
-        if not ok:
-            chunks = _fallback_regex_extract(sql)
-            if not chunks:
-                continue
+    def _one(rec: dict[str, Any]) -> None:
+        _target_record_into_stats(rec, env=env, tkeys=tkeys, short=short, out=out)
 
-        matched = False
-        for flat in chunks:
-            for tbl in flat:
-                if _table_matches_target(tbl, tkeys, short):
-                    matched = True
-                    break
-            if matched:
-                break
-        if not matched:
-            continue
+    if batch_size is None:
+        stream = iter_sql_log_records(path, max_records=max_records)
+        if progress:
+            try:
+                from tqdm import tqdm
 
-        out.query_count += 1
-        for flat in chunks:
-            _merge_role_counts_into_stats(flat, tkeys, short, out)
+                stream = tqdm(stream, desc=path.name, unit=" rec", unit_scale=True)
+            except ImportError:
+                pass
+        for rec in stream:
+            _one(rec)
+        return out
+
+    batches = iter_sql_log_record_batches(path, batch_size=batch_size, max_records=max_records)
+    if progress:
+        try:
+            from tqdm import tqdm
+
+            batches = tqdm(batches, desc=path.name, unit="batch")
+        except ImportError:
+            pass
+    for batch in batches:
+        for rec in batch:
+            _one(rec)
 
     return out
 
@@ -333,34 +474,54 @@ def process_sql_log_file_discovery(
     path: Path,
     *,
     env: str | None = "prod",
+    batch_size: int | None = None,
+    progress: bool = False,
+    max_records: int | None = None,
+    on_batch_complete: Callable[[int], None] | None = None,
+    records_counter: list[int] | None = None,
 ) -> dict[str, TableColumnStats]:
-    """Aggregate column stats per qualified table key (no target filter)."""
+    """
+    Aggregate column stats per qualified table key (no target filter).
+    Streaming JSONL read — never loads the full log into memory.
+
+    ``batch_size`` — if set, accumulate records in chunks (e.g. 5000) for progress / GC cadence.
+    ``progress`` — tqdm progress (requires tqdm).
+    ``on_batch_complete`` — optional callback after each batch ``(batch_index,)`` for monitors.
+    ``records_counter`` — optional single-element list incremented per record consumed.
+    """
     per_table: dict[str, TableColumnStats] = defaultdict(TableColumnStats)
 
-    for rec in iter_sql_log_records(path):
-        if env and rec.get("env") and str(rec["env"]).lower() != str(env).lower():
-            continue
-        sql = rec.get("sql") or rec.get("query") or rec.get("statement")
-        if not sql or not isinstance(sql, str):
-            continue
-        sql = sanitize_sql_text(sql)
-        dialect = rec.get("dialect") if isinstance(rec.get("dialect"), str) else None
-        chunks, ok = parse_sql_query(sql, dialect=dialect)
-        if not ok:
-            chunks = _fallback_regex_extract(sql)
-            if not chunks:
-                continue
+    def _one(rec: dict[str, Any]) -> None:
+        if records_counter is not None:
+            records_counter[0] += 1
+        _discovery_record_into_stats(rec, env=env, per_table=per_table)
 
-        touched: set[str] = set()
-        for flat in chunks:
-            for tbl in flat:
-                touched.add(tbl)
-        for tbl in touched:
-            per_table[tbl].query_count += 1
+    if batch_size is None:
+        stream = iter_sql_log_records(path, max_records=max_records)
+        if progress:
+            try:
+                from tqdm import tqdm
 
-        for flat in chunks:
-            for tbl in flat:
-                merge_flat_into_table_stats(flat, tbl, per_table[tbl])
+                stream = tqdm(stream, desc=path.name, unit=" rec", unit_scale=True)
+            except ImportError:
+                pass
+        for rec in stream:
+            _one(rec)
+        return dict(per_table)
+
+    batches = iter_sql_log_record_batches(path, batch_size=batch_size, max_records=max_records)
+    if progress:
+        try:
+            from tqdm import tqdm
+
+            batches = tqdm(batches, desc=path.name, unit="batch")
+        except ImportError:
+            pass
+    for bi, batch in enumerate(batches):
+        for rec in batch:
+            _one(rec)
+        if on_batch_complete is not None:
+            on_batch_complete(bi)
 
     return dict(per_table)
 
@@ -369,10 +530,23 @@ def run_sql_logs_discovery_pipeline(
     sql_log_paths: list[Path],
     *,
     env: str | None = "prod",
+    batch_size: int | None = None,
+    progress: bool = False,
+    max_records_per_file: int | None = None,
+    on_batch_complete: Callable[[int], None] | None = None,
+    records_counter: list[int] | None = None,
 ) -> dict[str, TableColumnStats]:
     total: dict[str, TableColumnStats] = defaultdict(TableColumnStats)
     for p in sql_log_paths:
-        part = process_sql_log_file_discovery(p, env=env)
+        part = process_sql_log_file_discovery(
+            p,
+            env=env,
+            batch_size=batch_size,
+            progress=progress and len(sql_log_paths) == 1,
+            max_records=max_records_per_file,
+            on_batch_complete=on_batch_complete,
+            records_counter=records_counter,
+        )
         for k, st in part.items():
             merge_stats(total[k], st)
     return dict(total)
@@ -383,9 +557,19 @@ def run_sql_logs_pipeline(
     *,
     target_full_table: str,
     env: str | None = "prod",
+    batch_size: int | None = None,
+    progress: bool = False,
+    max_records_per_file: int | None = None,
 ) -> TableColumnStats:
     total = TableColumnStats()
     for p in sql_log_paths:
-        other = process_sql_log_file(p, target_full_table=target_full_table, env=env)
+        other = process_sql_log_file(
+            p,
+            target_full_table=target_full_table,
+            env=env,
+            batch_size=batch_size,
+            progress=progress and len(sql_log_paths) == 1,
+            max_records=max_records_per_file,
+        )
         merge_stats(total, other)
     return total

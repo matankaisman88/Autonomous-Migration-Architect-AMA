@@ -1,3 +1,3 @@
-"""Autonomous Migration Architect — Week 1 ingestion slice."""
+"""Autonomous Migration Architect — ingestion and reporting package."""
 
 __version__ = "0.1.0"

@@ -135,7 +135,7 @@ def main() -> None:
                 return
             if not path_in.strip().lower().endswith(".json"):
                 st.warning(
-                    "Report path should end in **.json** (e.g. `dash_test.json`). "
+                    "Report path should end in **.json** (e.g. `report.json`). "
                     "A `.js` path will not load the ingestion report."
                 )
 

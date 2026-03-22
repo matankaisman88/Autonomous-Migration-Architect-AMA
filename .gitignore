@@ -37,3 +37,13 @@ Thumbs.db
 
 # Local Qdrant / vector data (if used under project)
 *.sqlite3
+
+# Generated chaos / stress outputs (regenerate with tools/generate_*.py)
+chaos_data/
+
+# Local run artifacts (never commit)
+/dash_test.json
+/dash_test.hitl.json
+/full_db_report.xlsx
+/benchmark_results.json
+/stress_report.json

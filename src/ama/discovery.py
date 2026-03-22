@@ -5,7 +5,7 @@ Hierarchical schema/table discovery from SQL logs (database.schema.table paths).
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Callable
 
 from ama.alias_resolver import AliasResolver, MergeResult
 from ama.sql_pipeline import TableColumnStats, merge_stats, run_sql_logs_discovery_pipeline, table_matches_target
@@ -162,9 +162,26 @@ def build_discovery_payload(
     }
 
 
-def run_discovery(paths: list, env: str | None) -> dict[str, TableColumnStats]:
+def run_discovery(
+    paths: list,
+    env: str | None,
+    *,
+    batch_size: int | None = None,
+    progress: bool = False,
+    max_records_per_file: int | None = None,
+    on_batch_complete: Callable[[int], None] | None = None,
+    records_counter: list[int] | None = None,
+) -> dict[str, TableColumnStats]:
     """Scan all qualified tables in SQL logs."""
-    return run_sql_logs_discovery_pipeline(paths, env=env)
+    return run_sql_logs_discovery_pipeline(
+        paths,
+        env=env,
+        batch_size=batch_size,
+        progress=progress,
+        max_records_per_file=max_records_per_file,
+        on_batch_complete=on_batch_complete,
+        records_counter=records_counter,
+    )
 
 
 def top_n_tables(discovery_tables: dict[str, TableColumnStats], n: int = 10) -> list[str]:

@@ -170,6 +170,21 @@ def dashboard_main() -> None:
 
 def cmd_run(args: argparse.Namespace) -> int:
     _ensure_utf8_stdout()
+    if getattr(args, "benchmark", False) and getattr(args, "stress", False):
+        print("error: use either --benchmark or --stress, not both", file=sys.stderr)
+        return 2
+    if getattr(args, "benchmark", False):
+        from ama.benchmarks import run_benchmark_suite
+
+        br = getattr(args, "benchmark_results", None)
+        out = Path(br).expanduser().resolve() if br else Path.cwd() / "benchmark_results.json"
+        dr = Path(args.data_root).resolve() if getattr(args, "data_root", None) else None
+        return run_benchmark_suite(results_path=out, data_root=dr)
+    if getattr(args, "stress", False):
+        from ama.stress_monitor import run_stress_ingestion
+
+        return run_stress_ingestion(args)
+
     root = project_root()
     settings = IngestionSettings()
     if args.data_root:
@@ -583,7 +598,10 @@ def cmd_apply_hitl(args: argparse.Namespace) -> int:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="ama-ingest", description="AMA Week 1 ingestion")
+    p = argparse.ArgumentParser(
+        prog="ama-ingest",
+        description="Autonomous Migration Architect — SQL ingestion, reports, benchmarks",
+    )
     sub = p.add_subparsers(dest="cmd", required=True)
 
     r = sub.add_parser("run", help="Run SQL + comms + git + importance v0")
@@ -669,6 +687,44 @@ def main() -> None:
         type=str,
         default=None,
         help="Override AMA_TARGET_TABLE (single-table mode or discovery anchor when not using --no-target)",
+    )
+    r.add_argument(
+        "--benchmark",
+        action="store_true",
+        help="Run Tier 5 performance benchmark (10k/50k/100k rows); writes benchmark_results.json; ignores other run options",
+    )
+    r.add_argument(
+        "--benchmark-results",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Output path for benchmark JSON (default: ./benchmark_results.json in cwd)",
+    )
+    r.add_argument(
+        "--stress",
+        action="store_true",
+        help="Extreme stress: batched discovery on AMA_STRESS_LOG or chaos_data/sql_logs/extreme_1m.jsonl; writes stress_report.json",
+    )
+    r.add_argument(
+        "--stress-lines",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Max JSON records to process per file (default: all). Overrides AMA_STRESS_MAX_LINES.",
+    )
+    r.add_argument(
+        "--stress-report",
+        type=str,
+        default=None,
+        metavar="PATH",
+        help="Output JSON for peak memory & timing (default: ./stress_report.json)",
+    )
+    r.add_argument(
+        "--stress-batch-size",
+        type=int,
+        default=5000,
+        metavar="N",
+        help="Records per batch when --stress is set (default: 5000)",
     )
     r.set_defaults(func=cmd_run)
 
