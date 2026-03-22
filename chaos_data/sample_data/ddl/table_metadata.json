@@ -1,0 +1,210 @@
+{
+  "PROD_SALES.Orders": {
+    "comment": "Production sales entity Orders; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.OrderLines": {
+    "comment": "Production sales entity OrderLines; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Customers": {
+    "comment": "Production sales entity Customers; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Products": {
+    "comment": "Production sales entity Products; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Invoices": {
+    "comment": "Production sales entity Invoices; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Shipments": {
+    "comment": "Production sales entity Shipments; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Promotions": {
+    "comment": "Production sales entity Promotions; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Territories": {
+    "comment": "Production sales entity Territories; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.SalesReps": {
+    "comment": "Production sales entity SalesReps; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.PriceBooks": {
+    "comment": "Production sales entity PriceBooks; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Contracts": {
+    "comment": "Production sales entity Contracts; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Returns": {
+    "comment": "Production sales entity Returns; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Credits": {
+    "comment": "Production sales entity Credits; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.TaxRates": {
+    "comment": "Production sales entity TaxRates; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Warehouses": {
+    "comment": "Production sales entity Warehouses; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.InventorySnapshots": {
+    "comment": "Production sales entity InventorySnapshots; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.ForecastRuns": {
+    "comment": "Production sales entity ForecastRuns; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.BudgetLines": {
+    "comment": "Production sales entity BudgetLines; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Commissions": {
+    "comment": "Production sales entity Commissions; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "PROD_SALES.Targets": {
+    "comment": "Production sales entity Targets; referenced in revenue and pipeline reporting.",
+    "business_hint": "core"
+  },
+  "LEGACY_HEBREW.טבלת_לקוחות": {
+    "comment": "Legacy Hebrew store for טבלת_לקוחות; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "LEGACY_HEBREW.טבלת_הזמנות": {
+    "comment": "Legacy Hebrew store for טבלת_הזמנות; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "LEGACY_HEBREW.מוצרים": {
+    "comment": "Legacy Hebrew store for מוצרים; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "LEGACY_HEBREW.חשבוניות": {
+    "comment": "Legacy Hebrew store for חשבוניות; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "LEGACY_HEBREW.סטטוסים": {
+    "comment": "Legacy Hebrew store for סטטוסים; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "LEGACY_HEBREW.נתונים_כלליים": {
+    "comment": "Legacy Hebrew store for נתונים_כלליים; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "LEGACY_HEBREW.שמות_זמניים": {
+    "comment": "Legacy Hebrew store for שמות_זמניים; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "LEGACY_HEBREW.מזהים": {
+    "comment": "Legacy Hebrew store for מזהים; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "LEGACY_HEBREW.כמויות": {
+    "comment": "Legacy Hebrew store for כמויות; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "LEGACY_HEBREW.אזורים": {
+    "comment": "Legacy Hebrew store for אזורים; used in regional billing and customer care workflows.",
+    "business_hint": "legacy"
+  },
+  "TEMP_JUNK.Tmp_1": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_2": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_3": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_4": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_5": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_6": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_7": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_8": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_9": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_10": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_11": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_12": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_13": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_14": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_15": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_16": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_17": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_18": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_19": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_20": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_21": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  },
+  "TEMP_JUNK.Tmp_22": {
+    "comment": "Ephemeral scratch table; safe to drop after cutover.",
+    "business_hint": "core"
+  }
+}

@@ -1,0 +1,400 @@
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT COUNT(*) FROM sales.orders WHERE customer_id = 99"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, customer_id, amount FROM sales.orders WHERE status = 'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT o.order_id, o.amount, o.status FROM sales.orders o WHERE o.created_at > '2024-01-01'"}

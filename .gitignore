@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Test / tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.cover
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local Qdrant / vector data (if used under project)
+*.sqlite3

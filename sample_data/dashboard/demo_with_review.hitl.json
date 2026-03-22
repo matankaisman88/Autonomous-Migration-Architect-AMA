@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "decisions": {
+    "c935c060807534538c8c7daf5ddaff3328cedad35d29af99b600712a9b9fe282": {
+      "action": "approved",
+      "ts": "2026-03-22T08:44:27.818553+00:00",
+      "row": {
+        "source_table": "prod_sales.orders",
+        "legacy_name": "maybe_discount",
+        "suggested_ddl": "amount"
+      }
+    },
+    "ba1dcf9ed4dafac9ddcc17ab9bd2e6daa403a07b528e7f5694aac2af14fd6370": {
+      "action": "approved",
+      "ts": "2026-03-22T08:44:32.946473+00:00",
+      "row": {
+        "source_table": "prod_sales.orders",
+        "legacy_name": "fuzzy_customer_ref",
+        "suggested_ddl": "customer_id"
+      }
+    }
+  }
+}

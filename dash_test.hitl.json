@@ -1,0 +1,24 @@
+{
+  "_description": "AMA Human-in-the-loop sidecar. Each key under 'decisions' is SHA256(utf-8) of: source_table|legacy_name|suggested_ddl — same as review_row_signature() in ama.business_logic. Only rows that exist in your report's alias_merge.review_candidates will show a matching 'Last decision' in the dashboard.",
+  "version": 1,
+  "decisions": {
+    "620398c91889efcf855297b06cf9177e561ac193fda23a6cf2ef3e9116c85430": {
+      "action": "approved",
+      "ts": "2025-03-22T12:00:00+00:00",
+      "row": {
+        "source_table": "prod_sales.orders",
+        "legacy_name": "maybe_col",
+        "suggested_ddl": "amount"
+      }
+    },
+    "ccceda2de5624b4f1940f0895d09ab0c12cbb9a02060e2a395a55338c609ae2c": {
+      "action": "rejected",
+      "ts": "2025-03-22T12:05:00+00:00",
+      "row": {
+        "source_table": "prod_sales.orders",
+        "legacy_name": "סטטוס",
+        "suggested_ddl": "status"
+      }
+    }
+  }
+}

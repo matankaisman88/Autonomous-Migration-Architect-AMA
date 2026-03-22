@@ -1,0 +1,3 @@
+{"channel": "exec-reporting", "ts": "1710000000.000100", "text": "Please confirm Q1 revenue from sales.orders matches finance close."}
+{"channel": "exec-reporting", "ts": "1710000001.000200", "text": "The orders table in sales schema is the source of truth for ARR this quarter."}
+{"channel": "random", "ts": "1710000002.000300", "text": "Unrelated chat about lunch."}

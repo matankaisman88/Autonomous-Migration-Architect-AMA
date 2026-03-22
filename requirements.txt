@@ -1,0 +1,4 @@
+# Convenience file; canonical dependency list is pyproject.toml (pip install -e .).
+streamlit>=1.28.0
+plotly>=5.18.0
+pandas>=2.0.0

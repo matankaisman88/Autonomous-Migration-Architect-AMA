@@ -1,0 +1,77 @@
+{
+  "target_table": "sales.orders",
+  "queries_matched": 120,
+  "column_name_source": "ddl",
+  "importance_ddl": [],
+  "discovery": {
+    "enabled": true,
+    "default_database": "demo_db",
+    "inventory": [
+      {
+        "database": "demo_db",
+        "schema": "prod_sales",
+        "table": "orders",
+        "full_name": "prod_sales.orders",
+        "query_count": 50,
+        "column_count": 5,
+        "priority_score": 100.0,
+        "status": "Merged (Top N scope)",
+        "business_domain": "Finance",
+        "portfolio_section": "Core Business",
+        "business_description": "",
+        "table_comment": ""
+      }
+    ],
+    "executive_summary": {
+      "domain_matrix": [],
+      "table_fact_sheets": []
+    }
+  },
+  "alias_merge": {
+    "merged_entities": [
+      {
+        "canonical_column": "order_id",
+        "source_columns": ["order_id"],
+        "merge_confidence": 0.99,
+        "strategies": ["exact_ddl"],
+        "citations": ["exact match"],
+        "source_table": "prod_sales.orders"
+      }
+    ],
+    "review_candidates": [
+      {
+        "legacy_name": "fuzzy_customer_ref",
+        "suggested_ddl": "customer_id",
+        "merge_confidence": 0.62,
+        "category": "review",
+        "citation": "Vector match — needs human confirmation for this legacy token.",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 3,
+          "where": 1,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "prod_sales.orders"
+      },
+      {
+        "legacy_name": "maybe_discount",
+        "suggested_ddl": "amount",
+        "merge_confidence": 0.48,
+        "category": "review",
+        "citation": "Weak lexical overlap; ambiguous business meaning.",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 2,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "prod_sales.orders"
+      }
+    ],
+    "trash_candidates": []
+  }
+}

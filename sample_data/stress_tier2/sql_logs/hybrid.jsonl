@@ -1,0 +1,400 @@
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT order_id, סטטוס FROM sales.orders o WHERE o.amount > 100"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT [מזהה_הזמנה], [מזהה_לקוח], [סכום] FROM [sales].[orders] WHERE [סטטוס] = N'open'"}
+{"env": "prod", "dialect": "tsql", "sql": "SELECT TOP 10 [order_id] FROM [sales].[orders] WHERE [customer_id] IS NOT NULL"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
+{"env": "prod", "dialect": "postgres", "sql": "SELECT * FROM sales.orders WHERE מזהה_לקוח = 5 AND סטטוס = 'paid'"}
