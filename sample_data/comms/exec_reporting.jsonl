@@ -1,3 +1,9 @@
 {"channel": "exec-reporting", "ts": "1710000000.000100", "text": "Please confirm Q1 revenue from sales.orders matches finance close."}
 {"channel": "exec-reporting", "ts": "1710000001.000200", "text": "The orders table in sales schema is the source of truth for ARR this quarter."}
-{"channel": "random", "ts": "1710000002.000300", "text": "Unrelated chat about lunch."}
+{"channel": "exec-reporting", "ts": "1710000002.000300", "text": "Board deck: highlight dependency between sales.orders and finance.invoices for audit trail."}
+{"channel": "exec-reporting", "ts": "1710000003.000400", "text": "We need a single view of customer_id across sales.orders and crm.accounts before migration."}
+{"channel": "exec-reporting", "ts": "1710000004.000500", "text": "Logistics KPIs: correlate logistics.shipments SLA with sales.orders fulfillment dates."}
+{"channel": "exec-reporting", "ts": "1710000005.000600", "text": "Marketing wants campaign ROI from marketing.campaign_results joined to crm.leads — prioritize for migration wave 2."}
+{"channel": "exec-reporting", "ts": "1710000006.000700", "text": "CRM leadership: territory coverage in crm.territories must stay in sync with crm.sales_reps before cutover."}
+{"channel": "exec-reporting", "ts": "1710000007.000800", "text": "Ops review: warehouse utilization from logistics.warehouses vs analytics.targets — two domains, one executive view."}
+{"channel": "random", "ts": "1710000008.000900", "text": "Unrelated chat about lunch."}

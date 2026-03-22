@@ -62,16 +62,17 @@ def _bench_alias_merge(
     discovery: dict[str, TableColumnStats],
     *,
     ddl_path: Path,
-    glossary_path: Path | None,
+    glossary_paths: list[Path] | None,
 ) -> tuple[float, float, float, int, dict[str, Any]]:
     """
     Returns (seconds, tracemalloc_peak_mb, rss_delta_mb_or_0, tables_merged, merged_summary).
     Hash-embedding / vector-style scoring runs inside merge_table_stats.
     """
     ddl = load_ddl_columns(ddl_path)
+    gp = glossary_paths or []
     resolver = AliasResolver(
         ddl_columns=ddl,
-        glossary=load_glossary(glossary_path),
+        glossary=load_glossary(*gp),
     )
     keys = top_n_tables(discovery, n=len(discovery))
     gc.collect()
@@ -133,7 +134,12 @@ def run_benchmark_suite(
         print(f"error: DDL file required for benchmark: {ddl_path}", file=sys.stderr)
         return 2
     gloss_path = root / "sample_data" / "glossary" / "he_en_columns.json"
-    glossary_opt: Path | None = gloss_path if gloss_path.is_file() else None
+    gloss_dirty = root / "sample_data" / "glossary" / "he_en_columns_dirty.json"
+    glossary_paths: list[Path] = []
+    if gloss_path.is_file():
+        glossary_paths.append(gloss_path)
+    if gloss_dirty.is_file():
+        glossary_paths.append(gloss_dirty)
 
     generate_lines = _load_tier5_generate_lines()
     runs: list[dict[str, Any]] = []
@@ -164,7 +170,7 @@ def run_benchmark_suite(
             merge_sec, peak_mb, rss_delta, n_merged, agg = _bench_alias_merge(
                 discovery,
                 ddl_path=ddl_path,
-                glossary_path=glossary_opt,
+                glossary_paths=glossary_paths,
             )
             print(
                 f"  Alias merge (all tables, vector+lexical in resolver): {merge_sec:.2f}s | "

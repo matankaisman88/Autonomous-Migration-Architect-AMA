@@ -107,14 +107,31 @@ class MergeResult:
     proposals: list[MergeCandidate]
 
 
-def load_glossary(path: Path | None) -> dict[str, str]:
-    if path is None or not path.exists():
-        return default_glossary()
-    data = json.loads(path.read_text(encoding="utf-8"))
+def load_glossary(*paths: Path | None) -> dict[str, str]:
+    """
+    Merge one or more glossary JSON objects (flat string→string maps).
+    Later files only add keys not already present (first file wins).
+    Keys starting with ``_`` are skipped (reserved for metadata).
+    If no path exists or is given, returns :func:`default_glossary`.
+    """
     out: dict[str, str] = {}
-    for k, v in data.items():
-        if isinstance(k, str) and isinstance(v, str):
-            out[normalize_sql_identifier(k)] = normalize_sql_identifier(v)
+    any_loaded = False
+    for path in paths:
+        if path is None or not path.exists():
+            continue
+        any_loaded = True
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for k, v in data.items():
+            if not isinstance(k, str) or not isinstance(v, str):
+                continue
+            if k.startswith("_"):
+                continue
+            nk = normalize_sql_identifier(k)
+            nv = normalize_sql_identifier(v)
+            if nk and nk not in out:
+                out[nk] = nv
+    if not any_loaded:
+        return default_glossary()
     return out
 
 

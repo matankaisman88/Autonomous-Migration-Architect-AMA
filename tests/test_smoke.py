@@ -19,7 +19,7 @@ def test_parse_sql_extracts_columns() -> None:
 
 
 def test_sql_logs_sample() -> None:
-    p = ROOT / "sample_data" / "sql_logs" / "prod_queries.jsonl"
+    p = ROOT / "sample_data" / "sql_logs" / "sample_file.jsonl"
     stats = run_sql_logs_pipeline([p], target_full_table="sales.orders", env="prod")
     assert stats.query_count >= 1
     assert "amount" in stats.columns or "order_id" in stats.columns
@@ -36,7 +36,7 @@ def test_comms_git_and_importance() -> None:
     assert gtot > 0
 
     stats = run_sql_logs_pipeline(
-        [ROOT / "sample_data" / "sql_logs" / "prod_queries.jsonl"],
+        [ROOT / "sample_data" / "sql_logs" / "sample_file.jsonl"],
         target_full_table="sales.orders",
         env="prod",
     )

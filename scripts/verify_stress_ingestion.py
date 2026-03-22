@@ -19,13 +19,15 @@ from ama.sql_pipeline import run_sql_logs_pipeline
 def main() -> int:
     ddl_path = ROOT / "sample_data" / "ddl" / "orders_columns.json"
     gloss_path = ROOT / "sample_data" / "glossary" / "he_en_columns.json"
+    gloss_dirty = ROOT / "sample_data" / "glossary" / "he_en_columns_dirty.json"
     trash = ROOT / "sample_data" / "stress_tier3" / "sql_logs" / "trash.jsonl"
     if not trash.exists():
         print("FAIL: run tools/generate_stress_samples.py first")
         return 2
 
     ddl = load_ddl_columns(ddl_path)
-    gloss = load_glossary(gloss_path)
+    gloss_paths = [p for p in (gloss_path, gloss_dirty) if p.is_file()]
+    gloss = load_glossary(*gloss_paths)
     stats = run_sql_logs_pipeline([trash], target_full_table="sales.orders", env="prod")
     resolver = AliasResolver(ddl_columns=ddl, glossary=gloss)
     mr = resolver.merge_table_stats(stats)

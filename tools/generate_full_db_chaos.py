@@ -11,15 +11,18 @@ from __future__ import annotations
 
 import json
 import random
+import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "chaos_data" / "sql_logs"
 # Match IngestionSettings default paths relative to --data-root (sample_data/ddl/...)
-DDL_SRC = ROOT / "sample_data" / "ddl" / "orders_columns.json"
 GLOSS_SRC = ROOT / "sample_data" / "glossary" / "he_en_columns.json"
-DDL_DST = ROOT / "chaos_data" / "sample_data" / "ddl" / "orders_columns.json"
+GLOSS_DIRTY_SRC = ROOT / "sample_data" / "glossary" / "he_en_columns_dirty.json"
 GLOSS_DST = ROOT / "chaos_data" / "sample_data" / "glossary" / "he_en_columns.json"
+GLOSS_DIRTY_DST = ROOT / "chaos_data" / "sample_data" / "glossary" / "he_en_columns_dirty.json"
+DDL_SRC_DIR = ROOT / "sample_data" / "ddl"
+DDL_DST_DIR = ROOT / "chaos_data" / "sample_data" / "ddl"
 META_DST = ROOT / "chaos_data" / "sample_data" / "ddl" / "table_metadata.json"
 
 RNG = random.Random(20250322)
@@ -168,15 +171,19 @@ def main() -> None:
     print(f"Wrote {len(lines)} lines to {path}")
 
     # DDL + glossary under chaos_data/sample_data/... (matches AMA defaults for --data-root)
-    if DDL_SRC.is_file():
-        DDL_DST.parent.mkdir(parents=True, exist_ok=True)
-        DDL_DST.write_bytes(DDL_SRC.read_bytes())
-        print(f"Copied DDL to {DDL_DST}")
+    if DDL_SRC_DIR.is_dir():
+        DDL_DST_DIR.mkdir(parents=True, exist_ok=True)
+        for p in sorted(DDL_SRC_DIR.glob("*.json")):
+            shutil.copy2(p, DDL_DST_DIR / p.name)
+        print(f"Copied DDL JSON files to {DDL_DST_DIR}")
     if GLOSS_SRC.is_file():
         GLOSS_DST.parent.mkdir(parents=True, exist_ok=True)
         GLOSS_DST.write_bytes(GLOSS_SRC.read_bytes())
         print(f"Copied glossary to {GLOSS_DST}")
-
+    if GLOSS_DIRTY_SRC.is_file():
+        GLOSS_DIRTY_DST.parent.mkdir(parents=True, exist_ok=True)
+        GLOSS_DIRTY_DST.write_bytes(GLOSS_DIRTY_SRC.read_bytes())
+        print(f"Copied dirty glossary to {GLOSS_DIRTY_DST}")
     META_DST.parent.mkdir(parents=True, exist_ok=True)
     META_DST.write_text(
         json.dumps(_build_table_metadata(), ensure_ascii=False, indent=2) + "\n",

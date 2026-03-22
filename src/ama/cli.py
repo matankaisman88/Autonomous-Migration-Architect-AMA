@@ -3,20 +3,24 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Callable
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
 from ama.alias_resolver import AliasResolver, load_ddl_columns, load_glossary
+from ama.ddl_manifest import load_ddl_manifest, resolve_ddl_path_for_table
 from ama.config import IngestionSettings, project_root
 from ama.comms_ingest import aggregate_comms_for_table, iter_comms
 from ama.git_ingest import scan_git_sql_roots
 from ama.importance import ColumnImportance, compute_importance_v0
 from ama.reports import (
     ascii_legacy_names_only,
+    distinct_merge_table_count,
     format_cli_run_summary,
     is_ascii_identifier,
     legacy_source_summary,
+    merge_scope_metadata,
     render_markdown_summary,
     resolve_report_output_path,
     sanitize_citations_for_markdown,
@@ -33,6 +37,7 @@ from ama.schemas.report import (
 )
 from ama.sql_pipeline import LineageGraph, SqlIngestionTelemetry, run_sql_logs_pipeline
 from ama.business_logic import (
+    build_glossary_source_report,
     enrich_discovery_business_context,
     enrich_executive_risk_hotspots,
     infer_default_db_from_data_root,
@@ -45,6 +50,7 @@ from ama.report_sinks import ExcelReportSink, JsonReportSink
 from ama.discovery import (
     aggregate_merges_for_tables,
     build_discovery_payload,
+    discovery_anchor_key,
     resolve_target_stats_for_table,
     run_discovery,
     top_n_tables,
@@ -94,16 +100,66 @@ def _resolve_ddl_path(root: Path, settings: IngestionSettings, args: argparse.Na
     return None
 
 
-def _resolve_glossary_path(
+def _resolve_manifest_path(
     root: Path, settings: IngestionSettings, args: argparse.Namespace
 ) -> Path | None:
-    if args.glossary:
-        return Path(args.glossary).resolve()
-    if settings.glossary_path:
-        p = (root / settings.glossary_path).resolve()
+    if getattr(args, "ddl_manifest", None):
+        return Path(args.ddl_manifest).resolve()
+    if settings.ddl_manifest_path:
+        p = (root / settings.ddl_manifest_path).resolve()
         if p.is_file():
             return p
     return None
+
+
+def _make_resolver_factory(
+    root: Path,
+    manifest: dict[str, str],
+    default_ddl_path: Path | None,
+    gloss: dict[str, str],
+    *,
+    merge_floor: float,
+    confirmed_threshold: float,
+) -> Callable[[str], AliasResolver]:
+    """Per-table DDL via manifest; unlisted tables use default_ddl_path."""
+
+    def _factory(table_key: str) -> AliasResolver:
+        path = resolve_ddl_path_for_table(
+            root, manifest, table_key, default_path=default_ddl_path
+        )
+        ddl_cols = load_ddl_columns(path) if path is not None else []
+        return AliasResolver(
+            ddl_columns=ddl_cols,
+            glossary=gloss,
+            merge_floor=merge_floor,
+            confirmed_threshold=confirmed_threshold,
+        )
+
+    return _factory
+
+
+def _resolve_glossary_paths(
+    root: Path, settings: IngestionSettings, args: argparse.Namespace
+) -> list[Path]:
+    """Primary glossary, then optional dirty/overlay. Explicit --glossary skips auto paths unless --glossary-dirty is set."""
+    if args.glossary:
+        paths = [Path(args.glossary).resolve()]
+        gd = getattr(args, "glossary_dirty", None)
+        if gd:
+            d = Path(gd).resolve()
+            if d.is_file():
+                paths.append(d)
+        return paths
+    out: list[Path] = []
+    if settings.glossary_path:
+        p = (root / settings.glossary_path).resolve()
+        if p.is_file():
+            out.append(p)
+    if settings.glossary_dirty_path:
+        d = (root / settings.glossary_dirty_path).resolve()
+        if d.is_file() and d not in out:
+            out.append(d)
+    return out
 
 
 def _importance_ddl_only(row: dict[str, object]) -> dict[str, object]:
@@ -217,6 +273,12 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     discovery_mode = getattr(args, "discovery_mode", False)
     no_target = getattr(args, "no_target", False)
+    discovery_merge_all = bool(
+        getattr(args, "discovery_merge_all", False) or settings.discovery_merge_all
+    )
+    dmerge_max = getattr(args, "discovery_merge_max", None)
+    if dmerge_max is None:
+        dmerge_max = settings.discovery_merge_max
     ingest_telemetry = SqlIngestionTelemetry()
     lineage_graph: LineageGraph | None = LineageGraph() if discovery_mode else None
     discovery_tables = None
@@ -230,13 +292,24 @@ def cmd_run(args: argparse.Namespace) -> int:
             telemetry=ingest_telemetry,
             lineage=lineage_graph,
         )
-        if no_target:
+        ranked = sorted(
+            discovery_tables.keys(),
+            key=lambda k: (-discovery_tables[k].query_count, k),
+        )
+        if discovery_merge_all:
+            cap = int(dmerge_max or 0)
+            merge_keys = ranked[:cap] if cap > 0 else list(ranked)
+            multi_merge = True
+            target_key = discovery_anchor_key(discovery_tables, target, fallback_keys=merge_keys)
+            sql_stats = TableColumnStats()
+        elif no_target:
             merge_keys = top_n_tables(discovery_tables, n=getattr(args, "discovery_merge_n", 10))
             target_key = merge_keys[0] if merge_keys else ""
             sql_stats = TableColumnStats()
             multi_merge = True
         else:
             target_key, sql_stats = resolve_target_stats_for_table(discovery_tables, target)
+            multi_merge = False
     else:
         sql_stats = run_sql_logs_pipeline(
             sql_paths,
@@ -248,30 +321,41 @@ def cmd_run(args: argparse.Namespace) -> int:
     merged_report: dict | None = None
     logged_by_ddl: dict[str, list[str]] = {}
     mr = None
+    gloss_paths = _resolve_glossary_paths(root, settings, args)
+    glossary_source_report = build_glossary_source_report(root, gloss_paths)
     ddl_path = _resolve_ddl_path(root, settings, args)
+    manifest_path = _resolve_manifest_path(root, settings, args)
+    manifest = load_ddl_manifest(manifest_path)
     if ddl_path is not None:
-        gloss = _resolve_glossary_path(root, settings, args)
-        ddl = load_ddl_columns(ddl_path)
+        gloss = load_glossary(*gloss_paths)
         mf = getattr(args, "merge_floor", None)
         ct = getattr(args, "confirmed_threshold", None)
-        resolver = AliasResolver(
-            ddl_columns=ddl,
-            glossary=load_glossary(gloss),
-            merge_floor=float(mf) if mf is not None else settings.merge_confidence_floor,
-            confirmed_threshold=float(ct) if ct is not None else settings.merge_confirmed_threshold,
+        merge_floor = float(mf) if mf is not None else settings.merge_confidence_floor
+        confirmed_threshold = float(ct) if ct is not None else settings.merge_confirmed_threshold
+        resolver_factory = _make_resolver_factory(
+            root,
+            manifest,
+            ddl_path,
+            gloss,
+            merge_floor=merge_floor,
+            confirmed_threshold=confirmed_threshold,
         )
         if discovery_mode and multi_merge and discovery_tables is not None:
             if not merge_keys:
                 merged_report = None
                 mr = None
             else:
-                agg, combined = aggregate_merges_for_tables(resolver, discovery_tables, merge_keys)
+                agg, combined = aggregate_merges_for_tables(
+                    resolver_factory, discovery_tables, merge_keys
+                )
                 sql_stats = combined
+                sample_r = resolver_factory(merge_keys[0])
                 merged_report = {
                     "ddl_source": str(ddl_path),
+                    "ddl_manifest": str(manifest_path) if manifest_path else None,
                     "column_names_are_ddl": True,
-                    "merge_confidence_floor": resolver.merge_floor,
-                    "merge_confirmed_threshold": resolver.confirmed_threshold,
+                    "merge_confidence_floor": sample_r.merge_floor,
+                    "merge_confirmed_threshold": sample_r.confirmed_threshold,
                     "merged_entities": agg["merged_entities"],
                     "merge_proposals": agg["merge_proposals"],
                     "review_candidates": agg["review_candidates"],
@@ -279,21 +363,27 @@ def cmd_run(args: argparse.Namespace) -> int:
                 }
                 for ent in merged_report["merged_entities"]:
                     k = str(ent.get("canonical_column", ""))
+                    st = str(ent.get("source_table") or "")
+                    dedupe_key = f"{st}::{k}" if multi_merge and st else k
                     src = list(ent.get("source_columns") or [])
-                    if k in logged_by_ddl:
-                        logged_by_ddl[k] = list(dict.fromkeys(logged_by_ddl[k] + src))
+                    if dedupe_key in logged_by_ddl:
+                        logged_by_ddl[dedupe_key] = list(
+                            dict.fromkeys(logged_by_ddl[dedupe_key] + src)
+                        )
                     else:
-                        logged_by_ddl[k] = src
+                        logged_by_ddl[dedupe_key] = src
                 mr = None
         else:
-            mr = resolver.merge_table_stats(sql_stats, source_table=target_key or target)
+            r0 = resolver_factory(target_key or target)
+            mr = r0.merge_table_stats(sql_stats, source_table=target_key or target)
             for ent in mr.confirmed_entities:
                 logged_by_ddl[ent.canonical_column] = list(ent.source_columns)
             merged_report = {
                 "ddl_source": str(ddl_path),
+                "ddl_manifest": str(manifest_path) if manifest_path else None,
                 "column_names_are_ddl": True,
-                "merge_confidence_floor": resolver.merge_floor,
-                "merge_confirmed_threshold": resolver.confirmed_threshold,
+                "merge_confidence_floor": r0.merge_floor,
+                "merge_confirmed_threshold": r0.confirmed_threshold,
                 "merged_entities": [asdict(e) for e in mr.confirmed_entities],
                 "merge_proposals": [asdict(p) for p in mr.proposals],
                 "review_candidates": [asdict(u) for u in mr.review_candidates],
@@ -474,9 +564,29 @@ def cmd_run(args: argparse.Namespace) -> int:
     if lineage_payload is None:
         lineage_payload = {"edges": [], "edge_count_undirected": 0}
 
+    dmn = getattr(args, "discovery_merge_n", 10)
+    tables_merged_distinct = distinct_merge_table_count(
+        merged_report,
+        multi_merge=multi_merge,
+        merge_keys=merge_keys,
+    )
+    merge_scope = merge_scope_metadata(
+        discovery_mode=discovery_mode,
+        multi_merge=multi_merge,
+        discovery_merge_all=discovery_merge_all,
+        no_target=no_target,
+        merge_keys=merge_keys,
+        target_full_table=target,
+        target_key=target_key,
+        discovery_merge_max=int(dmerge_max or 0),
+        discovery_merge_n=int(dmn),
+        tables_merged_distinct=tables_merged_distinct,
+    )
+
     report = {
         "schema_version": AMA_REPORT_SCHEMA_VERSION,
         "target_table": target,
+        "merge_scope": merge_scope,
         "sql_log_files": [str(p) for p in sql_paths],
         "queries_matched": sql_stats.query_count,
         "comms": {"mention_score": comms_score, "chunks_with_hits": comms_hits},
@@ -485,6 +595,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         "unmapped_importance": unmapped_importance,
         "vector_points": None,
         "alias_merge": merged_report,
+        "glossary_source": glossary_source_report,
         "column_name_source": "ddl" if merged_report else "log_identifier",
         "markdown_sections": markdown_sections,
         "importance_ddl": importance_ddl,
@@ -731,9 +842,21 @@ def main() -> None:
         "--ddl-columns",
         type=str,
         default=None,
-        help="JSON file: list of DDL columns or {columns: [...]} for alias merge",
+        help="JSON file: list of DDL columns or {columns: [...]}; default fallback when ddl-manifest has no entry for a table",
+    )
+    r.add_argument(
+        "--ddl-manifest",
+        type=str,
+        default=None,
+        help="JSON map schema.table -> DDL column file path (relative to --data-root); enables per-table DDL",
     )
     r.add_argument("--glossary", type=str, default=None, help="Hebrew/English column glossary JSON")
+    r.add_argument(
+        "--glossary-dirty",
+        type=str,
+        default=None,
+        help="Second glossary JSON (merged after --glossary); ignored unless --glossary is set",
+    )
     r.add_argument(
         "--no-ddl-merge",
         action="store_true",
@@ -760,18 +883,30 @@ def main() -> None:
     r.add_argument(
         "--discovery-mode",
         action="store_true",
-        help="Scan all database.schema.table references in SQL logs; DDL merge applies to the configured target table only",
+        help="Scan all database.schema.table references in SQL logs; combine with --discovery-merge-all for multi-table DDL merge",
     )
     r.add_argument(
         "--no-target",
         action="store_true",
-        help="With --discovery-mode: do not pin merge to target schema/table; merge the Top N busiest tables (see --discovery-merge-n)",
+        help="With --discovery-mode: do not pin stats to target; merge Top N busiest tables (see --discovery-merge-n), unless --discovery-merge-all",
     )
     r.add_argument(
         "--discovery-merge-n",
         type=int,
         default=10,
-        help="With --discovery-mode --no-target: how many top tables to run DDL merge on (default: 10)",
+        help="With --discovery-mode --no-target (and not --discovery-merge-all): how many top tables to merge (default: 10)",
+    )
+    r.add_argument(
+        "--discovery-merge-all",
+        action="store_true",
+        help="With --discovery-mode: run DDL merge on every discovered table (optionally cap with --discovery-merge-max); uses ddl-manifest per table",
+    )
+    r.add_argument(
+        "--discovery-merge-max",
+        type=int,
+        default=None,
+        metavar="N",
+        help="With --discovery-merge-all: max tables to merge (0 or unset = unlimited; overrides AMA_DISCOVERY_MERGE_MAX)",
     )
     r.add_argument(
         "--target-schema",

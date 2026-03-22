@@ -1,0 +1,7 @@
+{"channel": "data-engineering", "ts": "1710000100.100100", "text": "The nightly job reads sales.orders and writes to the warehouse mart; validate row counts before publishing."}
+{"channel": "data-engineering", "ts": "1710000101.100200", "text": "finance.invoices is late — check Airflow DAG for dependency on logistics.shipments."}
+{"channel": "data-engineering", "ts": "1710000102.100300", "text": "We need to backfill crm.leads into the CDP before the migration freeze window."}
+{"channel": "data-engineering", "ts": "1710000103.100400", "text": "temp_junk.Tmp_7 should not be referenced in production reports — remove from dbt models."}
+{"channel": "data-engineering", "ts": "1710000104.100500", "text": "analytics.forecast_runs failed QA: reconcile with finance.budget_lines for Q2."}
+{"channel": "data-engineering", "ts": "1710000105.100600", "text": "marketing.promotions SCD2 model: validate discount_pct against sales.order_lines after deploy."}
+{"channel": "data-engineering", "ts": "1710000106.100700", "text": "logistics.inventory_snapshots hourly job — alert if sku counts diverge from sales.products catalog."}

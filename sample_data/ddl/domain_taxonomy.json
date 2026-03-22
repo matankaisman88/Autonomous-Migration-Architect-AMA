@@ -1,0 +1,10 @@
+{
+  "default": "Operations",
+  "semantic_cluster_0": "Finance",
+  "semantic_cluster_1": "CRM",
+  "semantic_cluster_2": "Logistics",
+  "semantic_cluster_3": "Marketing",
+  "semantic_cluster_4": "Analytics",
+  "semantic_cluster_5": "Legacy Core",
+  "semantic_cluster_6": "Technical Debt"
+}

@@ -22,8 +22,9 @@ from ama.hitl_apply import apply_hitl_to_report
 from ama.business_logic import (
     build_business_glossary_entries,
     build_impact_readiness_scatter_rows,
-    domain_data_health,
+    domain_data_health_filtered,
     enrich_executive_risk_hotspots,
+    expand_concept_query,
     group_glossary_entries,
     review_row_signature,
     semantic_concept_search,
@@ -38,8 +39,13 @@ from ama.ui.report_helpers import (
     _high_risk_tables,
     _inventory_df,
     _merge_rows_for_filters,
-    _pct_confirmed,
+    filter_domain_matrix_rows,
+    filter_glossary_grouped,
+    filter_risk_hotspots,
+    filter_semantic_search_results,
+    inventory_allowed_tables,
     load_report_json,
+    pct_confirmed_filtered,
 )
 
 try:
@@ -51,6 +57,9 @@ except ImportError:  # pragma: no cover
 
 # Repo root: src/ama/ui/dashboard.py -> parents[3]
 _DEMO_WITH_REVIEW = Path(__file__).resolve().parents[3] / "sample_data" / "dashboard" / "demo_with_review.json"
+
+# No global confidence slider — merge confidence stays visual (scatter, gauges, table columns).
+_MERGE_CONF_SCOPE = 0.0
 
 
 def _safe_mtime(path: Path) -> float:
@@ -120,6 +129,82 @@ def _confidence_gauge(val: float, *, key: str) -> None:
     fig.update_layout(height=170, margin=dict(l=10, r=10, t=20, b=10))
     st.plotly_chart(fig, use_container_width=True, key=key)
     st.metric("Confidence", f"{pct:.0f}%", help="Merge confidence (0–100%)")
+
+
+def _glossary_card_container():
+    """Prefer bordered cards (Streamlit ≥1.33); older versions use a plain container."""
+    try:
+        return st.container(border=True)  # type: ignore[call-arg]
+    except TypeError:
+        return st.container()
+
+
+def _merge_conf_float(ent: dict[str, Any]) -> float:
+    try:
+        return float((ent or {}).get("merge_confidence", 0.0))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _sync_tbl_pick_from_dataframe(
+    state: Any,
+    df_view: pd.DataFrame,
+    *,
+    valid_tables: set[str],
+    session_key: str,
+) -> None:
+    """When user selects a row in the inventory grid, set session_key to that table's full_name."""
+    if state is None:
+        return
+    try:
+        sel = getattr(state, "selection", None)
+        if sel is None and isinstance(state, dict):
+            sel = state.get("selection")
+        if not sel:
+            return
+        rows = getattr(sel, "rows", None)
+        if rows is None and isinstance(sel, dict):
+            rows = sel.get("rows", [])
+        if not rows:
+            return
+        idx = int(rows[0])
+        dfv = df_view.reset_index(drop=True)
+        if idx < 0 or idx >= len(dfv) or "full_name" not in dfv.columns:
+            return
+        fn = str(dfv.iloc[idx]["full_name"]).strip()
+        if fn and fn in valid_tables:
+            st.session_state[session_key] = fn
+    except (TypeError, ValueError, KeyError, IndexError, AttributeError):
+        return
+
+
+def _ask_match_type_label(role: str) -> str:
+    r = (role or "").lower().strip()
+    if r == "confirmed":
+        return "Confirmed (merged)"
+    if r == "review":
+        return "Review (pending)"
+    if r == "importance_tracked":
+        return "Importance (tracked)"
+    return (role or "").strip() or "—"
+
+
+def _table_max_merge_confidence(
+    merged_all: list[Any],
+    review_all: list[Any],
+    trash_all: list[Any],
+) -> dict[str, float]:
+    """Highest merge_confidence per source_table across filtered merge buckets."""
+    out: dict[str, float] = {}
+    for e in merged_all + review_all + trash_all:
+        if not isinstance(e, dict):
+            continue
+        stbl = str(e.get("source_table") or "").strip()
+        if not stbl:
+            continue
+        c = _merge_conf_float(e)
+        out[stbl] = max(out.get(stbl, 0.0), c)
+    return out
 
 
 def main() -> None:
@@ -207,10 +292,21 @@ def main() -> None:
             domain_opts = sorted({str(x) for x in inv_df["business_domain"].dropna().unique()})
         domains = st.multiselect("Business domain", options=domain_opts, default=[])
         portfolio = st.selectbox("Portfolio section", options=["All", "Core Business", "Technical Debt"])
-        conf_min = st.slider("Min confidence", min_value=0.0, max_value=1.0, value=0.0, step=0.05)
+        st.caption(
+            "**Merge confidence** (readiness): **Executive** scatter (x-axis), **Glossary** summary column + gauge per row, "
+            "**Tables** Confirmed/Review **Confidence** columns."
+        )
 
     _sv_main = str(report.get("schema_version") or "").strip() or "— (legacy)"
     st.markdown(f"**Report schema version:** `{_sv_main}`")
+    _ms = report.get("merge_scope") if isinstance(report.get("merge_scope"), dict) else {}
+    if _ms.get("label"):
+        _anchor = str(report.get("target_table") or "").strip()
+        st.caption(
+            f"**Ingest scope:** {_ms.get('label')} · "
+            f"DDL merges across **{_ms.get('tables_merged', '?')}** table(s). "
+            f"`target_table` (**{_anchor}**) is the comms/git anchor, not the merge limit."
+        )
 
     exec_sum = disc.get("executive_summary") or {}
     domain_matrix = exec_sum.get("domain_matrix") or []
@@ -221,18 +317,45 @@ def main() -> None:
     if portfolio and portfolio != "All" and not inv_view.empty and "portfolio_section" in inv_view.columns:
         inv_view = inv_view[inv_view["portfolio_section"] == portfolio]
 
-    risk_set = _high_risk_tables(inv_df, report)
+    risk_set = _high_risk_tables(inv_view, report)
     am = report.get("alias_merge") or {}
     dom_filter = domains if domains else None
-    merged_all, review_all, _trash_all = _merge_rows_for_filters(
-        report, domains=dom_filter, portfolio=portfolio, conf_min=conf_min
+    merged_all, review_all, trash_all = _merge_rows_for_filters(
+        report, domains=dom_filter, portfolio=portfolio, conf_min=_MERGE_CONF_SCOPE
     )
+
+    allowed_tables = inventory_allowed_tables(inv_view)
+    pct_filtered = pct_confirmed_filtered(merged_all, review_all, trash_all)
+    if not inv_view.empty and "query_count" in inv_view.columns:
+        queries_matched_display = int(pd.to_numeric(inv_view["query_count"], errors="coerce").fillna(0).sum())
+    else:
+        queries_matched_display = int(report.get("queries_matched") or 0)
 
     hitl_file = _hitl_path(report_path_resolved) if report_path_resolved else None
 
     raw_glossary = build_business_glossary_entries(report)
     glossary = group_glossary_entries(raw_glossary)
+    glossary = filter_glossary_grouped(
+        glossary,
+        report=report,
+        domains=domains if domains else None,
+        portfolio=portfolio,
+        conf_min=_MERGE_CONF_SCOPE,
+    )
     scatter_rows = build_impact_readiness_scatter_rows(report)
+    if allowed_tables is not None and scatter_rows:
+        scatter_rows = [
+            r
+            for r in scatter_rows
+            if str(r.get("source_table") or "") in allowed_tables
+        ]
+
+    domain_matrix_filtered = filter_domain_matrix_rows(
+        domain_matrix, domains=domains if domains else None
+    )
+    rh_exec_filtered = filter_risk_hotspots(
+        exec_sum.get("risk_hotspots") or [], allowed_tables=allowed_tables
+    )
 
     tabs = st.tabs(
         [
@@ -246,11 +369,15 @@ def main() -> None:
     )
 
     with tabs[0]:
+        st.caption(
+            "Sidebar filters (**Business domain**, **Portfolio**) scope KPIs, charts, domain matrix, hotspots, "
+            "Domains tab, search, glossary, and the **Tables** inventory list. **Confidence** stays visible in the "
+            "scatter (x-axis), glossary gauges, and table drill-downs — nothing is hidden by a global threshold."
+        )
         col1, col2, col3 = st.columns(3)
-        pct = _pct_confirmed(am)
-        col1.metric("% Confirmed (merge scope)", f"{pct:.1f}%")
-        col2.metric("Queries matched", int(report.get("queries_matched") or 0))
-        col3.metric("Confirmed columns", len(am.get("merged_entities") or []))
+        col1.metric("% Confirmed (filtered scope)", f"{pct_filtered:.1f}%")
+        col2.metric("Queries matched (inventory scope)", queries_matched_display)
+        col3.metric("Confirmed columns (filtered)", len(merged_all))
 
         c1, c2 = st.columns(2)
         with c1:
@@ -258,7 +385,7 @@ def main() -> None:
                 fig_g = go.Figure(
                     go.Indicator(
                         mode="gauge",
-                        value=pct,
+                        value=pct_filtered,
                         title={"text": "% Confirmed"},
                         gauge={"axis": {"range": [0, 100]}, "bar": {"color": "darkblue"}},
                     )
@@ -267,7 +394,10 @@ def main() -> None:
                 st.plotly_chart(fig_g, use_container_width=True, key="exec_gauge_pct_confirmed")
         with c2:
             st.markdown("### Impact vs. readiness")
-            st.caption("Big green bubbles = high value + high confidence — migrate first.")
+            st.caption(
+                "X-axis = **merge confidence** (readiness). Bubble size ~ query volume. "
+                "Big green bubbles = high value + high confidence — migrate first."
+            )
             if px is not None and scatter_rows:
                 sdf = pd.DataFrame(scatter_rows)
                 fig_s = px.scatter(
@@ -291,8 +421,8 @@ def main() -> None:
             else:
                 st.info("No merged entities to plot.")
 
-        if domain_matrix and px is not None:
-            ddf = pd.DataFrame(domain_matrix)
+        if domain_matrix_filtered and px is not None:
+            ddf = pd.DataFrame(domain_matrix_filtered)
             if not ddf.empty and "business_domain" in ddf.columns:
                 fig_b = px.bar(
                     ddf,
@@ -308,14 +438,13 @@ def main() -> None:
                 )
                 st.plotly_chart(fig_b, use_container_width=True, key="exec_bar_domain_importance")
 
-        rh_exec = exec_sum.get("risk_hotspots") or []
         st.markdown("### Risk Hotspots (Blast Radius)")
         st.caption(
             "Tables with the highest downstream reach in the lineage graph: more domains touched "
             "and more co-queried neighbors imply a larger blast radius for migration changes."
         )
-        if rh_exec:
-            rdf = pd.DataFrame(rh_exec)
+        if rh_exec_filtered:
+            rdf = pd.DataFrame(rh_exec_filtered)
             display_cols = [c for c in ("table", "blast_radius_score", "domains_touched", "downstream_tables_reached") if c in rdf.columns]
             if display_cols:
                 view = rdf[display_cols].copy()
@@ -334,6 +463,8 @@ def main() -> None:
                 st.dataframe(view, use_container_width=True, hide_index=True)
             else:
                 st.dataframe(rdf, use_container_width=True, hide_index=True)
+        elif exec_sum.get("risk_hotspots") and not rh_exec_filtered:
+            st.info("No risk hotspots in the **current filter scope** — widen Business domain or clear Portfolio filters.")
         else:
             _disc_h = report.get("discovery") or {}
             _lin_h = report.get("lineage") or {}
@@ -358,13 +489,28 @@ def main() -> None:
 
     with tabs[1]:
         st.subheader("Domain deep dives")
-        st.caption("Data health per domain — how ready the portfolio is to move.")
-        dlist = sorted({str(x) for x in inv_df["business_domain"].dropna().unique()}) if not inv_df.empty and "business_domain" in inv_df.columns else []
+        st.caption("Data health per domain — how ready the portfolio is to move (uses sidebar filters).")
+        dlist = (
+            sorted({str(x) for x in inv_view["business_domain"].dropna().unique()})
+            if not inv_view.empty and "business_domain" in inv_view.columns
+            else []
+        )
         first_dom = next((d for d in dlist if d), None)
         for dom in dlist:
             if not dom:
                 continue
-            dh = domain_data_health(report, dom)
+            tables_dom: set[str] = set()
+            if not inv_view.empty and "business_domain" in inv_view.columns and "full_name" in inv_view.columns:
+                sub_dom = inv_view[inv_view["business_domain"] == dom]
+                tables_dom = {str(x) for x in sub_dom["full_name"].dropna().unique()}
+            dh = domain_data_health_filtered(
+                report,
+                dom,
+                merged_all=merged_all,
+                review_all=review_all,
+                trash_all=trash_all,
+                inventory_full_names_for_domain=tables_dom,
+            )
             expanded = dom == "Finance" or ("Finance" not in dlist and dom == first_dom)
             with st.expander(
                 f"**{dom}** — {dh['table_count']} tables",
@@ -377,7 +523,7 @@ def main() -> None:
                 st.caption(
                     f"Confirmed: {dh['n_confirmed']} · Review: {dh['n_review']} · Trash: {dh['n_trash']}"
                 )
-                sub = inv_df[inv_df["business_domain"] == dom] if not inv_df.empty else pd.DataFrame()
+                sub = inv_view[inv_view["business_domain"] == dom] if not inv_view.empty else pd.DataFrame()
                 if not sub.empty and "full_name" in sub.columns:
                     st.dataframe(
                         sub[
@@ -398,138 +544,452 @@ def main() -> None:
 
     with tabs[2]:
         st.subheader("Business Translator — glossary")
-        st.caption(
-            "Same mapping on multiple tables is **grouped** into one row so managers see the story once, "
-            "with all affected tables listed."
+        gs_inv = report.get("glossary_source") or {}
+        gs_flat: list[dict[str, Any]] = []
+        for layer in gs_inv.get("layers") or []:
+            if not isinstance(layer, dict):
+                continue
+            fn = str(layer.get("file") or "")
+            for ent in layer.get("entries") or []:
+                if isinstance(ent, dict):
+                    gs_flat.append(
+                        {
+                            "file": fn,
+                            "source_term": ent.get("source_term"),
+                            "target_column": ent.get("target_column"),
+                        }
+                    )
+        if gs_flat:
+            with st.expander(
+                f"Full glossary inventory from sample_data ({len(gs_flat)} rows in JSON files)",
+                expanded=False,
+            ):
+                st.caption(
+                    "Every **source_term → target_column** from `he_en_columns.json` and `he_en_columns_dirty.json` "
+                    "under your data root. This is the complete static glossary, independent of SQL log coverage."
+                )
+                st.dataframe(pd.DataFrame(gs_flat), use_container_width=True, hide_index=True)
+        st.markdown(
+            "Each row below is either a **log-backed merge** (glossary / exact / vector) or a **glossary file** row "
+            "so nothing in `sample_data/glossary/` is hidden. "
+            "Sidebar filters (**Business domain**, **Portfolio**) apply to merge-backed rows; **Glossary files** rows "
+            "always stay visible when Status = All or **Glossary files**."
         )
-        m1, m2 = st.columns(2)
-        m1.metric("Column mappings (raw)", len(raw_glossary))
-        m2.metric("Unique business mappings", len(glossary))
+        with st.expander("What do these terms mean?", expanded=False):
+            st.markdown(
+                """
+- **Raw mappings** — one row per table × column in the merge output *before* grouping.
+- **Unique mappings** — the same logical story after **grouping** identical alignments across tables (fewer rows, easier to read).
+- **Names in SQL / logs** — identifiers seen in query text (often Hebrew or legacy spellings).
+- **Canonical column (target)** — the name in your **target DDL** / warehouse standard.
+- **Merge confidence** — how strong the match is (0–1); glossary and exact DDL hits are typically highest.
+- **Status** — **Confirmed** = ready to treat as aligned; **Needs review** = confirm in **Review (HITL)** before production.
+"""
+            )
 
-        gfilter = st.text_input("Filter glossary", "")
-        shown = glossary
+        n_gs = int((report.get("glossary_source") or {}).get("total_entries") or 0)
+        n_inv = len([x for x in raw_glossary if str(x.get("kind", "")).lower() == "glossary_source"])
+        n_merge = len(raw_glossary) - n_inv
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Raw mappings (merge + glossary file)", len(raw_glossary))
+        m2.metric("Unique stories (after grouping)", len(glossary))
+        m3.metric("Glossary file rows (sample_data)", n_gs)
+        st.caption(
+            "Raw counts merge-backed rows plus one row per glossary file entry. "
+            "Unique counts one card per distinct alignment (grouped across tables). "
+            f"**{n_merge}** from logs, **{n_inv}** from glossary JSON."
+        )
+
+        if not raw_glossary:
+            st.info(
+                "No glossary or merge rows — run **`ama-ingest run`** with glossary JSON under `sample_data/glossary/` "
+                "and DDL + SQL logs for full output."
+            )
+        elif not any(str(x.get("kind", "")).lower() != "glossary_source" for x in raw_glossary) and n_gs:
+            st.info(
+                "No **log merge** rows yet — expand **Full glossary inventory** above or set Status to **Glossary files** "
+                "to browse every static mapping."
+            )
+
+        gf1, gf2, gf3 = st.columns([2, 1, 1])
+        with gf1:
+            gfilter = st.text_input("Search glossary", "", placeholder="term, Hebrew, table name…")
+        with gf2:
+            kind_pick = st.selectbox(
+                "Status",
+                options=["All", "Confirmed", "Needs review", "Glossary files"],
+                index=0,
+                help="Merge status, or only rows loaded from glossary JSON (full sample_data inventory).",
+            )
+        with gf3:
+            sort_pick = st.selectbox(
+                "Sort by",
+                options=["Business term (A→Z)", "Confidence (high first)"],
+                index=0,
+            )
+
+        shown = list(glossary)
+        if kind_pick == "Confirmed":
+            shown = [g for g in shown if str(g.get("kind", "")).lower() == "confirmed"]
+        elif kind_pick == "Needs review":
+            shown = [g for g in shown if str(g.get("kind", "")).lower() == "review"]
+        elif kind_pick == "Glossary files":
+            shown = [g for g in shown if str(g.get("kind", "")).lower() == "glossary_source"]
+
         if gfilter.strip():
             gf = gfilter.strip().lower()
             shown = [
                 g
-                for g in glossary
+                for g in shown
                 if gf in str(g.get("business_term", "")).lower()
                 or gf in str(g.get("definition", "")).lower()
                 or gf in str(g.get("legacy_columns", "")).lower()
+                or gf in str(g.get("domain", "")).lower()
                 or gf in " ".join(g.get("source_tables") or []).lower()
             ]
-        shown.sort(
-            key=lambda x: (
-                str(x.get("business_term") or ""),
-                str(x.get("target_ddl") or ""),
+
+        def _kind_label(k: str) -> str:
+            kl = (k or "").lower()
+            if kl == "confirmed":
+                return "Confirmed"
+            if kl == "review":
+                return "Needs review"
+            if kl == "glossary_source":
+                return "Glossary file"
+            return k or "—"
+
+        if sort_pick == "Confidence (high first)":
+            shown.sort(
+                key=lambda x: (
+                    -float(x.get("confidence_display", x.get("confidence") or 0.0)),
+                    str(x.get("business_term") or ""),
+                )
             )
-        )
+        else:
+            shown.sort(
+                key=lambda x: (
+                    str(x.get("business_term") or ""),
+                    str(x.get("target_ddl") or ""),
+                )
+            )
 
         summary_rows: list[dict[str, Any]] = []
         for card in shown:
             tables = card.get("source_tables") or ([card.get("source_table")] if card.get("source_table") else [])
             n_tables = len(tables)
+            dlist = card.get("domains_list")
+            if isinstance(dlist, list) and dlist:
+                dom_disp = ", ".join(dlist)
+            else:
+                dom_disp = str(card.get("domain") or "").strip() or "—"
+            primary = (tables[0] if n_tables == 1 else "") or ""
             summary_rows.append(
                 {
-                    "Business term": card.get("business_term"),
-                    "Target DDL": card.get("target_ddl"),
-                    "Legacy in logs": card.get("legacy_columns"),
-                    "Tables (#)": n_tables,
+                    "Business label": card.get("business_term"),
+                    "Domain": dom_disp,
+                    "Canonical column (target)": card.get("target_ddl"),
+                    "Names in SQL / logs": card.get("legacy_columns"),
+                    "# Tables": n_tables,
                     "Tables": ", ".join(f"`{t}`" for t in tables if t) or "—",
-                    "Confidence": round(float(card.get("confidence_display", card.get("confidence") or 0.0)), 4),
-                    "Kind": card.get("kind", ""),
+                    "Primary table": f"`{primary}`" if primary else ("(multiple)" if n_tables > 1 else "—"),
+                    "Merge confidence": round(float(card.get("confidence_display", card.get("confidence") or 0.0)), 4),
+                    "Status": _kind_label(str(card.get("kind", ""))),
                 }
             )
         if summary_rows:
-            st.markdown("##### At-a-glance")
+            st.markdown("##### Mapping index")
+            st.caption(
+                "Sortable overview above. **Mapping cards** below repeat the same rows with full narrative "
+                "and confidence — all visible while you scroll (no expand/collapse)."
+            )
             st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
+        elif raw_glossary:
+            st.warning("No glossary rows match the current search, status filter, or sidebar filters. Try clearing search or setting Status to **All**.")
 
-        st.markdown("##### Detailed view")
+        st.markdown("##### Mapping cards")
         st.caption(
-            "Rows start **collapsed** — click a header to open the full story and confidence gauge. "
-            "The summary table above always shows every mapping."
+            "One card per mapping: definition, legacy→target line, tables, and **merge confidence** — "
+            "same order as the index table."
         )
         for i, card in enumerate(shown):
             tables = card.get("source_tables") or ([card.get("source_table")] if card.get("source_table") else [])
             tbl_line = ", ".join(f"`{t}`" for t in tables if t) or "—"
-            title = f"{card.get('business_term')} → `{card.get('target_ddl')}` · {len(tables)} table(s)"
-            # Include index + sorted tables so Streamlit keys are always unique (avoids duplicate plotly_chart IDs).
+            title_key = f"{card.get('business_term')} → `{card.get('target_ddl')}` · {len(tables)} table(s)"
             sig = hashlib.sha256(
-                f"{i}|{title}|{card.get('legacy_columns')}|{card.get('kind')}|{','.join(sorted(tables))}".encode(
+                f"{i}|{title_key}|{card.get('legacy_columns')}|{card.get('kind')}|{','.join(sorted(tables))}".encode(
                     "utf-8"
                 )
             ).hexdigest()[:32]
             conf = float(card.get("confidence_display", card.get("confidence") or 0.0))
-            with st.expander(title, expanded=False):
-                cols = st.columns([2, 1])
-                with cols[0]:
-                    st.markdown(str(card.get("definition", "")))
-                    st.markdown(
-                        f"**Technical reality:** legacy `{card.get('legacy_columns')}` → "
-                        f"target **`{card.get('target_ddl')}`**"
-                    )
-                    st.markdown(f"**Where it appears:** {tbl_line}")
-                    if int(card.get("_group_count") or 1) > 1:
-                        st.caption(
-                            f"_{int(card.get('_group_count') or 1)} identical merge rows grouped into one view._"
-                        )
-                    if card.get("reasoning"):
-                        st.caption(f"Reasoning: {card.get('reasoning')}")
-                with cols[1]:
+            dl = card.get("domains_list")
+            if isinstance(dl, list) and dl:
+                dom_x = ", ".join(dl)
+            else:
+                dom_x = str(card.get("domain") or "").strip()
+            kind_l = _kind_label(str(card.get("kind", "")))
+
+            with _glossary_card_container():
+                head_l, head_r = st.columns([2, 1])
+                with head_l:
+                    st.markdown(f"**{card.get('business_term')}** → `{card.get('target_ddl')}`")
+                    st.caption(f"{kind_l} · **{len(tables)}** table(s)" + (f" · **Domain:** {dom_x}" if dom_x else ""))
+                with head_r:
                     _confidence_gauge(conf, key=f"gloss_plotly_{i}_{sig}")
+                st.markdown(str(card.get("definition", "")))
+                st.markdown(
+                    f"**Names in SQL / logs** → **Canonical (target):** "
+                    f"`{card.get('legacy_columns')}` → **`{card.get('target_ddl')}`**"
+                )
+                st.markdown(f"**Tables:** {tbl_line}")
+                if int(card.get("_group_count") or 1) > 1:
+                    st.caption(
+                        f"_{int(card.get('_group_count') or 1)} identical merge rows grouped into one view._"
+                    )
+                if card.get("reasoning"):
+                    st.caption(f"**Evidence / citations:** {card.get('reasoning')}")
 
     with tabs[3]:
         st.subheader("Ask the data")
-        st.caption("Heuristic search — Hebrew or English; expands synonyms (e.g. כסף → amount, סכום).")
-        aq = st.text_input("Search business concept", placeholder="e.g. revenue, כסף, order status")
-        if aq.strip():
+        st.markdown(
+            """
+This is **keyword + synonym search** over structured fields in the report: **discovery inventory** text, 
+**merge** rows (confirmed/review), **importance** rows, and **glossary-style** labels. It is **not** full-text 
+search over every raw SQL line in the logs.
+
+**Sidebar** (**Business domain**, **Portfolio**) limits which **tables** (and rows tied to those tables) can appear.
+"""
+        )
+        aq = st.text_input(
+            "Search business concept",
+            placeholder="e.g. amount, כסף, invoice, customer",
+            help="Substring match after Hebrew/English synonym expansion (see expander below when you search).",
+        )
+        if not aq.strip():
+            st.info(
+                "**Examples to try:** `כסף`, `amount`, `הזמנה`, `invoice`, `customer`, `status`, `revenue`. "
+                "Type a term and results show in the three sections below."
+            )
+        else:
+            needles = expand_concept_query(aq)
+            with st.expander("Search terms used (including synonyms)", expanded=False):
+                st.caption(
+                    "These strings are matched as substrings against table/column text (case-insensitive for ASCII)."
+                )
+                st.write(", ".join(needles) if needles else "—")
+
             res = semantic_concept_search(report, aq)
-            st.markdown("**Tables**")
-            st.dataframe(pd.DataFrame(res.get("tables") or []), use_container_width=True, hide_index=True)
-            st.markdown("**Column mappings**")
-            ch = res.get("column_hits") or []
-            if not ch and (res.get("tables") or []):
-                st.caption(
-                    "No merge/importance rows matched this query for those tables. "
-                    "Tables can match via name (e.g. *price* in `pricebooks`) while column hits need "
-                    "synonyms (amount, סכום, …) to appear in merged or importance data."
+            res = filter_semantic_search_results(res, allowed_tables=allowed_tables)
+            tabs_out: list[dict[str, Any]] = list(res.get("tables") or [])
+            ch: list[dict[str, Any]] = list(res.get("column_hits") or [])
+            gh: list[dict[str, Any]] = list(res.get("glossary_hits") or [])
+
+            if not tabs_out and not ch and not gh:
+                st.warning(
+                    "**No hits** in any section. Widen **Business domain** / set **Portfolio** to **All**, "
+                    "try **synonyms** (Hebrew ↔ English, e.g. סכום / amount), or use **shorter keywords**. "
+                    "Column hits require matching text in merge or importance rows for tables still in scope."
                 )
-            st.dataframe(pd.DataFrame(ch), use_container_width=True, hide_index=True)
-            st.markdown("**Glossary matches**")
-            gh = res.get("glossary_hits") or []
-            if not gh and (res.get("tables") or []):
+            else:
                 st.caption(
-                    "Glossary cards are built from DDL merge results. If nothing matched, try English "
-                    "terms (amount, price) or Hebrew סכום — synonyms expand automatically after Unicode normalization."
+                    "**Column mappings** = flat rows from merge + importance. **Glossary-style matches** = the same "
+                    "underlying mappings with business wording — overlap between the two lists is normal."
                 )
-            for g in gh:
-                st.write(f"- **{g.get('business_term')}** → `{g.get('target_ddl')}` ({g.get('source_table')})")
+                if tabs_out:
+                    st.markdown("##### Tables (discovery)")
+                    ask_tbl_sort = st.selectbox(
+                        "Sort table results by",
+                        ["Query count (high first)", "Table name (A→Z)"],
+                        index=0,
+                        key="ask_tbl_sort",
+                    )
+                    tdf = pd.DataFrame(tabs_out)
+                    if ask_tbl_sort == "Query count (high first)" and "queries" in tdf.columns:
+                        tdf = tdf.assign(
+                            _qask=pd.to_numeric(tdf["queries"], errors="coerce").fillna(0.0)
+                        ).sort_values("_qask", ascending=False)
+                        tdf = tdf.drop(columns=["_qask"])
+                    elif "full_name" in tdf.columns:
+                        tdf = tdf.sort_values("full_name", ascending=True)
+                    tdf = tdf.rename(
+                        columns={
+                            "full_name": "Table",
+                            "domain": "Domain",
+                            "queries": "Query count",
+                            "snippet": "Description snippet",
+                        }
+                    )
+                    st.dataframe(tdf, use_container_width=True, hide_index=True)
+
+                st.markdown("##### Column mappings")
+                if ch:
+                    ch_rows = [
+                        {
+                            "Match type": _ask_match_type_label(str(h.get("role") or "")),
+                            "Source table": h.get("source_table"),
+                            "Target column": h.get("ddl"),
+                            "Legacy / logs": h.get("legacy"),
+                        }
+                        for h in ch
+                    ]
+                    cdf = pd.DataFrame(ch_rows)
+                    sort_ask_col = st.selectbox(
+                        "Sort column mappings by",
+                        ["Match type (A→Z)", "Source table (A→Z)"],
+                        index=0,
+                        key="ask_col_sort",
+                    )
+                    if "Source table" in cdf.columns:
+                        if sort_ask_col.startswith("Source"):
+                            cdf = cdf.sort_values("Source table", ascending=True)
+                        else:
+                            cdf = cdf.sort_values("Match type", ascending=True)
+                    st.dataframe(cdf, use_container_width=True, hide_index=True)
+                else:
+                    st.caption("No merge or importance rows matched this query for tables in scope.")
+                    if tabs_out:
+                        st.caption(
+                            "Tables above can match on **name**, **domain**, or **description** while column hits need "
+                            "the keyword in **canonical**, **legacy**, or **importance** text."
+                        )
+
+                st.markdown("##### Glossary-style matches")
+                if gh:
+                    gh_tab = []
+                    for g in gh:
+                        if not isinstance(g, dict):
+                            continue
+                        stbl = g.get("source_table")
+                        gh_tab.append(
+                            {
+                                "Business label": g.get("business_term"),
+                                "Canonical column": g.get("target_ddl"),
+                                "Domain": g.get("domain") or "—",
+                                "Legacy (logs)": g.get("legacy_columns"),
+                                "Table": stbl,
+                            }
+                        )
+                    gdf = pd.DataFrame(gh_tab)
+                    if not gdf.empty and "Business label" in gdf.columns:
+                        gdf = gdf.sort_values("Business label", ascending=True)
+                    st.dataframe(gdf, use_container_width=True, hide_index=True)
+                else:
+                    st.caption(
+                        "No glossary-style cards matched. They are built from the same merge output as the **Business Translator** tab — "
+                        "try English (`amount`, `price`) or Hebrew (`סכום`) terms."
+                    )
+                    if tabs_out and not ch:
+                        st.caption(
+                            "You have **table** hits but no merge-backed glossary yet for this query — often a wording mismatch in column names."
+                        )
 
     with tabs[4]:
         st.subheader("Tables")
-        q = st.text_input("Search tables / schemas", "", key="tbl_q")
+        st.caption(
+            "Table list follows **business domain** and **portfolio** (discovery inventory). "
+            "Confirmed / Review / Trash show **merge_confidence** per row in the **Confidence** column — compare mappings at a glance."
+        )
+        tbl_max_conf = _table_max_merge_confidence(merged_all, review_all, trash_all)
+        tq1, tq2 = st.columns([2, 1])
+        with tq1:
+            q = st.text_input("Search tables / schemas", "", key="tbl_q")
+        with tq2:
+            tbl_list_sort = st.selectbox(
+                "Sort tables by",
+                [
+                    "Table name (A→Z)",
+                    "Query volume (high first)",
+                    "Max merge confidence (high first)",
+                ],
+                index=0,
+                key="tbl_list_sort",
+                help="Order of rows in the inventory table and in **Select a table** below.",
+            )
         show = inv_view
         if q.strip() and not show.empty:
             mask = show.astype(str).apply(lambda s: s.str.contains(q, case=False, na=False)).any(axis=1)
             show = show[mask]
 
         if not show.empty and "full_name" in show.columns:
+            if tbl_list_sort == "Query volume (high first)" and "query_count" in show.columns:
+                show = (
+                    show.assign(
+                        _qvol=pd.to_numeric(show["query_count"], errors="coerce").fillna(0.0)
+                    )
+                    .sort_values("_qvol", ascending=False)
+                    .drop(columns=["_qvol"])
+                )
+            elif tbl_list_sort == "Max merge confidence (high first)":
+                show = show.copy()
+                show["_tmc"] = show["full_name"].map(lambda fn: tbl_max_conf.get(str(fn), -1.0))
+                show = show.sort_values("_tmc", ascending=False).drop(columns=["_tmc"])
+            elif tbl_list_sort == "Table name (A→Z)":
+                show = show.sort_values("full_name", ascending=True)
+
+        TBL_PICK_KEY = "tbl_pick_main"
+        df_view: pd.DataFrame | None = None
+        if not show.empty and "full_name" in show.columns:
             show = show.copy()
             show["_risk"] = show["full_name"].map(lambda fn: "High lineage impact" if fn in risk_set else "")
             display_cols = [c for c in show.columns if c != "_risk"]
-            st.dataframe(
-                show[display_cols + ["_risk"]].rename(columns={"_risk": "Risk"}),
-                use_container_width=True,
-                hide_index=True,
-            )
+            df_view = show[display_cols + ["_risk"]].rename(columns={"_risk": "Risk"})
+
+        tables = (
+            show["full_name"].dropna().astype(str).unique().tolist()
+            if not show.empty and "full_name" in show.columns
+            else []
+        )
+        valid_tbl = set(tables)
+        if TBL_PICK_KEY in st.session_state:
+            pv = st.session_state[TBL_PICK_KEY]
+            if pv and valid_tbl and str(pv) not in valid_tbl:
+                st.session_state[TBL_PICK_KEY] = ""
+
+        if df_view is not None:
+            st.caption("**Click a row** in the table below to select that table (updates **Select a table**).")
+            try:
+                grid_state = st.dataframe(
+                    df_view,
+                    use_container_width=True,
+                    hide_index=True,
+                    on_select="rerun",
+                    selection_mode="single-row",
+                    key="tbl_inv_grid",
+                )
+                _sync_tbl_pick_from_dataframe(
+                    grid_state,
+                    df_view,
+                    valid_tables=valid_tbl,
+                    session_key=TBL_PICK_KEY,
+                )
+            except TypeError:
+                st.dataframe(df_view, use_container_width=True, hide_index=True)
         else:
             st.dataframe(show, use_container_width=True, hide_index=True)
+            if show.empty:
+                if q.strip() and not inv_view.empty:
+                    st.caption(
+                        "No rows match the search box; clear the search to see all tables in scope."
+                    )
+                elif not q.strip() and inv_view.empty:
+                    st.caption("No inventory rows match domain/portfolio filters.")
 
-        tables = sorted(show["full_name"].dropna().unique().tolist()) if not show.empty and "full_name" in show.columns else []
-        pick = st.selectbox("Select a table", options=[""] + tables, index=0)
+        with st.expander("Select a table", expanded=bool(tables)):
+            pick = st.selectbox(
+                "Choose from list (or click a row above)",
+                options=[""] + tables,
+                key=TBL_PICK_KEY,
+                help="Synced when you select a row in the inventory table.",
+            )
 
         if pick:
             st.markdown(f"#### `{pick}`")
+            map_sort = st.selectbox(
+                "Sort mappings by",
+                ["Confidence (high first)", "Target column (A→Z)"],
+                index=0,
+                key="tbl_map_sort",
+                help="Applies to Confirmed, Review, and Trash rows for the selected table.",
+            )
             dom = _domain_for_table(report, pick)
             if dom:
                 st.write(f"**Domain:** {dom}")
@@ -545,10 +1005,10 @@ def main() -> None:
             lg_html = lineage_subgraph_html(lineage_block, pick)
             has_edges = bool(lineage_block.get("edges"))
             if lg_html:
-                with st.expander("Lineage Graph (Interactive)", expanded=False):
+                with st.expander("Lineage Graph (Interactive)", expanded=True):
                     components.html(lg_html, height=480, scrolling=True)
             elif has_edges:
-                with st.expander("Lineage Graph (Interactive)", expanded=False):
+                with st.expander("Lineage Graph (Interactive)", expanded=True):
                     if pyvis_available():
                         st.caption("No neighborhood edges for this table in the current graph.")
                     else:
@@ -556,8 +1016,14 @@ def main() -> None:
             else:
                 st.caption("No lineage edges for this report (run with `--discovery-mode` to build the graph).")
 
-            rh = exec_sum.get("risk_hotspots") or []
-            rh_row = next((x for x in rh if isinstance(x, dict) and str(x.get("table")) == pick), None)
+            rh_row = next(
+                (
+                    x
+                    for x in rh_exec_filtered
+                    if isinstance(x, dict) and str(x.get("table")) == pick
+                ),
+                None,
+            )
             if rh_row:
                 st.markdown("**Blast radius (lineage)**")
                 st.write(
@@ -566,8 +1032,17 @@ def main() -> None:
                     f"reach: **{rh_row.get('downstream_tables_reached', '')}** tables"
                 )
 
-            me = [e for e in (am.get("merged_entities") or []) if str(e.get("source_table")) == pick]
-            rev = [e for e in (am.get("review_candidates") or []) if str(e.get("source_table")) == pick]
+            me = [e for e in merged_all if str(e.get("source_table")) == pick]
+            rev = [e for e in review_all if str(e.get("source_table")) == pick]
+            if map_sort == "Confidence (high first)":
+                me = sorted(me, key=_merge_conf_float, reverse=True)
+                rev = sorted(rev, key=_merge_conf_float, reverse=True)
+            else:
+                me = sorted(me, key=lambda e: str((e or {}).get("canonical_column") or "").lower())
+                rev = sorted(
+                    rev,
+                    key=lambda e: str((e or {}).get("suggested_ddl") or (e or {}).get("legacy_name") or "").lower(),
+                )
             st.markdown("**Confirmed → DDL**")
             if me:
                 st.dataframe(
@@ -607,8 +1082,20 @@ def main() -> None:
             else:
                 st.caption("No review rows for this table.")
 
-            tr = [e for e in (am.get("trash_candidates") or []) if str(e.get("source_table")) == pick]
-            with st.expander("Trash / low-signal", expanded=False):
+            tr = [e for e in trash_all if str(e.get("source_table")) == pick]
+            if map_sort == "Confidence (high first)":
+                tr = sorted(tr, key=_merge_conf_float, reverse=True)
+            else:
+                tr = sorted(
+                    tr,
+                    key=lambda e: str(
+                        (e or {}).get("legacy_name")
+                        or (e or {}).get("canonical_column")
+                        or (e or {}).get("suggested_ddl")
+                        or ""
+                    ).lower(),
+                )
+            with st.expander("Trash / low-signal", expanded=True):
                 if tr:
                     st.dataframe(pd.DataFrame(tr), use_container_width=True, hide_index=True)
                 else:
@@ -680,8 +1167,7 @@ def main() -> None:
             else:
                 st.warning(
                     f"The file contains **{n_raw_review}** review row(s), but **sidebar filters** "
-                    "hide them all. Clear **Business domain** selections, set **Portfolio** to **All**, "
-                    "and set **Min confidence** to **0.00**."
+                    "hide them all. Clear **Business domain** selections and set **Portfolio** to **All**."
                 )
 
         if hitl_file:
@@ -699,7 +1185,10 @@ def main() -> None:
             )
 
     st.divider()
-    st.caption("Filters apply to merge lists, glossary, and HITL queue.")
+    st.caption(
+        "Sidebar filters (**Business domain**, **Portfolio**) apply across Executive overview, Domains, "
+        "Business Glossary, Ask the data, Tables, and HITL. **Merge confidence** stays visual (scatter, gauges, columns)."
+    )
 
 
 if __name__ == "__main__":

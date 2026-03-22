@@ -1,0 +1,21 @@
+{
+  "columns": [
+    "id",
+    "order_id",
+    "invoice_id",
+    "customer_id",
+    "amount",
+    "paid_at",
+    "status",
+    "total",
+    "due_date",
+    "rep_id",
+    "period",
+    "department",
+    "fiscal_year",
+    "region",
+    "rate",
+    "active",
+    "start_date"
+  ]
+}

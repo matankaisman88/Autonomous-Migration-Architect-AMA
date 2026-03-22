@@ -23,6 +23,22 @@ def test_heuristic_domain_finance() -> None:
     assert _heuristic_domain("PROD_SALES", "Invoices", "PROD_SALES.Invoices", "") == "Finance"
 
 
+def test_heuristic_domain_sales_orders_is_operations_not_finance() -> None:
+    assert _heuristic_domain("sales", "orders", "sales.orders", "") == "Operations"
+
+
+def test_heuristic_domain_finance_schema() -> None:
+    assert _heuristic_domain("finance", "invoices", "finance.invoices", "") == "Finance"
+
+
+def test_heuristic_domain_sales_customers_crm() -> None:
+    assert _heuristic_domain("sales", "customers", "sales.customers", "") == "CRM"
+
+
+def test_heuristic_domain_sales_products_logistics() -> None:
+    assert _heuristic_domain("sales", "products", "sales.products", "") == "Logistics"
+
+
 def test_heuristic_domain_technical_debt() -> None:
     assert _heuristic_domain("TEMP_JUNK", "Tmp_1", "TEMP_JUNK.Tmp_1", "") == "Technical Debt"
 

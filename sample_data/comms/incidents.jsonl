@@ -1,0 +1,3 @@
+{"channel": "incidents", "ts": "1710000400.400100", "text": "SEV2: Read replica lag affecting queries against sales.orders and sales.customers — paging on-call."}
+{"channel": "incidents", "ts": "1710000401.400200", "text": "Rollback: marketing.promotions job wrote duplicate rows into sales.order_lines."}
+{"channel": "incidents", "ts": "1710000402.400300", "text": "legacy_hebrew.חשבוניות sync stalled; finance.invoices downstream impact."}

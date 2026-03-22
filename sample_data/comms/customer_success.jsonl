@@ -1,0 +1,3 @@
+{"channel": "customer-success", "ts": "1710000300.300100", "text": "Escalation: customer_id in sales.orders does not match crm.accounts for enterprise account ACME."}
+{"channel": "customer-success", "ts": "1710000301.300200", "text": "Shipments from logistics.shipments are delayed; orders still show open status in sales.orders."}
+{"channel": "customer-success", "ts": "1710000302.300300", "text": "Please confirm return_authorizations in analytics are linked to the right sales.orders."}

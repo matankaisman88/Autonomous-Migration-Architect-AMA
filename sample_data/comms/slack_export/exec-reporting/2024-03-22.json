@@ -1,0 +1,20 @@
+[
+  {
+    "type": "message",
+    "user": "U7BOARD",
+    "text": "Dashboard drill-down: filter by sales.orders status and join to finance.invoices for margin.",
+    "ts": "1710000500.000100"
+  },
+  {
+    "type": "message",
+    "user": "UCFO",
+    "text": "Risk: legacy_hebrew.חשבוניות still feeds two reports — align owners before cutover.",
+    "ts": "1710000501.000200"
+  },
+  {
+    "type": "message",
+    "user": "UDATA",
+    "text": "analytics.forecast_runs vs finance.budget_lines variance explained in sheet v3.",
+    "ts": "1710000502.000300"
+  }
+]

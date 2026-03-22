@@ -70,8 +70,45 @@ def _heuristic_domain(schema: str, table: str, full_name: str, comment: str) -> 
     if table and not re.search(r"[a-zA-Z]", table):
         return "Legacy Core"
 
+    sch_raw = schema.lower()
+    sch = sch_raw[5:] if sch_raw.startswith("prod_") else sch_raw
+    tlow = table.lower()
+
+    # Schema-first routing so sales.orders / order_lines are not classified as Finance via the substring "order".
+    if sch == "finance":
+        return "Finance"
+    if sch == "logistics":
+        return "Logistics"
+    if sch == "crm":
+        return "CRM"
+    if sch == "marketing":
+        return "Marketing"
+    if sch == "analytics":
+        return "Analytics"
+    if sch == "sales":
+        if any(
+            k in tlow
+            for k in (
+                "invoice",
+                "payment",
+                "credit",
+                "commission",
+                "budget",
+                "tax",
+                "contract",
+                "ledger",
+            )
+        ):
+            return "Finance"
+        if any(k in tlow for k in ("customer", "account")):
+            return "CRM"
+        if "product" in tlow:
+            return "Logistics"
+        if "order" in tlow:
+            return "Operations"
+        return "Operations"
+
     finance_kw = (
-        "order",
         "invoice",
         "credit",
         "commission",
@@ -85,7 +122,6 @@ def _heuristic_domain(schema: str, table: str, full_name: str, comment: str) -> 
     )
     logistics_kw = ("ship", "warehouse", "inventory", "product", "stock", "fulfill")
     crm_kw = ("customer", "account", "rep", "territory", "crm", "lead")
-    tlow = table.lower()
     if any(k in tlow for k in finance_kw):
         return "Finance"
     if any(k in tlow for k in logistics_kw):
@@ -538,6 +574,9 @@ DDL_BUSINESS_DEFINITIONS: dict[str, str] = {
     "name": "Human-readable label for the entity (product, customer, or order title).",
     "data": "Generic payload field — often legacy catch‑all; validate before trusting for decisions.",
     "id": "Primary or surrogate identifier — lineage anchor for joins across systems.",
+    "discount": "Promotional or contractual reduction on list price — net revenue and margin depend on it.",
+    "unit_price": "Price per unit before line totals — used for pricing analytics and margin.",
+    "vat_amount": "Tax amount in reporting currency — statutory reporting and e-invoicing.",
 }
 
 # Hebrew / English concept expansion for “Ask the data”
@@ -549,6 +588,12 @@ CONCEPT_SYNONYMS: dict[str, list[str]] = {
     "customer": ["customer", "לקוח", "account", "crm"],
     "order": ["order", "הזמנה", "orders"],
     "status": ["status", "סטטוס", "state"],
+    "invoice": ["invoice", "חשבונית", "billing", "invoices"],
+    "הנחה": ["discount", "הנחה", "דיסקונט", "promo", "מבצע"],
+    "כמות": ["quantity", "qty", "כמות", "units", "stock"],
+    "מחיר": ["price", "unit_price", "מחיר", "rate", "amount"],
+    "מעמ": ["vat", "מעמ", "tax", "מס", "vat_amount"],
+    "משלוח": ["shipment", "ship", "משלוח", "tracking"],
 }
 
 
@@ -571,6 +616,64 @@ def business_definition_for_column(canonical: str, domain: str) -> str:
     if domain:
         return f"{base} (context: **{domain}** portfolio)."
     return base
+
+
+def _relative_to_data_root(path: Path, data_root: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(data_root.resolve())).replace("\\", "/")
+    except ValueError:
+        return str(path.resolve()).replace("\\", "/")
+
+
+def build_glossary_source_report(
+    data_root: Path,
+    glossary_paths: list[Path | None],
+) -> dict[str, Any]:
+    """
+    Full glossary inventory from JSON files on disk (every key→value row).
+    Used so reports and the dashboard reflect **all** of ``sample_data/glossary/``, not only
+    terms that appeared in SQL logs.
+    """
+    layers: list[dict[str, Any]] = []
+    total = 0
+    resolved: list[str] = []
+    root = data_root.resolve()
+    for p in glossary_paths:
+        if p is None or not p.exists():
+            continue
+        resolved.append(str(p.resolve()))
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        label = "dirty" if "dirty" in p.name.lower() else "clean"
+        entries: list[dict[str, str]] = []
+        for k, v in data.items():
+            if not isinstance(k, str) or not isinstance(v, str):
+                continue
+            if k.startswith("_"):
+                continue
+            entries.append({"source_term": k, "target_column": v})
+        entries.sort(key=lambda x: (x["target_column"].lower(), x["source_term"].lower()))
+        rel = _relative_to_data_root(p, root)
+        layers.append(
+            {
+                "file": p.name,
+                "path_relative": rel,
+                "path_absolute": str(p.resolve()),
+                "layer": label,
+                "entry_count": len(entries),
+                "entries": entries,
+            }
+        )
+        total += len(entries)
+    return {
+        "layers": layers,
+        "total_entries": total,
+        "glossary_paths_resolved": resolved,
+    }
 
 
 def _domain_for_table_from_report(report: dict[str, Any], source_table: str) -> str:
@@ -636,6 +739,36 @@ def build_business_glossary_entries(report: dict[str, Any]) -> list[dict[str, An
                 "reasoning": str(e.get("citation") or ""),
             }
         )
+    gs = report.get("glossary_source") or {}
+    for layer in gs.get("layers") or []:
+        if not isinstance(layer, dict):
+            continue
+        fp = str(layer.get("path_relative") or layer.get("file") or "")
+        fname = str(layer.get("file") or "")
+        layer_label = str(layer.get("layer") or "")
+        for j, ent in enumerate(layer.get("entries") or []):
+            if not isinstance(ent, dict):
+                continue
+            sterm = str(ent.get("source_term") or "")
+            tgt = str(ent.get("target_column") or "")
+            entries.append(
+                {
+                    "id": f"glossary_source:{fp}:{j}:{sterm}",
+                    "business_term": humanize_ddl_column(tgt),
+                    "definition": (
+                        f"**Glossary file ({layer_label})** `{fname}` — term **`{sterm}`** → **`{tgt}`**. "
+                        "Included so the report reflects the full **sample_data** glossary, not only terms seen in logs."
+                    ),
+                    "legacy_columns": sterm,
+                    "target_ddl": tgt,
+                    "confidence": 1.0,
+                    "domain": "Glossary inventory",
+                    "source_table": "",
+                    "source_tables": [],
+                    "kind": "glossary_source",
+                    "reasoning": f"Static row from {fp}",
+                }
+            )
     return entries
 
 
@@ -662,12 +795,14 @@ def group_glossary_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]
             conf = float(e.get("confidence") or 0.0)
         except (TypeError, ValueError):
             conf = 0.0
+        dom_e = str(e.get("domain") or "").strip()
         if key not in buckets:
             order_keys.append(key)
             row = dict(e)
             row["source_tables"] = [st] if st else []
             row["confidence_display"] = conf
             row["_group_count"] = 1
+            row["domains_list"] = [dom_e] if dom_e else []
             buckets[key] = row
         else:
             b = buckets[key]
@@ -675,6 +810,8 @@ def group_glossary_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]
                 b["source_tables"].append(st)
             b["confidence_display"] = max(float(b.get("confidence_display") or 0.0), conf)
             b["_group_count"] = int(b.get("_group_count") or 1) + 1
+            if dom_e and dom_e not in (b.get("domains_list") or []):
+                b.setdefault("domains_list", []).append(dom_e)
     return [buckets[k] for k in order_keys]
 
 
@@ -690,6 +827,60 @@ def domain_data_health(report: dict[str, Any], domain: str) -> dict[str, Any]:
     me = [e for e in (am.get("merged_entities") or []) if isinstance(e, dict) and str(e.get("source_table")) in tables]
     rev = [e for e in (am.get("review_candidates") or []) if isinstance(e, dict) and str(e.get("source_table")) in tables]
     tr = [e for e in (am.get("trash_candidates") or []) if isinstance(e, dict) and str(e.get("source_table")) in tables]
+    tot = len(me) + len(rev) + len(tr)
+    pct = 100.0 * len(me) / tot if tot else 0.0
+    imp_rows = [
+        r
+        for r in (report.get("importance_ddl") or [])
+        if isinstance(r, dict) and str(r.get("source_table") or "") in tables
+    ]
+    avg_imp = 0.0
+    if imp_rows:
+        vals = []
+        for r in imp_rows:
+            try:
+                vals.append(float(r.get("importance_score", 0.0)))
+            except (TypeError, ValueError):
+                pass
+        avg_imp = sum(vals) / len(vals) if vals else 0.0
+    if pct >= 70:
+        risk = "Low"
+    elif pct >= 40:
+        risk = "Medium"
+    else:
+        risk = "High"
+    if domain == "Technical Debt":
+        risk = "High"
+    return {
+        "domain": domain,
+        "table_count": len(tables),
+        "pct_columns_confirmed": round(pct, 1),
+        "avg_importance": round(avg_imp, 4),
+        "risk_level": risk,
+        "n_confirmed": len(me),
+        "n_review": len(rev),
+        "n_trash": len(tr),
+    }
+
+
+def domain_data_health_filtered(
+    report: dict[str, Any],
+    domain: str,
+    *,
+    merged_all: list[dict[str, Any]],
+    review_all: list[dict[str, Any]],
+    trash_all: list[dict[str, Any]],
+    inventory_full_names_for_domain: set[str],
+) -> dict[str, Any]:
+    """
+    Same metrics as :func:`domain_data_health`, but merge buckets are **sidebar-filtered**
+    (confidence / domain / portfolio) and ``inventory_full_names_for_domain`` is the
+    intersection of that scope with this **domain** (typically from ``inv_view``).
+    """
+    tables = inventory_full_names_for_domain
+    me = [e for e in merged_all if isinstance(e, dict) and str(e.get("source_table")) in tables]
+    rev = [e for e in review_all if isinstance(e, dict) and str(e.get("source_table")) in tables]
+    tr = [e for e in trash_all if isinstance(e, dict) and str(e.get("source_table")) in tables]
     tot = len(me) + len(rev) + len(tr)
     pct = 100.0 * len(me) / tot if tot else 0.0
     imp_rows = [

@@ -23,11 +23,28 @@ class IngestionSettings(BaseSettings):
     embedding_dim: int = Field(default=64, description="Dimension for hash-based embeddings")
     ddl_columns_path: Path | None = Field(
         default=Path("sample_data/ddl/orders_columns.json"),
-        description="If present under data root, merge log columns onto these DDL names by default",
+        description="Default DDL column list; also fallback for tables not listed in ddl_manifest",
+    )
+    ddl_manifest_path: Path | None = Field(
+        default=Path("sample_data/ddl/ddl_manifest.json"),
+        description="Optional JSON map schema.table -> DDL file path relative to data root",
+    )
+    discovery_merge_all: bool = Field(
+        default=False,
+        description="With discovery mode: merge all discovered tables (per manifest); else top-N or target-only",
+    )
+    discovery_merge_max: int = Field(
+        default=0,
+        ge=0,
+        description="When discovery_merge_all: max tables (0 = unlimited)",
     )
     glossary_path: Path | None = Field(
         default=Path("sample_data/glossary/he_en_columns.json"),
         description="Optional Hebrew/English column glossary for alias merge",
+    )
+    glossary_dirty_path: Path | None = Field(
+        default=Path("sample_data/glossary/he_en_columns_dirty.json"),
+        description="Optional second glossary (typos/shorthand); merged after glossary_path, first file wins on key clash",
     )
     merge_confidence_floor: float = Field(
         default=0.4,

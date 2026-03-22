@@ -1,0 +1,4 @@
+{"channel": "finance-close", "ts": "1710000200.200100", "text": "Please tie sales.orders revenue to finance.invoices before we lock the subledger."}
+{"channel": "finance-close", "ts": "1710000201.200200", "text": "finance.payments batch for March 31 is missing rows linked to finance.credits."}
+{"channel": "finance-close", "ts": "1710000202.200300", "text": "Commission accruals from finance.commissions must match sales.orders amounts for the quarter."}
+{"channel": "finance-close", "ts": "1710000203.200400", "text": "Tax rate changes in finance.tax_rates apply next week — notify billing."}

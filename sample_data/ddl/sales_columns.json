@@ -1,0 +1,19 @@
+{
+  "columns": [
+    "id",
+    "name",
+    "region",
+    "tier",
+    "sku",
+    "active",
+    "order_id",
+    "line_no",
+    "product_id",
+    "qty",
+    "customer_id",
+    "promo_id",
+    "discount_pct",
+    "data",
+    "payload"
+  ]
+}

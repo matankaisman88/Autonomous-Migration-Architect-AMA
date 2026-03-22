@@ -1,0 +1,12 @@
+{
+  "columns": [
+    "id",
+    "name",
+    "segment",
+    "quota",
+    "region",
+    "active",
+    "stage",
+    "account_id"
+  ]
+}

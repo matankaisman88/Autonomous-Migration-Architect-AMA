@@ -1,0 +1,13 @@
+{
+  "columns": [
+    "id",
+    "order_id",
+    "tracking_no",
+    "status",
+    "sku",
+    "qty",
+    "name",
+    "region",
+    "active"
+  ]
+}

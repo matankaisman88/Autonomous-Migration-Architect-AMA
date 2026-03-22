@@ -79,6 +79,7 @@ Create a **`.env`** file in the working directory (optional) with `AMA_*` variab
 | `ama-ingest run --format json -o report.json` | JSON report |
 | `ama-ingest run --format excel -o report.xlsx` | Excel workbook |
 | `ama-ingest run --discovery-mode` | Discovery inventory + lineage (for planner / risk hotspots) |
+| `ama-ingest run --discovery-mode --discovery-merge-all` | DDL merge on **every** discovered table using `ddl_manifest.json` + default `orders_columns.json` fallback |
 | `ama-ingest dq --report report.json` | **Data quality** checks on a report JSON |
 | `ama-ingest plan --report report.json` | **Migration plan** JSON (waves from inventory) |
 | `ama-ingest log-scan PATH [PATH...]` | Stream-scan SQL **`.jsonl`** logs → parse telemetry JSON |
@@ -87,7 +88,7 @@ Create a **`.env`** file in the working directory (optional) with `AMA_*` variab
 | `ama-ingest run --stress` | Extreme log stress → `stress_report.json` |
 | `ama-dashboard --report-path report.json` | Streamlit UI |
 
-JSON reports include **`schema_version`** (e.g. `1.1`), **`ingestion_stats`**, and with **`--discovery-mode`** additive **`lineage`** plus executive **`risk_hotspots`** when the graph has edges.
+JSON reports include **`schema_version`** (e.g. `1.1`), **`ingestion_stats`**, **`merge_scope`** (how DDL merge was scoped: single table, top‑N, or all discovered), **`target_table`** (always the configured comms/git anchor), and with **`--discovery-mode`** additive **`lineage`** plus executive **`risk_hotspots`** when the graph has edges.
 
 ---
 
@@ -124,7 +125,7 @@ JSON reports include **`schema_version`** (e.g. `1.1`), **`ingestion_stats`**, a
 |-----|---------|
 | **Executive overview** | KPIs, impact vs readiness scatter, domain importance, risk hotspots |
 | **Domains** | Per-domain health and inventory |
-| **Business Glossary** | Grouped legacy → DDL stories |
+| **Business Glossary** | Grouped legacy → DDL stories; **full `sample_data/glossary/` inventory** in JSON report (`glossary_source`) + dashboard expander |
 | **Ask the data** | Concept search (Hebrew/English) |
 | **Tables** | Per-table merge breakdown; optional **pyvis** lineage neighborhood |
 | **Review (HITL)** | Approve/reject; sidecar `<report>.hitl.json` |
@@ -146,7 +147,7 @@ ama-ingest apply-hitl --report report.json --format excel -o report.with_hitl.xl
 | `AMA_DEFAULT_SQL_DIALECT` | Optional SQLGlot dialect fallback when JSONL rows omit `dialect` |
 | `AMA_MERGE_CONFIDENCE_FLOOR` | Merge floor (default `0.4`) |
 | `AMA_MERGE_CONFIRMED_THRESHOLD` | Vector confirm bar (default `0.8`) |
-| `AMA_DDL_COLUMNS_PATH`, `AMA_GLOSSARY_PATH`, `AMA_SQL_LOGS_GLOB`, `AMA_COMMS_DIR`, `AMA_GIT_SQL_ROOTS` | Paths / globs |
+| `AMA_DDL_COLUMNS_PATH`, `AMA_DDL_MANIFEST_PATH` (optional JSON map `schema.table` → DDL file relative to data root; per-table merge with `--discovery-merge-all`), `AMA_GLOSSARY_PATH`, `AMA_GLOSSARY_DIRTY_PATH` (optional second glossary: typos/shorthand; merged after primary; first file wins on duplicate keys), `AMA_DISCOVERY_MERGE_ALL`, `AMA_DISCOVERY_MERGE_MAX` (cap when merge-all), `AMA_SQL_LOGS_GLOB`, `AMA_COMMS_DIR`, `AMA_GIT_SQL_ROOTS` | Paths / globs |
 | `AMA_QDRANT_PATH` | Optional on-disk Qdrant |
 | `AMA_OPENAI_API_KEY` / `OPENAI_API_KEY` | Optional narrative enrichment (never commit) |
 | `AMA_REPORT_PATH` | Default report path for dashboard |

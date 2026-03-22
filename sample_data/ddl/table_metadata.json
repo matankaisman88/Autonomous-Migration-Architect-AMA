@@ -1,0 +1,132 @@
+{
+  "sales.orders": {
+    "comment": "Canonical transactional order header; ARR and revenue recognition depend on row-level status and amounts.",
+    "business_hint": "core",
+    "owner_team": "Finance Ops",
+    "pii_level": "medium",
+    "refresh_cadence": "near_real_time"
+  },
+  "sales.customers": {
+    "comment": "Customer master for B2B accounts; feeds CRM campaigns and credit checks.",
+    "business_hint": "core",
+    "owner_team": "CRM",
+    "pii_level": "high"
+  },
+  "sales.order_lines": {
+    "comment": "Line-level revenue and product mix; joins orders to products and promotions.",
+    "business_hint": "core",
+    "owner_team": "Sales Ops"
+  },
+  "sales.products": {
+    "comment": "Product catalog SKU reference; pricing and inventory feeds.",
+    "business_hint": "core",
+    "owner_team": "Merchandising"
+  },
+  "finance.invoices": {
+    "comment": "Posted AR invoices; downstream to GL subledger and collections.",
+    "business_hint": "core",
+    "owner_team": "Accounting"
+  },
+  "finance.payments": {
+    "comment": "Cash application against invoices; treasury reconciliation.",
+    "business_hint": "core",
+    "owner_team": "Treasury"
+  },
+  "finance.credits": {
+    "comment": "Credit memos and adjustments; impacts margin reporting.",
+    "business_hint": "core",
+    "owner_team": "Accounting"
+  },
+  "finance.commissions": {
+    "comment": "Sales rep compensation accruals by period.",
+    "business_hint": "core",
+    "owner_team": "FP&A"
+  },
+  "finance.budget_lines": {
+    "comment": "Departmental budget vs actual driver table.",
+    "business_hint": "core",
+    "owner_team": "FP&A"
+  },
+  "finance.tax_rates": {
+    "comment": "Jurisdiction tax reference for invoicing and compliance.",
+    "business_hint": "core",
+    "owner_team": "Tax"
+  },
+  "finance.contracts": {
+    "comment": "Commercial contract headers for billing schedules.",
+    "business_hint": "core",
+    "owner_team": "Legal"
+  },
+  "logistics.shipments": {
+    "comment": "Fulfillment and carrier tracking; WMS integration.",
+    "business_hint": "core",
+    "owner_team": "Logistics"
+  },
+  "logistics.warehouses": {
+    "comment": "Physical site master for stock and routing rules.",
+    "business_hint": "core",
+    "owner_team": "Supply Chain"
+  },
+  "logistics.inventory_snapshots": {
+    "comment": "Point-in-time stock levels for planning and OTIF reports.",
+    "business_hint": "core",
+    "owner_team": "Inventory Planning"
+  },
+  "crm.accounts": {
+    "comment": "Enterprise account hierarchy for territory and pipeline coverage.",
+    "business_hint": "core",
+    "owner_team": "Sales"
+  },
+  "crm.sales_reps": {
+    "comment": "Rep quota and territory mapping.",
+    "business_hint": "core",
+    "owner_team": "Sales Ops"
+  },
+  "crm.territories": {
+    "comment": "Geographic and segment sales territories.",
+    "business_hint": "core",
+    "owner_team": "Sales Ops"
+  },
+  "crm.leads": {
+    "comment": "Inbound lead funnel prior to opportunity conversion.",
+    "business_hint": "core",
+    "owner_team": "Marketing"
+  },
+  "marketing.promotions": {
+    "comment": "Promotional campaigns and discount rules.",
+    "business_hint": "core",
+    "owner_team": "Growth"
+  },
+  "marketing.campaign_results": {
+    "comment": "Spend and response metrics by channel.",
+    "business_hint": "core",
+    "owner_team": "Growth"
+  },
+  "analytics.forecast_runs": {
+    "comment": "Scenario planning outputs for revenue forecasting.",
+    "business_hint": "core",
+    "owner_team": "Analytics"
+  },
+  "analytics.targets": {
+    "comment": "Quarterly targets by team and product line.",
+    "business_hint": "core",
+    "owner_team": "Analytics"
+  },
+  "analytics.return_authorizations": {
+    "comment": "RMA workflow tied to orders and refunds.",
+    "business_hint": "core",
+    "owner_team": "Finance Ops"
+  },
+  "legacy_hebrew.חשבוניות": {
+    "comment": "Legacy Hebrew billing system; invoices mirrored into finance.invoices.",
+    "business_hint": "legacy",
+    "owner_team": "Regional IT",
+    "migration_wave": "2"
+  },
+  "temp_junk.Tmp_7": {
+    "comment": "Scratch staging table used by ETL probes; drop after cutover.",
+    "business_hint": "core",
+    "owner_team": "Data Engineering",
+    "migration_wave": "99"
+  }
+}

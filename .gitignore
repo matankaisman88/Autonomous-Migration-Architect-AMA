@@ -47,3 +47,7 @@ chaos_data/
 /full_db_report.xlsx
 /benchmark_results.json
 /stress_report.json
+
+# Root ingest output / Windows path artifacts
+/report.json
+/NUL.json

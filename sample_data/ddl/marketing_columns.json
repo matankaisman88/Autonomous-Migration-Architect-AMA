@@ -1,0 +1,10 @@
+{
+  "columns": [
+    "id",
+    "name",
+    "discount_pct",
+    "active",
+    "spend",
+    "channel"
+  ]
+}

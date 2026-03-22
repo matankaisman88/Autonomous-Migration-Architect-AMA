@@ -1,0 +1,14 @@
+{
+  "columns": [
+    "id",
+    "period",
+    "value",
+    "scenario",
+    "team",
+    "goal",
+    "quarter",
+    "order_id",
+    "reason",
+    "status"
+  ]
+}

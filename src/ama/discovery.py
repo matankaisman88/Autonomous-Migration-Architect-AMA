@@ -47,6 +47,21 @@ def resolve_target_stats_for_table(
     return best_k, best_st
 
 
+def discovery_anchor_key(
+    discovery_tables: dict[str, TableColumnStats],
+    target_full_table: str,
+    *,
+    fallback_keys: list[str] | None = None,
+) -> str:
+    """Prefer the discovered key matching ``target_full_table``; else first of ``fallback_keys``."""
+    for k in discovery_tables:
+        if table_matches_target(k, target_full_table):
+            return k
+    if fallback_keys:
+        return fallback_keys[0]
+    return ""
+
+
 def _inventory_status(
     *,
     is_target: bool,
@@ -219,12 +234,14 @@ def _merge_merged_stats_with_prefix(table_key: str, stats: TableColumnStats) -> 
 
 
 def aggregate_merges_for_tables(
-    resolver: AliasResolver,
+    resolver_or_factory: AliasResolver | Callable[[str], AliasResolver],
     discovery_tables: dict[str, TableColumnStats],
     table_keys: list[str],
 ) -> tuple[dict[str, Any], TableColumnStats]:
     """
     Run AliasResolver.merge_table_stats per table and concatenate results.
+    Pass a single :class:`AliasResolver` (same DDL for every table) or a
+    ``callable(table_key) -> AliasResolver`` for per-table DDL (see ``ddl_manifest``).
     Returns merged_report-shaped dict and combined TableColumnStats for importance (prefixed columns).
     """
     merged_entities: list[dict[str, Any]] = []
@@ -237,6 +254,10 @@ def aggregate_merges_for_tables(
         st = discovery_tables.get(key)
         if not st:
             continue
+        if isinstance(resolver_or_factory, AliasResolver):
+            resolver = resolver_or_factory
+        else:
+            resolver = resolver_or_factory(key)
         mr = resolver.merge_table_stats(st, source_table=key)
         sub = _merge_merged_stats_with_prefix(key, mr.merged_stats)
         merge_stats(combined, sub)
