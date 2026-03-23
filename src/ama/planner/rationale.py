@@ -74,7 +74,11 @@ def enrich_planned_tables(
             tech_parts.append(f"{mc} merge cluster(s)")
         tech = " · ".join(tech_parts)
         enriched.append(
-            replace(pt, business_context=bctx, technical_note=tech),
+            replace(
+                pt,
+                business_context=bctx,
+                technical_note=tech,
+            ),
         )
     return enriched
 
@@ -165,6 +169,10 @@ def build_wave_rationales(
     # --- Technical: ordering, merge, risk, target — only what applies ---
     tech_bits: list[str] = []
     tech_bits.append(f"**Priority order in this wave:** {_wave_run_order(planned_tables)}.")
+    if any(getattr(pt, "is_broken", False) for pt in planned_tables):
+        tech_bits.append(
+            "**Broken lineage:** table(s) co-query with DDL manifest gap(s) — resolve before cutover.",
+        )
     if merge_pairs:
         mp = ", ".join(f"`{fn}` ({c})" for fn, c in merge_pairs[:6])
         if len(merge_pairs) > 6:
@@ -196,6 +204,7 @@ def build_wave_rationales(
         "domain_matrix_complexity": dm.get("migration_complexity") if dm else None,
         "risk_hotspot_hits": len(risk_hits),
         "tables_with_merge_entities": len(merge_pairs),
+        "broken_table_count": sum(1 for pt in planned_tables if getattr(pt, "is_broken", False)),
     }
 
     return business, technical, metrics

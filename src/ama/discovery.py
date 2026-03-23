@@ -448,12 +448,17 @@ def finalize_system_migration_discovery(
     clusters = build_coquery_table_clusters(lineage, inventory_full_names=names)
 
     domains_detected = sorted({str(r.get("business_domain") or "Unclassified") for r in rows})
+    merge_scope = report.get("merge_scope") if isinstance(report.get("merge_scope"), dict) else {}
+    table_names_merged = list(merge_scope.get("table_names_merged") or [])
+    table_names_discovered = sorted(names)
     discovery["migration_state"] = {
         "mode": "system_wide",
         "lineage_order_applied": lineage_used,
         "domains_detected": domains_detected,
         "domain_processing_order": domain_order,
         "coquery_clusters": clusters,
+        "table_names_merged": table_names_merged,
+        "table_names_discovered": table_names_discovered,
     }
 
 

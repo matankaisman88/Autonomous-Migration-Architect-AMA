@@ -11,6 +11,8 @@ import math
 import re
 from typing import Any
 
+from ama.ddl_manifest import normalize_manifest_table_key
+
 # Shown in the Streamlit UI when pyvis is not installed.
 PYVIS_INSTALL_HINT = (
     "Interactive lineage requires **pyvis**. Install with: "
@@ -92,6 +94,8 @@ def lineage_subgraph_html(
     center_table: str,
     *,
     height_px: int = 440,
+    broken_tables: set[str] | None = None,
+    broken_table_keys: set[str] | None = None,
 ) -> str | None:
     """
     Build an interactive HTML graph (Pyvis) for the 1-hop neighborhood of ``center_table``.
@@ -102,6 +106,10 @@ def lineage_subgraph_html(
         The ``report["lineage"]`` object (expects ``edges``: list of ``from`` / ``to`` / ``weight``).
     center_table
         Fully qualified table name to center the subgraph on.
+    broken_tables
+        Table keys that are missing from the DDL manifest (warning/danger styling).
+    broken_table_keys
+        Deprecated alias for ``broken_tables``; used only if ``broken_tables`` is ``None``.
 
     Returns
     -------
@@ -119,6 +127,7 @@ def lineage_subgraph_html(
     except ImportError:
         return None
 
+    broken = broken_tables if broken_tables is not None else (broken_table_keys or set())
     center = center_table.strip()
     nodes: set[str] = {center}
     for e in edges:
@@ -161,25 +170,63 @@ def lineage_subgraph_html(
         )
     )
 
+    _MISSING_PREFIX = "⚠️ MISSING DDL MANIFEST: "
+    _BROKEN_BG = "#d62728"
+    _BROKEN_BORDER = "#ff0000"
+    _BROKEN_HI = {"background": "#ff4444", "border": "#fff"}
+
     xy = _radial_xy(center, nodes)
     for nd in nodes:
         x, y = xy[nd]
         is_center = nd == center
+        is_broken = nd in broken
+        if is_center and is_broken:
+            node_color = {
+                "background": _BROKEN_BG,
+                "border": _BROKEN_BORDER,
+                "highlight": _BROKEN_HI,
+            }
+            title = f"{_MISSING_PREFIX}{nd}"
+            shape = "diamond"
+            size = 26
+        elif is_center:
+            node_color = {
+                "background": "#e94560",
+                "border": "#ff7b8a",
+                "highlight": {"background": "#ff5c78", "border": "#fff"},
+            }
+            title = nd
+            shape = "dot"
+            size = 26
+        elif is_broken:
+            node_color = {
+                "background": _BROKEN_BG,
+                "border": _BROKEN_BORDER,
+                "highlight": _BROKEN_HI,
+            }
+            title = f"{_MISSING_PREFIX}{nd}"
+            shape = "diamond"
+            size = 22
+        else:
+            node_color = {
+                "background": "#16213e",
+                "border": "#0f3460",
+                "highlight": {"background": "#1f4068", "border": "#eaeaea"},
+            }
+            title = nd
+            shape = "dot"
+            size = 20
         net.add_node(
             nd,
             label=_label_for_node(nd),
-            title=nd,
+            title=title,
             x=x,
             y=y,
             fixed={"x": True, "y": True},
             physics=False,
-            shape="dot",
-            size=26 if is_center else 20,
-            color=(
-                {"background": "#e94560", "border": "#ff7b8a", "highlight": {"background": "#ff5c78", "border": "#fff"}}
-                if is_center
-                else {"background": "#16213e", "border": "#0f3460", "highlight": {"background": "#1f4068", "border": "#eaeaea"}}
-            ),
+            shape=shape,
+            size=size,
+            color=node_color,
             font={"color": "#eaeaea", "size": 13 if is_center else 12},
         )
 
@@ -216,11 +263,65 @@ def lineage_subgraph_html(
     return _inject_viewport_fit(net.generate_html())
 
 
+def broken_tables_from_report(report: dict[str, Any]) -> set[str]:
+    """
+    Tables to highlight as manifest gaps: discovered in SQL / inventory minus manifest keys,
+    union lineage-only ghosts (``lineage.broken_table_keys``).
+
+    Uses ``discovery.migration_state.table_names_discovered`` (or ``table_names_merged`` /
+    ``merge_scope.table_names_merged``) vs ``ddl_manifest_table_keys``; matching is normalized
+    like manifest lookup.
+    """
+    disc = report.get("discovery") if isinstance(report.get("discovery"), dict) else {}
+    mstate = disc.get("migration_state") if isinstance(disc.get("migration_state"), dict) else {}
+    discovered: set[str] = set()
+    for x in mstate.get("table_names_discovered") or []:
+        s = str(x).strip()
+        if s:
+            discovered.add(s)
+    if not discovered:
+        for x in mstate.get("table_names_merged") or []:
+            s = str(x).strip()
+            if s:
+                discovered.add(s)
+    if not discovered:
+        ms = report.get("merge_scope") if isinstance(report.get("merge_scope"), dict) else {}
+        for x in ms.get("table_names_merged") or []:
+            s = str(x).strip()
+            if s:
+                discovered.add(s)
+    if not discovered:
+        inv = disc.get("inventory") if isinstance(disc.get("inventory"), list) else []
+        for r in inv:
+            if isinstance(r, dict):
+                s = str(r.get("full_name") or "").strip()
+                if s:
+                    discovered.add(s)
+    manifest_keys = {str(x).strip() for x in (report.get("ddl_manifest_table_keys") or []) if str(x).strip()}
+    manifest_norm = {normalize_manifest_table_key(k) for k in manifest_keys}
+    broken: set[str] = set()
+    for n in discovered:
+        if normalize_manifest_table_key(n) not in manifest_norm:
+            broken.add(n)
+    lin = report.get("lineage") if isinstance(report.get("lineage"), dict) else {}
+    for x in lin.get("broken_table_keys") or []:
+        s = str(x).strip()
+        if s:
+            broken.add(s)
+    return broken
+
+
 def lineage_subgraph_html_from_report(
     report: dict[str, Any],
     center_table: str,
     *,
     height_px: int = 440,
 ) -> str | None:
-    """Convenience wrapper: ``lineage_subgraph_html(report.get(\"lineage\"), center_table)``."""
-    return lineage_subgraph_html(report.get("lineage") if isinstance(report, dict) else None, center_table, height_px=height_px)
+    """Build subgraph using ``report`` lineage + manifest / discovery broken-table set."""
+    lin = report.get("lineage") if isinstance(report, dict) else None
+    return lineage_subgraph_html(
+        lin,
+        center_table,
+        height_px=height_px,
+        broken_tables=broken_tables_from_report(report) if isinstance(report, dict) else set(),
+    )

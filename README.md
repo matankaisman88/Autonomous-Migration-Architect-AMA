@@ -15,11 +15,13 @@ No manual inventory. No spreadsheets. Repeatable from day one.
 ## Features (high level)
 
 - **Discovery + lineage** — Multi-schema inventory, domain clustering, and an undirected co-query lineage graph (bare schema-name tokens from the parser are filtered so edges only connect real `schema.table` keys).
+- **Broken lineage** — Tables referenced in SQL that are not listed in the DDL manifest are flagged in the JSON report (`lineage.broken_table_keys`, `ddl_manifest_table_keys`), surfaced as **warnings** on ingest (exit code 0), and shown in the **Planner** (`is_broken`, `missing_parents`, review wave for manifest gaps) and **Tables** tab lineage graph (diamond nodes, warning tooltip).
+- **Dashboard KPI alignment** — Executive **% Confirmed** uses merge rows whose `source_table` appears in the **filtered inventory** (same scope as the Domains tab and table list), so percentages stay consistent with sidebar filters.
 - **Alias merge scope** — Default single-table merge for the migration anchor, or **`--discovery-merge-all`** to run the four-tier resolver against every discovered table in DDL scope (recommended for the Kfar demo so review-band candidates appear across schemas).
 - **Exports** — **`ama-ingest export-plan`** writes Jira bulk-create JSON (ADF descriptions) or Confluence wiki storage HTML. Inline Markdown in rationales (**bold**, `` `code` ``) is converted to Jira ADF `strong` / `code` marks and HTML `<strong>` / `<code>`.
 - **Glossary tooling** — **`ama-ingest generate-glossary`** mines Hebrew/RTL ↔ English co-occurrences from SQL logs into a candidate glossary JSON (optional LLM assist).
 - **One-command demo** — Repository root **`demo.sh`** (Bash/Git Bash): regenerate Kfar data → ingest with discovery + merge-all → Jira + Confluence exports → prints output paths.
-- **Multi-domain fixtures** — **`tools/generate_domain_data.py`** builds a full AMA sandbox (DDL, JSONL logs, glossary, comms, Git SQL, README) for **`finance`**, **`hr`**, **`logistics`**, **`retail`**, or **`healthcare`**, under **`out/sandbox_{domain}_YYYYMMDD_HHMMSS/`**. One command: **`bash demo.sh --domain hr`** (generates the sandbox, then runs ingest + exports). Or generate only, then **`bash demo.sh --sandbox …`** with the printed path (no new dependencies).
+- **Multi-domain fixtures** — **`tools/generate_domain_data.py`** builds a full AMA sandbox (DDL, JSONL logs, glossary, comms, Git SQL, README) for **`finance`**, **`hr`**, **`logistics`**, **`retail`**, or **`healthcare`**, under **`out/sandbox_{domain}_YYYYMMDD_HHMMSS/`**. SQL logs include varied patterns (multi-way joins, CTEs, self-joins, and a small share of **broken lineage** joins to fictional `ghost_system.*` tables for integration testing). One command: **`bash demo.sh --domain hr`** (generates the sandbox, then runs ingest + exports). Or generate only, then **`bash demo.sh --sandbox …`** with the printed path (no new dependencies).
 
 ## Demo (30 seconds)
 
@@ -104,7 +106,7 @@ Each run writes a timestamped directory under **`out/`** (gitignored) with **`dd
 | `ama.alias_resolver` | 4-tier column alias resolution (glossary → exact → lexical → vector) |
 | `ama.discovery` | Multi-schema inventory, priority scoring, domain classification |
 | `ama.business_logic` | Executive narrative, domain clustering, impact/readiness scatter |
-| `ama.planner` | Migration waves: Kahn topo-sort over lineage graph + business rationales |
+| `ama.planner` | Migration waves: Kahn topo-sort over lineage graph + business rationales; **broken lineage** metadata (`broken_lineage.py`) |
 | `ama.export` | Jira bulk-create JSON and Confluence HTML export sinks; Markdown ** / `` ` `` → ADF / HTML |
 | `ama.glossary` | Co-occurrence mining + optional LLM translation for candidate glossaries |
 | `ama.data_quality` | DQ suite: boundary validation, schema version, ingestion stats checks |
@@ -150,12 +152,12 @@ Create a **`.env`** file in the working directory (optional) with `AMA_*` variab
 
 | Tab | Content |
 |---|---|
-| **Executive overview** | KPIs, impact vs readiness scatter (importance × confidence), risk hotspots |
+| **Executive overview** | KPIs (**% Confirmed** matches filtered-inventory merge scope), impact vs readiness scatter (importance × confidence), risk hotspots |
 | **Domains** | Per-domain health, inventory drill-down, migration complexity scores |
-| **Planner** | Migration waves with business + technical rationale; same output as `ama-ingest plan` |
+| **Planner** | Migration waves with business + technical rationale; same output as `ama-ingest plan`; tables with manifest gaps show `is_broken` and a **Review required — manifest gaps** wave for unknown endpoints |
 | **Business Glossary** | All Hebrew ↔ English term mappings with source layer and confidence |
 | **Ask the data** | Concept search (Hebrew and English) across the report |
-| **Tables** | Per-table merge breakdown + optional pyvis lineage neighborhood graph |
+| **Tables** | Per-table merge breakdown + optional **pyvis** lineage neighborhood graph; manifest-unknown tables (vs `ddl_manifest_table_keys`) render as **warning** styling |
 | **Data quality** | DQ suite results: boundary validation, schema version, ingestion stats |
 | **Review (HITL)** | Approve / reject ambiguous alias mappings; writes `.hitl.json` sidecar |
 

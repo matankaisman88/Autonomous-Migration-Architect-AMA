@@ -119,6 +119,38 @@ def inventory_allowed_tables(inv_view: pd.DataFrame) -> set[str] | None:
     return {str(x) for x in inv_view["full_name"].dropna().unique()}
 
 
+def filter_merge_buckets_by_inventory(
+    merged: list[dict[str, Any]],
+    review: list[dict[str, Any]],
+    trash: list[dict[str, Any]],
+    allowed_tables: set[str] | None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    """
+    Restrict merge buckets to entities whose ``source_table`` appears in the **filtered**
+    inventory (``allowed_tables`` from :func:`inventory_allowed_tables`).
+
+    :func:`_merge_rows_for_filters` uses the full discovery inventory for domain/portfolio
+    resolution. Sidebar filters (e.g. Portfolio) shrink ``inv_view`` to a subset of rows;
+    merge rows can still pass when ``portfolio_section`` is empty on the inventory row.
+    Domain deep dives only count rows whose ``source_table`` is in that visible inventory,
+    which inflated Executive "% Confirmed" denominators. Aligning buckets here matches
+    Executive KPIs, Domains tab metrics, and the Tables tab to the same **inventory scope**.
+    """
+    if allowed_tables is None:
+        return merged, review, trash
+    if len(allowed_tables) == 0:
+        return [], [], []
+
+    def _keep(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [
+            e
+            for e in rows
+            if isinstance(e, dict) and str(e.get("source_table") or "") in allowed_tables
+        ]
+
+    return _keep(merged), _keep(review), _keep(trash)
+
+
 def _merge_rows_for_filters(
     report: dict[str, Any],
     *,

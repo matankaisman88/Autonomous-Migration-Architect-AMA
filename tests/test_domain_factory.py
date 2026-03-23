@@ -110,3 +110,16 @@ class TestDomainFactory:
         assert "first_name" in pairs["שם_פרטי"], (
             f"first_name not in pairs for שם_פרטי. Got: {pairs.get('שם_פרטי')}"
         )
+
+    def test_sql_log_contains_cte_and_multi_join_patterns(self, tmp_path: Path) -> None:
+        """Synthetic logs must include CTEs (WITH) and multi-way JOINs for lineage stress tests."""
+        factory = DomainFactory("finance", seed=42)
+        sandbox = factory.generate(n_lines=800, out_parent=tmp_path)
+        log = next((sandbox / "sql_logs").glob("*.jsonl"))
+        raw = log.read_text(encoding="utf-8")
+        assert "WITH" in raw.upper()
+        rows = [json.loads(line) for line in raw.strip().splitlines()]
+        multi_join = [r["sql"] for r in rows if r["sql"].upper().count("JOIN") >= 2]
+        assert len(multi_join) >= 10, (
+            f"Expected many statements with 2+ JOIN keywords; got {len(multi_join)}"
+        )

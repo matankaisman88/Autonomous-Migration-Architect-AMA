@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 from ama.business_logic import build_business_glossary_entries, group_glossary_entries
+import pandas as pd
+
 from ama.ui.report_helpers import (
     _merge_rows_for_filters,
     _pct_confirmed,
     filter_glossary_grouped,
+    filter_merge_buckets_by_inventory,
+    inventory_allowed_tables,
+    pct_confirmed_filtered,
 )
 
 
@@ -130,3 +135,52 @@ def test_filter_glossary_respects_conf_min() -> None:
     terms = {str(x.get("target_ddl")) for x in filtered}
     assert "order_id" in terms
     assert "status" not in terms
+
+
+def test_filter_merge_buckets_aligns_executive_with_inventory_scope() -> None:
+    """Merge rows can pass domain/portfolio filters while excluded from filtered inv_view."""
+    report = {
+        "discovery": {
+            "inventory": [
+                {
+                    "full_name": "hr.employees",
+                    "business_domain": "HR",
+                    "portfolio_section": "",
+                },
+                {
+                    "full_name": "hr.departments",
+                    "business_domain": "HR",
+                    "portfolio_section": "Core",
+                },
+            ]
+        },
+        "alias_merge": {
+            "merged_entities": [
+                {
+                    "source_table": "hr.employees",
+                    "canonical_column": "x",
+                    "merge_confidence": 0.99,
+                },
+                {
+                    "source_table": "hr.departments",
+                    "canonical_column": "y",
+                    "merge_confidence": 0.99,
+                },
+            ],
+            "review_candidates": [],
+            "trash_candidates": [],
+        },
+    }
+    m, r, t = _merge_rows_for_filters(
+        report, domains=["HR"], portfolio="Core", conf_min=0.0
+    )
+    assert len(m) == 2
+    inv_view = pd.DataFrame(report["discovery"]["inventory"])
+    inv_view = inv_view[inv_view["business_domain"] == "HR"]
+    inv_view = inv_view[inv_view["portfolio_section"] == "Core"]
+    allowed = inventory_allowed_tables(inv_view)
+    assert allowed == {"hr.departments"}
+    mf, rf, tf = filter_merge_buckets_by_inventory(m, r, t, allowed)
+    assert len(mf) == 1 and mf[0]["source_table"] == "hr.departments"
+    assert pct_confirmed_filtered(m, r, t) == 100.0
+    assert pct_confirmed_filtered(mf, rf, tf) == 100.0

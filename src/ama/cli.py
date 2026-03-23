@@ -48,6 +48,7 @@ from ama.hitl_apply import apply_hitl_to_report, load_hitl_sidecar
 from ama.log_analysis import LogAnalysisConfig, LogAnalysisEngine
 from ama.export import ExportConfig, write_export
 from ama.planner import AutonomousPlanner
+from ama.planner.broken_lineage import enrich_lineage_payload, manifest_normalized_keys
 from ama.report_sinks import ExcelReportSink, JsonReportSink
 from ama.discovery import (
     aggregate_merges_for_tables,
@@ -618,6 +619,16 @@ def cmd_run(args: argparse.Namespace) -> int:
     # Stable keys for dashboard (lineage widgets, risk hotspots) even without --discovery-mode
     if lineage_payload is None:
         lineage_payload = {"edges": [], "edge_count_undirected": 0}
+    lineage_payload = enrich_lineage_payload(lineage_payload, manifest)
+    brk_lineage = lineage_payload.get("broken_table_keys") or []
+    if brk_lineage:
+        preview = ", ".join(str(x) for x in brk_lineage[:15])
+        tail = " …" if len(brk_lineage) > 15 else ""
+        print(
+            f"warning: lineage references {len(brk_lineage)} table(s) not listed in ddl-manifest: "
+            f"{preview}{tail}",
+            file=sys.stderr,
+        )
 
     dmn = getattr(args, "discovery_merge_n", 10)
     tables_merged_distinct = distinct_merge_table_count(
@@ -660,6 +671,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         "importance_ddl": importance_ddl,
         "discovery": discovery_payload,
         "lineage": lineage_payload,
+        "ddl_manifest_table_keys": sorted(manifest_normalized_keys(manifest)),
     }
     if discovery_mode and isinstance(discovery_payload, dict) and discovery_payload.get("enabled"):
         finalize_system_migration_discovery(report["discovery"], report)

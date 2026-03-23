@@ -33,6 +33,7 @@ from ama.business_logic import (
 )
 from ama.ui.lineage_widget import (
     PYVIS_INSTALL_HINT,
+    broken_tables_from_report,
     lineage_subgraph_html,
     pyvis_available,
 )
@@ -45,6 +46,7 @@ from ama.ui.report_helpers import (
     filter_glossary_grouped,
     filter_risk_hotspots,
     filter_semantic_search_results,
+    filter_merge_buckets_by_inventory,
     inventory_allowed_tables,
     load_report_json,
     pct_confirmed_filtered,
@@ -397,6 +399,9 @@ def main() -> None:
     )
 
     allowed_tables = inventory_allowed_tables(inv_view)
+    merged_all, review_all, trash_all = filter_merge_buckets_by_inventory(
+        merged_all, review_all, trash_all, allowed_tables
+    )
     pct_filtered = pct_confirmed_filtered(merged_all, review_all, trash_all)
     if not inv_view.empty and "query_count" in inv_view.columns:
         queries_matched_display = int(pd.to_numeric(inv_view["query_count"], errors="coerce").fillna(0).sum())
@@ -445,7 +450,9 @@ def main() -> None:
     with tabs[0]:
         st.caption(
             "Sidebar filters (**Business domain**, **Portfolio**) scope KPIs, charts, domain matrix, hotspots, "
-            "Domains tab, search, glossary, and the **Tables** inventory list. **Confidence** stays visible in the "
+            "Domains tab, search, glossary, and the **Tables** inventory list. "
+            "**% Confirmed** counts only merge rows whose ``source_table`` appears in that **filtered inventory** "
+            "(same scope as Domains / Tables). **Confidence** stays visible in the "
             "scatter (x-axis), glossary gauges, and table drill-downs — nothing is hidden by a global threshold."
         )
         col1, col2, col3 = st.columns(3)
@@ -1079,7 +1086,8 @@ search over every raw SQL line in the logs.
                 st.info(fs)
 
             lineage_block = report.get("lineage") or {}
-            lg_html = lineage_subgraph_html(lineage_block, pick)
+            broken_tbl = broken_tables_from_report(report)
+            lg_html = lineage_subgraph_html(lineage_block, pick, broken_tables=broken_tbl)
             has_edges = bool(lineage_block.get("edges"))
             if lg_html:
                 with st.expander("Lineage Graph (Interactive)", expanded=True):

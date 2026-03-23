@@ -98,6 +98,17 @@ class DiscoveryInventoryRowSchema(BaseModel):
     query_count: int = 0
 
 
+class PlannedTableMigrationSchema(BaseModel):
+    """Planner / migration wave table row (subset; extra fields allowed on export)."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    full_name: str = ""
+    is_broken: bool = False
+    missing_parents: list[str] = Field(default_factory=list)
+    reason: str = ""
+
+
 class AmaReportBoundarySchema(BaseModel):
     """Top-level keys we expect in a normal AMA export (all optional slices)."""
 

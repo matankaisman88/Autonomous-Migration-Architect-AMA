@@ -141,7 +141,7 @@ def _reg() -> dict[str, DomainVocabulary]:
             [
                 ("wms", "shipments", ("shipment_id", "order_id", "tracking_number", "carrier", "status", "shipped_at", "delivered_at", "warehouse_id", "weight_kg"), {"מספר_מעקב": "tracking_number", "ספק_משלוח": "carrier", "סטטוס": "status", "תאריך_משלוח": "shipped_at", "משקל": "weight_kg"}, "N"),
                 ("wms", "inventory", ("item_id", "sku", "quantity", "reorder_level", "warehouse_id", "last_updated"), {"כמות": "quantity", "רמת_הזמנה": "reorder_level", "עדכון_אחרון": "last_updated"}, "N"),
-                ("fleet", "vehicles", ("vehicle_id", "plate_number", "capacity_kg", "is_active", "assigned_route"), {"לוחית": "plate_number", "נפח": "capacity_kg", "פעיל": "is_active"}, "N"),
+                ("fleet", "vehicles", ("vehicle_id", "warehouse_id", "plate_number", "capacity_kg", "is_active", "assigned_route"), {"לוחית": "plate_number", "נפח": "capacity_kg", "פעיל": "is_active"}, "N"),
                 ("legacy_wms", "משלוחים_ישנים", (), {"משלוח": "shipment_id", "סטטוס_ישן": "status"}, "L"),
                 ("temp_wms", "route_staging", ("id", "raw"), {}, "T"),
             ]
@@ -149,7 +149,7 @@ def _reg() -> dict[str, DomainVocabulary]:
         {},
         [],
         {},
-        ["shipmentid", "warehouseid", "itemid"],
+        ["shipmentid", "warehouseid", "itemid", "vehicleid"],
     )
     retail = DomainVocabulary(
         "retail",
@@ -280,24 +280,169 @@ class DomainFactory:
         t = next(tb for tb in self.vocab.tables if not tb.is_legacy and not tb.is_temp)
         return f"SELECT {rb}, {t.ddl_columns[1]}, {t.ddl_columns[2]} FROM {_q(t)} WHERE {rb} > 0"
 
+    def _reserved_table_identifiers(self) -> set[str]:
+        """Lowercased names that must not collide with CTE aliases (tables + schema_table)."""
+        out: set[str] = set()
+        for t in self.vocab.tables:
+            out.add(t.table.lower())
+            out.add(f"{t.schema}.{t.table}".lower())
+            out.add(f"{t.schema}_{t.table}".lower().replace(".", "_"))
+        return out
+
+    def _safe_cte_name(self, prefix: str) -> str:
+        reserved = self._reserved_table_identifiers()
+        for _ in range(200):
+            name = f"{prefix}_{self.rng.randint(10000, 99999)}"
+            if name.lower() not in reserved:
+                return name
+        return f"{prefix}_{self.rng.randint(100000, 999999)}"
+
+    def _find_three_table_path(self) -> tuple[TableSpec, TableSpec, TableSpec, str, str] | None:
+        """Return (a, b, c, join_ab, join_bc) where consecutive pairs share the join column."""
+        elig = [t for t in self.vocab.tables if not t.is_legacy and not t.is_temp]
+        order = list(range(len(elig)))
+        self.rng.shuffle(order)
+        for i in order:
+            for j in order:
+                if j == i:
+                    continue
+                for k in order:
+                    if k in (i, j):
+                        continue
+                    a, b, c = elig[i], elig[j], elig[k]
+                    try:
+                        j1 = _join_key(a, b)
+                        j2 = _join_key(b, c)
+                    except ValueError:
+                        continue
+                    return (a, b, c, j1, j2)
+        return None
+
+    def _complex_join_sql(self) -> str:
+        path = self._find_three_table_path()
+        elig = [t for t in self.vocab.tables if not t.is_legacy and not t.is_temp]
+        t0, t1 = elig[0], elig[1]
+        if path is None:
+            return self._join_sql(t0, t1)
+        a, b, c, j1, j2 = path
+        n = self.rng.randint(1, 50000)
+        al, bl, cl = "q1", "q2", "q3"
+        return (
+            f"SELECT {al}.{a.ddl_columns[0]}, {bl}.{b.ddl_columns[0]}, {cl}.{c.ddl_columns[0]} "
+            f"FROM {_q(a)} {al} INNER JOIN {_q(b)} {bl} ON {al}.{j1} = {bl}.{j1} "
+            f"LEFT JOIN {_q(c)} {cl} ON {bl}.{j2} = {cl}.{j2} "
+            f"WHERE {al}.{a.ddl_columns[0]} = {n}"
+        )
+
+    def _self_join_sql(self) -> str:
+        elig = [t for t in self.vocab.tables if not t.is_legacy and not t.is_temp and t.ddl_columns]
+        self.rng.shuffle(elig)
+        for t in elig:
+            pk = t.ddl_columns[0]
+            cols = t.ddl_columns
+            hier = next((name for name in ("manager_id", "parent_id", "reports_to_id") if name in cols), None)
+            e1, e2 = "e1", "e2"
+            if hier:
+                return (
+                    f"SELECT {e1}.{pk}, {e2}.{pk}, {e1}.{hier} "
+                    f"FROM {_q(t)} {e1} INNER JOIN {_q(t)} {e2} ON {e1}.{hier} = {e2}.{pk} "
+                    f"WHERE {e1}.{pk} IS NOT NULL"
+                )
+            fk_cols = [c for c in cols[1:] if c.endswith("_id") and c != pk]
+            if not fk_cols:
+                continue
+            fk = fk_cols[0]
+            return (
+                f"SELECT {e1}.{pk}, {e2}.{pk}, {e1}.{fk} "
+                f"FROM {_q(t)} {e1} INNER JOIN {_q(t)} {e2} ON {e1}.{fk} = {e2}.{fk} AND {e1}.{pk} <> {e2}.{pk}"
+            )
+        return self._join_sql(elig[0], elig[1])
+
+    def _pick_cte_pair(self) -> tuple[TableSpec, TableSpec, str] | None:
+        elig = [t for t in self.vocab.tables if not t.is_legacy and not t.is_temp and t.ddl_columns]
+        pairs: list[tuple[TableSpec, TableSpec, str]] = []
+        for a in elig:
+            for b in elig:
+                if a is b:
+                    continue
+                try:
+                    jk = _join_key(a, b)
+                    pairs.append((a, b, jk))
+                except ValueError:
+                    continue
+        if not pairs:
+            return None
+        return self.rng.choice(pairs)
+
+    def _agg_column(self, t: TableSpec) -> str:
+        for name in ("amount", "net_amount", "gross_amount", "total_amount", "quantity", "budget_amount"):
+            if name in t.ddl_columns:
+                return name
+        return t.ddl_columns[min(1, len(t.ddl_columns) - 1)]
+
+    def _broken_lineage_sql(self) -> str:
+        """Join a manifest table to a fictional table not present in ddl/manifest.json."""
+        elig = [t for t in self.vocab.tables if not t.is_legacy and not t.is_temp]
+        t0 = elig[0]
+        n = self.rng.randint(1, 50000)
+        ghost = f"ghost_system.{self.vocab.name}_external_logs"
+        pk = t0.ddl_columns[0]
+        return (
+            f"SELECT t1.{pk}, g.ref_id, g.event_ts "
+            f"FROM {_q(t0)} t1 INNER JOIN {ghost} g ON t1.{pk} = g.entity_id "
+            f"WHERE t1.{pk} = {n}"
+        )
+
+    def _cte_sql(self) -> str:
+        pair = self._pick_cte_pair()
+        elig = [t for t in self.vocab.tables if not t.is_legacy and not t.is_temp and t.ddl_columns]
+        if pair is None:
+            return self._join_sql(elig[0], elig[1])
+        inner, outer, jk = pair
+        cte = self._safe_cte_name("regional_sq")
+        pk_in = inner.ddl_columns[0]
+        agg_col = self._agg_column(inner)
+        pk_out = outer.ddl_columns[0]
+        n = self.rng.randint(1, 1000)
+        ti, tu = "t_inner", "t_outer"
+        return (
+            f"WITH {cte} AS ("
+            f"SELECT {ti}.{jk} AS join_key, COUNT(*) AS row_cnt, SUM({ti}.{agg_col}) AS total_amt "
+            f"FROM {_q(inner)} {ti} WHERE {ti}.{pk_in} > 0 GROUP BY {ti}.{jk}"
+            f") "
+            f"SELECT c.join_key, c.row_cnt, {tu}.{pk_out} "
+            f"FROM {cte} c INNER JOIN {_q(outer)} {tu} ON c.join_key = {tu}.{jk} "
+            f"WHERE c.total_amt > {n}"
+        )
+
     def _logs(self, sb: Path, n: int) -> None:
         elig = [t for t in self.vocab.tables if not t.is_legacy and not t.is_temp]
         t0, t1 = elig[0], elig[1]
-        jn = min(max(0, round(n * 0.25)), n)
-        rem = n - jn
-        bn = min(max(0, round(n * 0.01)), rem)
-        rem -= bn
-        rn = min(max(0, round(n * 0.01)), rem)
-        sn = n - jn - bn - rn
-        rows: list[dict[str, str]] = [{"env": "prod", "dialect": "tsql", "sql": self._join_sql(t0, t1)} for _ in range(jn)]
+        n_simple_join = round(n * 0.20)
+        n_biling = round(n * 0.20)
+        n_multi = round(n * 0.20)
+        n_cte = round(n * 0.20)
+        n_self = round(n * 0.10)
+        n_broken = round(n * 0.05)
+        used = n_simple_join + n_biling + n_multi + n_cte + n_self + n_broken
+        n_noise = max(0, n - used)
+        rows: list[dict[str, str]] = []
+        rows.extend({"env": "prod", "dialect": "tsql", "sql": self._join_sql(t0, t1)} for _ in range(n_simple_join))
         pr = [t for t in elig if t.hebrew_aliases]
-        for i in range(bn):
+        if not pr:
+            pr = elig
+        for i in range(n_biling):
             rows.append({"env": "prod", "dialect": "tsql", "sql": self._biling(pr[i % len(pr)])})
-        for _ in range(rn):
-            rows.append({"env": "prod", "dialect": "tsql", "sql": self._rev()})
+        rows.extend({"env": "prod", "dialect": "tsql", "sql": self._complex_join_sql()} for _ in range(n_multi))
+        rows.extend({"env": "prod", "dialect": "tsql", "sql": self._cte_sql()} for _ in range(n_cte))
+        rows.extend({"env": "prod", "dialect": "tsql", "sql": self._self_join_sql()} for _ in range(n_self))
+        rows.extend({"env": "prod", "dialect": "tsql", "sql": self._broken_lineage_sql()} for _ in range(n_broken))
         pool = [t for t in self.vocab.tables if not t.is_legacy and not t.is_temp]
-        for i in range(sn):
-            rows.append({"env": "prod", "dialect": "tsql", "sql": self._single(pool[i % len(pool)])})
+        for i in range(n_noise):
+            if self.rng.random() < 0.15 and self.vocab.review_bands:
+                rows.append({"env": "prod", "dialect": "tsql", "sql": self._rev()})
+            else:
+                rows.append({"env": "prod", "dialect": "tsql", "sql": self._single(pool[i % len(pool)])})
         self.rng.shuffle(rows)
         sd = sb / "sql_logs"
         sd.mkdir(parents=True, exist_ok=True)

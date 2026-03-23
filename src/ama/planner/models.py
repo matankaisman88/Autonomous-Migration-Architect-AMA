@@ -17,6 +17,9 @@ class PlannedTable:
     rationale: str = ""
     business_context: str = ""
     technical_note: str = ""
+    is_broken: bool = False
+    missing_parents: list[str] = field(default_factory=list)
+    reason: str = ""
 
 
 @dataclass

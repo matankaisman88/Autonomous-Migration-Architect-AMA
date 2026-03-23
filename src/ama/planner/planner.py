@@ -4,8 +4,10 @@ Autonomous Planner — derives migration waves from discovery inventory and risk
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
+from ama.planner.broken_lineage import compute_planner_breakage
 from ama.planner.lineage_order import sort_rows_by_migration_order
 from ama.planner.models import MigrationPlan, MigrationWave, PlannedTable
 from ama.planner.rationale import build_wave_rationales, enrich_planned_tables
@@ -63,6 +65,13 @@ class AutonomousPlanner:
             return (earliest, dom.lower())
 
         plan = MigrationPlan(migration_context=migration_ctx)
+        breakage_map, ghost_placeholders = compute_planner_breakage(report)
+        n_broken_inv = sum(1 for b in breakage_map.values() if b.get("is_broken"))
+        if n_broken_inv or ghost_placeholders:
+            plan.notes.append(
+                f"Broken lineage: {n_broken_inv} inventory table(s) flagged; "
+                f"{len(ghost_placeholders)} manifest-unknown co-query endpoint(s) not in inventory.",
+            )
         if lineage_used:
             plan.notes.append(
                 "Inventory order respects lineage co-query edges (DAG over inventory, priority tie-break).",
@@ -107,6 +116,7 @@ class AutonomousPlanner:
                             report=report,
                             is_partial_wave=True,
                             max_tables_per_wave=max_tables_per_wave,
+                            breakage_map=breakage_map,
                         ),
                     )
                     chunk = []
@@ -127,6 +137,40 @@ class AutonomousPlanner:
                         report=report,
                         is_partial_wave=domain_emitted_partial,
                         max_tables_per_wave=max_tables_per_wave,
+                        breakage_map=breakage_map,
+                    ),
+                )
+
+        if ghost_placeholders and len(plan.waves) < max_waves:
+            wave_id += 1
+            chunk_ph: list[PlannedTable] = []
+            chunk_rows_ph: list[dict[str, Any]] = []
+            for g in ghost_placeholders[: max(0, max_tables_per_wave)]:
+                chunk_ph.append(
+                    PlannedTable(
+                        full_name=g,
+                        business_domain="Unclassified",
+                        priority_score=0.0,
+                        query_count=0,
+                        rationale="Placeholder (manifest gap)",
+                        is_broken=True,
+                        missing_parents=[],
+                        reason="Source table not found in DDL manifest; add DDL or manifest entry.",
+                    ),
+                )
+                chunk_rows_ph.append({})
+            if chunk_ph:
+                plan.waves.append(
+                    self._wave_with_rationale(
+                        wave_id=wave_id,
+                        name="Review required — manifest gaps",
+                        domain="Unclassified",
+                        chunk=chunk_ph,
+                        chunk_rows=chunk_rows_ph,
+                        report=report,
+                        is_partial_wave=False,
+                        max_tables_per_wave=max_tables_per_wave,
+                        breakage_map={},
                     ),
                 )
 
@@ -161,8 +205,25 @@ class AutonomousPlanner:
         report: dict[str, Any],
         is_partial_wave: bool,
         max_tables_per_wave: int,
+        breakage_map: dict[str, dict[str, Any]] | None = None,
     ) -> MigrationWave:
         enriched = enrich_planned_tables(chunk, chunk_rows, report)
+        if breakage_map:
+            fixed: list[PlannedTable] = []
+            for pt in enriched:
+                bi = breakage_map.get(pt.full_name)
+                if bi:
+                    fixed.append(
+                        replace(
+                            pt,
+                            is_broken=bool(bi.get("is_broken")),
+                            missing_parents=list(bi.get("missing_parents") or []),
+                            reason=str(bi.get("reason") or ""),
+                        ),
+                    )
+                else:
+                    fixed.append(pt)
+            enriched = fixed
         br, tr, metrics = build_wave_rationales(
             domain=domain,
             planned_tables=enriched,
