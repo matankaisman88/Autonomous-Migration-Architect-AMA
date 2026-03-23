@@ -96,6 +96,14 @@ Each run writes a timestamped directory under **`out/`** (gitignored) with **`dd
 
 **Step 4 — Plan.** The Autonomous Planner groups tables by business domain, orders them using Kahn's topological sort over the lineage graph (dependency-safe wave ordering), and annotates each wave with business rationale and technical notes drawn from the report data.
 
+## Metadata Confidence & Coverage
+
+- **Analysis quality scales with query log density.** AMA surfaces uncertainty rather than guessing.
+- **Logic vs. Schema.** AMA maps physical data relationships from query logs. Dynamic SQL and stored procedures are out of scope by design.
+- **Sparsity.** Low-volume tables produce thin co-occurrence signal, lower confidence scores, and are routed automatically to HITL review.
+
+> ⚠️ **Table missing from your migration plan?** It likely has a sparse-log problem. Review it manually to ensure complete coverage.
+
 ## Architecture
 
 | Package / module | Role |
