@@ -856,7 +856,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
 
 
 def cmd_export_plan(args: argparse.Namespace) -> int:
-    """Write Jira bulk-create JSON or Confluence HTML from a discovery report."""
+    """Write Jira CSV (default), Jira bulk-create JSON, or Confluence HTML from a discovery report."""
     report_path = Path(args.report).expanduser().resolve()
     if not report_path.is_file():
         print(f"Report not found: {report_path}", file=sys.stderr)
@@ -892,9 +892,20 @@ def cmd_export_plan(args: argparse.Namespace) -> int:
             c if c.isalnum() or c in "._-" else "_" for c in target.strip()
         )[:80] or "plan"
         ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        ext = "json" if config.format == "jira" else "html"
+        if config.format == "jira":
+            ext = "csv"
+        elif config.format == "jira-json":
+            ext = "json"
+        else:
+            ext = "html"
         out_path = (Path.cwd() / f"ama_export_{safe}_{ts}.{ext}").resolve()
-    write_export(plan, config, out_path)
+    write_export(plan, config, out_path, report=report)
+    if config.format == "jira":
+        from ama.export.jira_csv import load_inventory_rows_from_report, rows_to_jira_records
+
+        n_rows = len(rows_to_jira_records(load_inventory_rows_from_report(report)))
+        print(f"Exported {n_rows} Jira CSV row(s) (discovery inventory) -> {out_path}")
+        return 0
     n_tables = sum(len(w.tables) for w in plan.waves)
     print(f"Exported {len(plan.waves)} waves ({n_tables} tables) -> {out_path}")
     return 0
@@ -1248,7 +1259,7 @@ def main() -> None:
 
     ep = sub.add_parser(
         "export-plan",
-        help="Export migration plan to Jira bulk-create JSON or Confluence wiki HTML",
+        help="Export migration plan: Jira CSV (default), Jira bulk JSON (ADF), or Confluence HTML",
     )
     ep.add_argument(
         "--report",
@@ -1259,9 +1270,13 @@ def main() -> None:
     ep.add_argument(
         "--format",
         type=str,
-        choices=["jira", "confluence"],
-        required=True,
-        help="Output format",
+        choices=["jira", "jira-json", "confluence"],
+        default="jira",
+        help=(
+            "jira = CSV import (one Task per inventory table, UTF-8 BOM); "
+            "jira-json = Jira Cloud bulk-create JSON (epics/stories per wave); "
+            "confluence = wiki storage HTML"
+        ),
     )
     ep.add_argument(
         "--out",
@@ -1273,13 +1288,13 @@ def main() -> None:
         "--project-key",
         type=str,
         default="MIG",
-        help="Jira project key (jira format only, default: MIG)",
+        help="Jira project key (jira and jira-json formats; default: MIG)",
     )
     ep.add_argument(
         "--epic-prefix",
         type=str,
         default="Wave",
-        help="Prefix for epic summaries (default: Wave)",
+        help="Prefix for epic summaries (jira-json format only; default: Wave)",
     )
     ep.add_argument(
         "--max-tables-per-wave",

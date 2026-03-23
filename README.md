@@ -9,7 +9,7 @@ No manual inventory. No spreadsheets. Repeatable from day one.
 | | |
 |---|---|
 | **Input** | SQL log JSONL files, DDL JSON, Slack/comms export, Git SQL |
-| **Output** | JSON report · Excel workbook · Streamlit dashboard · Jira bulk-create · Confluence page |
+| **Output** | JSON report · Excel workbook · Streamlit dashboard · Jira CSV import · Jira bulk JSON (optional) · Confluence page |
 | **Python** | 3.11+ · [MIT License](LICENSE) |
 
 ## Features (high level)
@@ -18,7 +18,7 @@ No manual inventory. No spreadsheets. Repeatable from day one.
 - **Broken lineage** — Tables referenced in SQL that are not listed in the DDL manifest are flagged in the JSON report (`lineage.broken_table_keys`, `ddl_manifest_table_keys`), surfaced as **warnings** on ingest (exit code 0), and shown in the **Planner** (`is_broken`, `missing_parents`, review wave for manifest gaps) and **Tables** tab lineage graph (diamond nodes, warning tooltip).
 - **Dashboard KPI alignment** — Executive **% Confirmed** uses merge rows whose `source_table` appears in the **filtered inventory** (same scope as the Domains tab and table list), so percentages stay consistent with sidebar filters.
 - **Alias merge scope** — Default single-table merge for the migration anchor, or **`--discovery-merge-all`** to run the four-tier resolver against every discovered table in DDL scope (recommended for the Kfar demo so review-band candidates appear across schemas).
-- **Exports** — **`ama-ingest export-plan`** writes Jira bulk-create JSON (ADF descriptions) or Confluence wiki storage HTML. Inline Markdown in rationales (**bold**, `` `code` ``) is converted to Jira ADF `strong` / `code` marks and HTML `<strong>` / `<code>`.
+- **Exports** — **`ama-ingest export-plan`** defaults to **Jira CSV** (one Task per inventory row, `utf-8-sig`, `csv.QUOTE_ALL`, one-line flattened **Description**, no Project Key column — pick the project in Jira’s import UI). Use **`--format jira-json`** for Jira Cloud bulk-create JSON (epics/stories, ADF). **Confluence** is wiki storage HTML. Inline Markdown in wave rationales maps to Jira ADF / HTML where applicable.
 - **Glossary tooling** — **`ama-ingest generate-glossary`** mines Hebrew/RTL ↔ English co-occurrences from SQL logs into a candidate glossary JSON (optional LLM assist).
 - **One-command demo** — Repository root **`demo.sh`** (Bash/Git Bash): regenerate Kfar data → ingest with discovery + merge-all → Jira + Confluence exports → prints output paths.
 - **Multi-domain fixtures** — **`tools/generate_domain_data.py`** builds a full AMA sandbox (DDL, JSONL logs, glossary, comms, Git SQL, README) for **`finance`**, **`hr`**, **`logistics`**, **`retail`**, or **`healthcare`**, under **`out/sandbox_{domain}_YYYYMMDD_HHMMSS/`**. SQL logs include varied patterns (multi-way joins, CTEs, self-joins, and a small share of **broken lineage** joins to fictional `ghost_system.*` tables for integration testing). One command: **`bash demo.sh --domain hr`** (generates the sandbox, then runs ingest + exports). Or generate only, then **`bash demo.sh --sandbox …`** with the printed path (no new dependencies).
@@ -39,7 +39,7 @@ bash demo.sh
 ```bash
 python tools/generate_kfar_supply.py
 ama-ingest run --sql-logs "sample_data/kfar_supply/sql_logs/*.jsonl" --ddl-manifest sample_data/kfar_supply/ddl/kfar_manifest.json --glossary sample_data/kfar_supply/glossary/kfar_glossary.json --glossary-dirty sample_data/kfar_supply/glossary/kfar_glossary_dirty.json --comms-dir sample_data/kfar_supply/comms --git-sql-roots sample_data/kfar_supply/git_sql --target-schema dbo --target-table orders --discovery-mode --discovery-merge-all --format json -o sample_data/kfar_supply/kfar_report.json
-ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format jira --out sample_data/kfar_supply/kfar_export_jira.json
+ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format jira --out sample_data/kfar_supply/kfar_export_jira.csv
 ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format confluence --out sample_data/kfar_supply/kfar_export_confluence.html
 ama-dashboard --report-path sample_data/kfar_supply/kfar_report.json
 ```
@@ -107,7 +107,7 @@ Each run writes a timestamped directory under **`out/`** (gitignored) with **`dd
 | `ama.discovery` | Multi-schema inventory, priority scoring, domain classification |
 | `ama.business_logic` | Executive narrative, domain clustering, impact/readiness scatter |
 | `ama.planner` | Migration waves: Kahn topo-sort over lineage graph + business rationales; **broken lineage** metadata (`broken_lineage.py`) |
-| `ama.export` | Jira bulk-create JSON and Confluence HTML export sinks; Markdown ** / `` ` `` → ADF / HTML |
+| `ama.export` | Jira CSV (default), Jira bulk JSON, Confluence HTML; Markdown ** / `` ` `` → ADF / HTML for JSON export |
 | `ama.glossary` | Co-occurrence mining + optional LLM translation for candidate glossaries |
 | `ama.data_quality` | DQ suite: boundary validation, schema version, ingestion stats checks |
 | `ama.log_analysis` | Streaming log scan facade (no full ingest — telemetry only) |
@@ -140,13 +140,30 @@ Create a **`.env`** file in the working directory (optional) with `AMA_*` variab
 | `ama-ingest run --format excel -o report.xlsx` | Excel workbook output |
 | `ama-ingest dq --report report.json` | Data quality checks (boundary, schema version, ingestion stats) |
 | `ama-ingest plan --report report.json` | Migration plan JSON from discovery inventory |
-| `ama-ingest export-plan --report report.json --format jira` | Jira bulk-create JSON (epics + stories per wave) |
+| `ama-ingest export-plan --report report.json` | Jira **CSV** import file (default `--format jira`; one row per inventory table) |
+| `ama-ingest export-plan --report report.json --format jira-json` | Jira bulk-create **JSON** (epics + stories per wave, ADF) |
 | `ama-ingest export-plan --report report.json --format confluence` | Confluence wiki storage HTML |
 | `ama-ingest generate-glossary …` | Mine SQL logs + DDL → candidate glossary JSON (see `--help`) |
 | `ama-ingest log-scan PATH [PATH...]` | Streaming log scan → parse telemetry JSON (no full report) |
 | `ama-ingest apply-hitl --report report.json` | Apply HITL sidecar decisions → merged report |
 | `ama-ingest run --benchmark` | Performance benchmark → `benchmark_results.json` |
 | `ama-dashboard --report-path report.json` | Launch Streamlit dashboard |
+
+## Jira & Confluence (Atlassian)
+
+AMA does **not** call Jira or Confluence APIs directly. It writes **files** you import into your workspace.
+
+| Target | Command | Output | Typical use |
+|--------|---------|--------|-------------|
+| **Jira (default)** | `ama-ingest export-plan --report report.json --out plan_jira.csv` | **CSV** (`utf-8-sig`, **QUOTE_ALL**, no Project Key column): **Summary** (`Migrate: schema.table`), **Task**, **Priority**, flat one-line **Description** (no embedded newlines), **Labels** (single sanitized tag). Assign project in Jira UI on import. Same as `tools/report_to_jira_csv.py`. |
+| **Jira (bulk JSON)** | `ama-ingest export-plan --report report.json --format jira-json --out plan_jira.json` | Bulk-create JSON: epics and stories per migration wave, **ADF** issue bodies | Jira Cloud **Import issues** (JSON) or REST automation. |
+| **Confluence** | `ama-ingest export-plan --report report.json --format confluence --out plan_confluence.html` | Wiki **storage** HTML (migration plan narrative: waves, tables, rationales) | Create a page in Confluence and **insert** or **import** the HTML, or host the file and link it. |
+
+**Prerequisites:** A completed **`ama-ingest run`** JSON report (with **`--discovery-mode`** so the inventory exists). **`demo.sh`** writes Jira CSV + Confluence HTML and prints paths.
+
+**Formatting:** Default Jira **CSV** uses UTF-8 BOM, all fields double-quoted, and descriptions flattened for importer stability (Hebrew-safe). **`jira-json`** and Confluence map Markdown (**bold**, `` `code` ``) to Jira **ADF** and HTML. See `src/ama/export/` (`jira_csv.py`, `jira_sink.py`, `confluence_sink.py`).
+
+**Standalone CSV (same file as `export-plan --format jira`):** `python tools/report_to_jira_csv.py -i report.json -o plan_jira.csv`
 
 ## Dashboard Tabs
 
@@ -205,7 +222,7 @@ Load from **`.env`** in the working directory when present.
 | `sample_data/` | Shared fixtures for default pipeline |
 | `sample_data/kfar_supply/` | **Kfar Supply demo dataset** — run `tools/generate_kfar_supply.py` |
 | `out/` | **Ephemeral** multi-domain sandboxes from `tools/generate_domain_data.py` (not committed) |
-| `tools/` | Data generators: **`generate_kfar_supply.py`**, **`generate_domain_data.py`**, `generate_sample_file.py`, chaos generators |
+| `tools/` | Data generators: **`generate_kfar_supply.py`**, **`generate_domain_data.py`**, **`report_to_jira_csv.py`** (same CSV as default `export-plan --format jira`), `generate_sample_file.py`, chaos generators |
 | `USER_GUIDE.md` | Architecture + operator guide |
 
 ## Governance & Contributing

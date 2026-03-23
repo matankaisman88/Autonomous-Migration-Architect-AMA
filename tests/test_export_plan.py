@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+import io
 import json
 from pathlib import Path
 
@@ -44,7 +46,7 @@ def test_jira_export_wave_produces_epic_and_stories() -> None:
         },
     )
     plan = MigrationPlan(migration_context="sales.orders", waves=[wave], notes=[])
-    config = ExportConfig(format="jira")
+    config = ExportConfig(format="jira-json")
     out = JiraExportSink().write(plan, config)
     updates = out["issueUpdates"]
     assert len(updates) == 3
@@ -60,7 +62,7 @@ def test_jira_export_wave_produces_epic_and_stories() -> None:
 
 def test_jira_priority_mapping() -> None:
     """Scores 80 / 50 / 15 map to High / Medium / Low."""
-    config = ExportConfig(format="jira")
+    config = ExportConfig(format="jira-json")
     scores = [80.0, 50.0, 15.0]
     expected = ["High", "Medium", "Low"]
     for score, exp in zip(scores, expected, strict=True):
@@ -83,7 +85,7 @@ def test_jira_plan_notes_produce_task() -> None:
         waves=[],
         notes=["Remember to validate cutover window."],
     )
-    config = ExportConfig(format="jira")
+    config = ExportConfig(format="jira-json")
     out = JiraExportSink().write(plan, config)
     tasks = [
         u for u in out["issueUpdates"] if u["fields"]["issuetype"]["name"] == "Task"
@@ -165,8 +167,39 @@ def test_confluence_escapes_special_chars() -> None:
     assert "&amp;" in html_out
 
 
-def test_write_export_jira_roundtrip(tmp_path: Path) -> None:
-    """Jira export writes valid JSON with issueUpdates."""
+def test_write_export_jira_csv_roundtrip(tmp_path: Path) -> None:
+    """Default Jira format writes UTF-8 BOM CSV with inventory rows."""
+    plan = MigrationPlan(waves=[], notes=[])
+    report = {
+        "discovery": {
+            "inventory": [
+                {
+                    "full_name": "a.b",
+                    "business_domain": "D",
+                    "priority_score": 50.0,
+                    "query_count": 1,
+                    "status": "ok",
+                },
+            ],
+        },
+    }
+    p = tmp_path / "out.csv"
+    write_export(plan, ExportConfig(format="jira"), p, report=report)
+    assert p.is_file()
+    raw = p.read_bytes()
+    assert raw[:3] == b"\xef\xbb\xbf"
+    text = p.read_text(encoding="utf-8-sig")
+    assert "Migrate: a.b" in text
+    assert "Project Key" not in text
+    assert text.startswith('"Summary"')
+    parsed = list(csv.reader(io.StringIO(text)))
+    assert len(parsed) >= 2
+    desc_i = parsed[0].index("Description")
+    assert "\n" not in parsed[1][desc_i] and "\r" not in parsed[1][desc_i]
+
+
+def test_write_export_jira_json_roundtrip(tmp_path: Path) -> None:
+    """jira-json export writes bulk-create JSON with issueUpdates."""
     plan = MigrationPlan(
         waves=[
             MigrationWave(
@@ -184,7 +217,7 @@ def test_write_export_jira_roundtrip(tmp_path: Path) -> None:
         ],
     )
     p = tmp_path / "out.json"
-    write_export(plan, ExportConfig(format="jira"), p)
+    write_export(plan, ExportConfig(format="jira-json"), p, report=None)
     assert p.is_file()
     data = json.loads(p.read_text(encoding="utf-8"))
     assert isinstance(data["issueUpdates"], list)
@@ -216,7 +249,7 @@ def test_no_lineage_export_still_works() -> None:
         },
     }
     plan = AutonomousPlanner().plan_from_report(report)
-    config = ExportConfig(format="jira")
+    config = ExportConfig(format="jira-json")
     out = JiraExportSink().write(plan, config)
     assert len(out["issueUpdates"]) >= 1
     html_out = ConfluenceExportSink().write(plan, ExportConfig(format="confluence"))

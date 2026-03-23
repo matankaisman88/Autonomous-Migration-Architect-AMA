@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Full Kfar Supply quickstart: generate sample data → ingest → export-plan (Jira + Confluence).
+# Full Kfar Supply quickstart: generate sample data → ingest → export-plan (Jira CSV + Confluence).
 # Run from the repository root after `pip install -e .`:
 #   bash demo.sh
 # Multi-domain (one command — generates sandbox then runs pipeline):
@@ -109,11 +109,11 @@ DDL_MANIFEST="${SANDBOX_REL}/ddl/${_DDL_NAME}"
 # All pipeline outputs live inside the sandbox (paths relative to repo root for ama-ingest).
 if [[ -n "$DOMAIN" ]]; then
   REPORT="${SANDBOX_REL}/${DOMAIN}_report.json"
-  JIRA_OUT="${SANDBOX_REL}/${DOMAIN}_export_jira.json"
+  JIRA_OUT="${SANDBOX_REL}/${DOMAIN}_export_jira.csv"
   CONF_OUT="${SANDBOX_REL}/${DOMAIN}_export_confluence.html"
 else
   REPORT="${SANDBOX_REL}/kfar_report.json"
-  JIRA_OUT="${SANDBOX_REL}/kfar_export_jira.json"
+  JIRA_OUT="${SANDBOX_REL}/kfar_export_jira.csv"
   CONF_OUT="${SANDBOX_REL}/kfar_export_confluence.html"
 fi
 
@@ -136,7 +136,7 @@ ama-ingest run \
   --format json \
   -o "${REPORT}"
 
-echo "==> [3/4] Export plan (Jira bulk-create JSON)..."
+echo "==> [3/4] Export plan (Jira CSV import)..."
 ama-ingest export-plan --report "${REPORT}" --format jira --out "${JIRA_OUT}"
 
 echo "==> [4/4] Export plan (Confluence HTML)..."

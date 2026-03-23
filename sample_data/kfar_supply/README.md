@@ -31,7 +31,7 @@ when lineage edges are present.
 
 ## Quickstart
 
-From the **repository root** (after `pip install -e .`), run **`bash demo.sh`** to execute the full demo in one step: regenerate sample data, ingest with discovery + `--discovery-merge-all`, export the migration plan to Jira JSON and Confluence HTML, and print the output file paths. The script lives at the repo root as `demo.sh`, not under this folder.
+From the **repository root** (after `pip install -e .`), run **`bash demo.sh`** to execute the full demo in one step: regenerate sample data, ingest with discovery + `--discovery-merge-all`, export the migration plan to **Jira CSV** (import-ready) and Confluence HTML, and print the output file paths. The script lives at the repo root as `demo.sh`, not under this folder.
 
 The block below is the same pipeline **step by step** (manual commands).
 
@@ -64,7 +64,7 @@ ama-ingest run \
 ama-dashboard --report-path sample_data/kfar_supply/kfar_report.json
 
 # 4. Export migration plan to Jira format
-ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format jira --out sample_data/kfar_supply/kfar_export_jira.json
+ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format jira --out sample_data/kfar_supply/kfar_export_jira.csv
 
 # 5. Export to Confluence
 ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format confluence --out sample_data/kfar_supply/kfar_export_confluence.html

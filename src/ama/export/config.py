@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 class ExportConfig(BaseModel):
     """Settings for writing migration plan exports (file-only, no API calls)."""
 
-    format: Literal["jira", "confluence"]
+    format: Literal["jira", "jira-json", "confluence"] = "jira"
     project_key: str = "MIG"
     epic_prefix: str = "Wave"
     jira_priority_map: dict[str, str] = Field(
