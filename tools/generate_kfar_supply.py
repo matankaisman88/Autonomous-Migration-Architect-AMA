@@ -130,6 +130,38 @@ def _sql_orders_bilingual_glossary_probe() -> str:
     )
 
 
+def _sql_orderlines_bilingual_probe() -> str:
+    """כמות->quantity, מחיר->unit_price adjacency pairs for co-occurrence mining."""
+    return (
+        "SELECT line_id, [כמות], quantity, [מחיר], unit_price "
+        "FROM dbo.order_lines WHERE line_id > 0"
+    )
+
+
+def _sql_invoices_bilingual_probe() -> str:
+    """מעמ->vat_rate, סכום_נטו->net_amount adjacency pairs."""
+    return (
+        "SELECT invoice_id, [מעמ], vat_rate, [סכום_נטו], net_amount "
+        "FROM finance.invoices WHERE invoice_id > 0"
+    )
+
+
+def _sql_shipments_bilingual_probe() -> str:
+    """מספר_מעקב->tracking_number, סטטוס_משלוח->shipment_status adjacency pairs."""
+    return (
+        "SELECT shipment_id, [מספר_מעקב], tracking_number, [סטטוס_משלוח], shipment_status "
+        "FROM logistics.shipments WHERE shipment_id > 0"
+    )
+
+
+_BILINGUAL_PROBES = (
+    _sql_orders_bilingual_glossary_probe,
+    _sql_orderlines_bilingual_probe,
+    _sql_invoices_bilingual_probe,
+    _sql_shipments_bilingual_probe,
+)
+
+
 def _review_orderid() -> str:
     """orderid -> order_id (lx=0.933, blended≈0.41 -> review band)."""
     return (
@@ -242,7 +274,7 @@ def _build_jsonl_lines(rng: random.Random, n_lines: int) -> list[dict[str, str]]
             )
     remaining = n_lines - len(rows)
     review_cap = max(0, round(n_lines * 0.02))
-    bilingual_n = min(max(0, round(n_lines * 0.002)), remaining)
+    bilingual_n = min(max(0, round(n_lines * 0.010)), remaining)
     review_target = min(review_cap, remaining - bilingual_n)
     review_funcs = [f for f, _w in _REVIEW_POOL]
     review_weights = [w for _f, w in _REVIEW_POOL]
@@ -253,12 +285,13 @@ def _build_jsonl_lines(rng: random.Random, n_lines: int) -> list[dict[str, str]]
             rows.append(
                 {"env": "prod", "dialect": _dialect(rng), "sql": sql},
             )
-    for _ in range(bilingual_n):
+    for idx in range(bilingual_n):
+        probe_fn = _BILINGUAL_PROBES[idx % len(_BILINGUAL_PROBES)]
         rows.append(
             {
                 "env": "prod",
                 "dialect": _dialect(rng),
-                "sql": _sql_orders_bilingual_glossary_probe(),
+                "sql": probe_fn(),
             },
         )
     single_lines = n_lines - len(rows)

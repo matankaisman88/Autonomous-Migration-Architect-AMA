@@ -19,6 +19,7 @@ No manual inventory. No spreadsheets. Repeatable from day one.
 - **Exports** — **`ama-ingest export-plan`** writes Jira bulk-create JSON (ADF descriptions) or Confluence wiki storage HTML. Inline Markdown in rationales (**bold**, `` `code` ``) is converted to Jira ADF `strong` / `code` marks and HTML `<strong>` / `<code>`.
 - **Glossary tooling** — **`ama-ingest generate-glossary`** mines Hebrew/RTL ↔ English co-occurrences from SQL logs into a candidate glossary JSON (optional LLM assist).
 - **One-command demo** — Repository root **`demo.sh`** (Bash/Git Bash): regenerate Kfar data → ingest with discovery + merge-all → Jira + Confluence exports → prints output paths.
+- **Multi-domain fixtures** — **`tools/generate_domain_data.py`** builds a full AMA sandbox (DDL, JSONL logs, glossary, comms, Git SQL, README) for **`finance`**, **`hr`**, **`logistics`**, **`retail`**, or **`healthcare`**, under **`out/sandbox_{domain}_YYYYMMDD_HHMMSS/`**. Run **`bash demo.sh --sandbox …`** with the printed path to ingest that tree instead of Kfar (no new dependencies).
 
 ## Demo (30 seconds)
 
@@ -42,6 +43,17 @@ ama-dashboard --report-path kfar_report.json
 ```
 
 See **`sample_data/kfar_supply/README.md`** for a step-by-step quickstart (optional `generate-glossary`, explicit log path, and `--ddl-columns`).
+
+### Multi-domain sandbox (optional)
+
+Generate an isolated fixture set for another vertical, then point **`demo.sh`** at it:
+
+```bash
+python tools/generate_domain_data.py --domain hr --lines 10000 --seed 42
+bash demo.sh --sandbox out/sandbox_hr_YYYYMMDD_HHMMSS   # exact path printed by the generator
+```
+
+Each run writes a timestamped directory under **`out/`** (gitignored) with **`ddl/manifest.json`**, **`sql_logs/{domain}_prod.jsonl`**, **`glossary/{domain}_glossary*.json`**, **`comms/`**, and **`git_sql/`**. The printed **`--sandbox`** path is the same tree **`demo.sh`** expects.
 
 **What you'll see in the dashboard:**
 
@@ -164,12 +176,13 @@ Load from **`.env`** in the working directory when present.
 | `src/ama/` | Library and CLI |
 | `src/ama/export/` | Jira / Confluence sinks, inline Markdown helpers (`md_inline.py`) |
 | `LICENSE` | MIT license text |
-| `demo.sh` | One-shot Kfar demo: generate → ingest → export-plan (Jira + Confluence) |
+| `demo.sh` | One-shot demo: default Kfar path, or **`--sandbox PATH`** for a **`generate_domain_data.py`** tree → ingest → export-plan (Jira + Confluence) |
 | `src/ama/planner/` | Migration planner (waves, lineage order, rationale) |
 | `tests/` | Pytest suite (100+ tests) |
 | `sample_data/` | Shared fixtures for default pipeline |
 | `sample_data/kfar_supply/` | **Kfar Supply demo dataset** — run `tools/generate_kfar_supply.py` |
-| `tools/` | Data generators (`generate_kfar_supply.py`, `generate_sample_file.py`, chaos generators) |
+| `out/` | **Ephemeral** multi-domain sandboxes from `tools/generate_domain_data.py` (not committed) |
+| `tools/` | Data generators: **`generate_kfar_supply.py`**, **`generate_domain_data.py`**, `generate_sample_file.py`, chaos generators |
 | `USER_GUIDE.md` | Architecture + operator guide |
 
 ## Governance & Contributing

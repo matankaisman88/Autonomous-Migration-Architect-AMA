@@ -2,28 +2,52 @@
 # Full Kfar Supply quickstart: generate sample data → ingest → export-plan (Jira + Confluence).
 # Run from the repository root after `pip install -e .`:
 #   bash demo.sh
+# With a domain sandbox from tools/generate_domain_data.py:
+#   bash demo.sh --sandbox out/sandbox_hr_<timestamp>
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
+SANDBOX="${SANDBOX:-sample_data/kfar_supply}"
+# Parse --sandbox argument
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --sandbox) SANDBOX="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+
 REPORT="${ROOT}/kfar_report.json"
 JIRA_OUT="${ROOT}/kfar_export_jira.json"
 CONF_OUT="${ROOT}/kfar_export_confluence.html"
 
-echo "==> [1/4] Generating Kfar Supply sample data..."
-python tools/generate_kfar_supply.py
+if [[ "${SANDBOX}" == "sample_data/kfar_supply" ]]; then
+  echo "==> [1/4] Generating Kfar Supply sample data..."
+  python tools/generate_kfar_supply.py
+else
+  echo "==> [1/4] Using sandbox ${SANDBOX} (skipping Kfar generator)..."
+fi
+
+if [[ -f "${SANDBOX}/ddl/manifest.json" ]]; then
+  DDL_MANIFEST="${SANDBOX}/ddl/manifest.json"
+elif [[ -f "${SANDBOX}/ddl/kfar_manifest.json" ]]; then
+  DDL_MANIFEST="${SANDBOX}/ddl/kfar_manifest.json"
+else
+  echo "error: no manifest.json or kfar_manifest.json under ${SANDBOX}/ddl" >&2
+  exit 1
+fi
 
 echo "==> [2/4] Ingesting SQL logs (discovery mode)..."
 ama-ingest run \
   --data-root . \
-  --sql-logs "sample_data/kfar_supply/sql_logs/*.jsonl" \
-  --ddl-manifest sample_data/kfar_supply/ddl/kfar_manifest.json \
-  --glossary sample_data/kfar_supply/glossary/kfar_glossary.json \
-  --glossary-dirty sample_data/kfar_supply/glossary/kfar_glossary_dirty.json \
-  --comms-dir sample_data/kfar_supply/comms \
-  --git-sql-roots sample_data/kfar_supply/git_sql \
+  --sql-logs "${SANDBOX}/sql_logs/*.jsonl" \
+  --ddl-manifest "${DDL_MANIFEST}" \
+  --glossary "${SANDBOX}/glossary/*_glossary.json" \
+  --glossary-dirty "${SANDBOX}/glossary/*_glossary_dirty.json" \
+  --comms-dir "${SANDBOX}/comms" \
+  --git-sql-roots "${SANDBOX}/git_sql" \
   --target-schema dbo \
   --target-table orders \
   --discovery-mode --discovery-merge-all \

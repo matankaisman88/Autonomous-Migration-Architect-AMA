@@ -41,6 +41,9 @@ Thumbs.db
 # Generated chaos / stress outputs (regenerate with tools/generate_*.py)
 chaos_data/
 
+# Multi-domain sandbox fixtures (tools/generate_domain_data.py)
+out/
+
 # Local run artifacts (never commit)
 /dash_test.json
 /dash_test.hitl.json

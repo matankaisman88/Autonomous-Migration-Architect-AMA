@@ -80,6 +80,29 @@ class TestKfarDataset:
             row = json.loads(line)
             assert "channel" in row and "text" in row
 
+    def test_glossary_generation_correct_pairs(self) -> None:
+        """
+        Running generate_glossary_from_logs on the Kfar log must produce
+        correct Hebrew->English mappings for the three bilingual probe pairs.
+        """
+        from ama.glossary import generate_glossary_from_logs
+        import json as _json
+
+        ddl_path = KFAR / "ddl" / "dbo_orders.json"
+        raw = _json.loads(ddl_path.read_text(encoding="utf-8"))
+        ddl_cols = raw if isinstance(raw, list) else raw.get("columns", [])
+
+        result = generate_glossary_from_logs(
+            [KFAR / "sql_logs" / "kfar_prod.jsonl"],
+            ddl_cols,
+            llm_enabled=False,
+        )
+        gdict = result.to_glossary_dict()
+        # These three must be correct — produced by the bilingual probes
+        assert gdict.get("סכום") == "amount", f"Got {gdict.get('סכום')!r}"
+        assert gdict.get("סטטוס") == "status", f"Got {gdict.get('סטטוס')!r}"
+        assert gdict.get("תאריך_יצירה") == "created_at", f"Got {gdict.get('תאריך_יצירה')!r}"
+
     def test_sql_log_contains_proven_review_band_columns(self) -> None:
         """
         The five proven review-band column names must appear in the log.

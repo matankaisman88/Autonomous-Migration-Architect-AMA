@@ -1,121 +1,109 @@
 {
-  "סכום_נטו": "invoice_id",
-  "תאריך_תשלום": "payment_id",
-  "מחיר": "line_id",
   "שם_לקוח": "email",
-  "קוד_מדינה": "customer_id",
-  "סטטוס_משלוח": "shipment_id",
-  "עיר": "customer_id",
-  "הנחה": "customer_id",
   "סכום": "amount",
   "סטטוס": "status",
   "תאריך_יצירה": "created_at",
+  "כמות": "quantity",
+  "מחיר": "unit_price",
+  "מעמ": "vat_rate",
+  "סכום_נטו": "net_amount",
+  "מספר_מעקב": "tracking_number",
+  "סטטוס_משלוח": "shipment_status",
   "_meta": {
     "generated_by": "ama.glossary",
-    "rtl_tokens_found": 11,
-    "rtl_tokens_resolved": 11,
+    "rtl_tokens_found": 10,
+    "rtl_tokens_resolved": 10,
     "llm_used": false,
     "llm_tokens_translated": 0,
     "warnings": [],
     "candidates": [
       {
-        "source_term": "סכום_נטו",
-        "target_column": "invoice_id",
-        "confidence": 0.95,
-        "method": "cooccurrence",
-        "co_occurrence_count": 3176,
-        "llm_explanation": "",
-        "alternatives": []
-      },
-      {
-        "source_term": "תאריך_תשלום",
-        "target_column": "payment_id",
-        "confidence": 0.625,
-        "method": "cooccurrence",
-        "co_occurrence_count": 1588,
-        "llm_explanation": "",
-        "alternatives": [
-          "invoice_id"
-        ]
-      },
-      {
-        "source_term": "מחיר",
-        "target_column": "line_id",
-        "confidence": 0.625,
-        "method": "cooccurrence",
-        "co_occurrence_count": 1588,
-        "llm_explanation": "",
-        "alternatives": []
-      },
-      {
         "source_term": "שם_לקוח",
         "target_column": "email",
-        "confidence": 0.625,
+        "confidence": 0.95,
         "method": "cooccurrence",
-        "co_occurrence_count": 1588,
-        "llm_explanation": "",
-        "alternatives": []
-      },
-      {
-        "source_term": "קוד_מדינה",
-        "target_column": "customer_id",
-        "confidence": 0.625,
-        "method": "cooccurrence",
-        "co_occurrence_count": 1588,
-        "llm_explanation": "",
-        "alternatives": []
-      },
-      {
-        "source_term": "סטטוס_משלוח",
-        "target_column": "shipment_id",
-        "confidence": 0.625,
-        "method": "cooccurrence",
-        "co_occurrence_count": 1588,
-        "llm_explanation": "",
-        "alternatives": []
-      },
-      {
-        "source_term": "עיר",
-        "target_column": "customer_id",
-        "confidence": 0.3129,
-        "method": "cooccurrence",
-        "co_occurrence_count": 63,
-        "llm_explanation": "",
-        "alternatives": []
-      },
-      {
-        "source_term": "הנחה",
-        "target_column": "customer_id",
-        "confidence": 0.3129,
-        "method": "cooccurrence",
-        "co_occurrence_count": 63,
+        "co_occurrence_count": 1575,
         "llm_explanation": "",
         "alternatives": []
       },
       {
         "source_term": "סכום",
         "target_column": "amount",
-        "confidence": 0.3061,
+        "confidence": 0.3157,
         "method": "cooccurrence",
-        "co_occurrence_count": 30,
+        "co_occurrence_count": 38,
         "llm_explanation": "",
         "alternatives": []
       },
       {
         "source_term": "סטטוס",
         "target_column": "status",
-        "confidence": 0.3061,
+        "confidence": 0.3157,
         "method": "cooccurrence",
-        "co_occurrence_count": 30,
+        "co_occurrence_count": 38,
         "llm_explanation": "",
         "alternatives": []
       },
       {
         "source_term": "תאריך_יצירה",
         "target_column": "created_at",
-        "confidence": 0.3061,
+        "confidence": 0.3157,
         "method": "cooccurrence",
-        "co_occurrence_count": 30,
+        "co_occurrence_count": 38,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "כמות",
+        "target_column": "quantity",
+        "confidence": 0.3157,
+        "method": "cooccurrence",
+        "co_occurrence_count": 38,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "מחיר",
+        "target_column": "unit_price",
+        "confidence": 0.3157,
+        "method": "cooccurrence",
+        "co_occurrence_count": 38,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "מעמ",
+        "target_column": "vat_rate",
+        "confidence": 0.3153,
+        "method": "cooccurrence",
+        "co_occurrence_count": 37,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "סכום_נטו",
+        "target_column": "net_amount",
+        "confidence": 0.3153,
+        "method": "cooccurrence",
+        "co_occurrence_count": 37,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "מספר_מעקב",
+        "target_column": "tracking_number",
+        "confidence": 0.3153,
+        "method": "cooccurrence",
+        "co_occurrence_count": 37,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "סטטוס_משלוח",
+        "target_column": "shipment_status",
+        "confidence": 0.3153,
+        "method": "cooccurrence",
+        "co_occurrence_count": 37,
         "llm_explanation": "",
         "alternatives": []
       }

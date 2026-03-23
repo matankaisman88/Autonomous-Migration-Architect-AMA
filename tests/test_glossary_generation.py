@@ -46,6 +46,43 @@ def test_mine_cooccurrences_finds_rtl_ascii_pair(tmp_path: Path) -> None:
     assert pairs["סכום"]["amount"] == 10
 
 
+def test_mine_cooccurrences_skips_id_columns(tmp_path: Path) -> None:
+    """Foreign-key *_id columns must not be collected as adjacency targets."""
+    log = tmp_path / "test.jsonl"
+    # תאריך_תשלום immediately followed by invoice_id (wrong structural pair)
+    # but also followed by paid_at in the next query (correct semantic pair)
+    _write_jsonl(
+        log,
+        [
+            {
+                "env": "prod",
+                "dialect": "tsql",
+                "sql": "SELECT payment_id, [תאריך_תשלום], invoice_id FROM finance.payments",
+            }
+        ]
+        * 10
+        + [
+            {
+                "env": "prod",
+                "dialect": "tsql",
+                "sql": "SELECT payment_id, [תאריך_תשלום], paid_at FROM finance.payments",
+            }
+        ]
+        * 5,
+    )
+    ddl = ["payment_id", "invoice_id", "paid_at", "amount"]
+    pairs = mine_cooccurrences([log], ddl, env_filter="prod")
+    # invoice_id must be skipped (ends in _id)
+    assert "invoice_id" not in pairs.get("תאריך_תשלום", {}), (
+        "invoice_id must not appear as co-occurrence target (_id columns are structural)"
+    )
+    # paid_at must be found (correct semantic pair)
+    assert "paid_at" in pairs.get("תאריך_תשלום", {}), (
+        f"paid_at must be co-occurrence target. Got: {pairs.get('תאריך_תשלום')}"
+    )
+    assert pairs["תאריך_תשלום"]["paid_at"] == 5
+
+
 def test_mine_cooccurrences_env_filter(tmp_path: Path) -> None:
     """Rows with env=staging must be excluded when env_filter=prod."""
     log = tmp_path / "test.jsonl"

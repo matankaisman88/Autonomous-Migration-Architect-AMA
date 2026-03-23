@@ -9,9 +9,9 @@ from pathlib import Path
 from ama.parsing.backend import default_parse_backend
 from ama.sanitize import has_rtl_script, normalize_sql_identifier, sanitize_sql_text
 
-# Adjacent RTL→English pairs like ``[סטטוס], order_id`` are common in legacy SQL but
-# almost never a semantic glossary mapping; prefer the next non-key column instead.
-_SKIP_ADJACENT_DDL: frozenset[str] = frozenset({"order_id"})
+# Skip foreign-key columns as adjacency targets: *_id columns appear in JOIN
+# conditions next to Hebrew aliases by structural accident, not by semantic mapping.
+# All meaningful semantic targets (amount, status, created_at, etc.) don't end in _id.
 
 
 def _column_names_ordered(chunks: list[dict[str, dict[str, int]]]) -> list[str]:
@@ -84,7 +84,7 @@ def mine_cooccurrences(
                         has_rtl_script(a)
                         and not has_rtl_script(b)
                         and b in ddl_set
-                        and b not in _SKIP_ADJACENT_DDL
+                        and not b.endswith("_id")
                     ):
                         pairs[a][b] += 1
 
