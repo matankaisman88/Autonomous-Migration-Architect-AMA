@@ -58,16 +58,16 @@ ama-ingest run \
   --git-sql-roots sample_data/kfar_supply/git_sql \
   --target-schema dbo --target-table orders \
   --discovery-mode --discovery-merge-all \
-  --format json -o kfar_report.json
+  --format json -o sample_data/kfar_supply/kfar_report.json
 
 # 3. View dashboard
-ama-dashboard --report-path kfar_report.json
+ama-dashboard --report-path sample_data/kfar_supply/kfar_report.json
 
 # 4. Export migration plan to Jira format
-ama-ingest export-plan --report kfar_report.json --format jira --out kfar_jira.json
+ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format jira --out sample_data/kfar_supply/kfar_export_jira.json
 
 # 5. Export to Confluence
-ama-ingest export-plan --report kfar_report.json --format confluence --out kfar_confluence.html
+ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format confluence --out sample_data/kfar_supply/kfar_export_confluence.html
 ```
 
 ## What to look for in the report

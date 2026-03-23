@@ -43,6 +43,16 @@ def test_heuristic_domain_technical_debt() -> None:
     assert _heuristic_domain("TEMP_JUNK", "Tmp_1", "TEMP_JUNK.Tmp_1", "") == "Technical Debt"
 
 
+def test_heuristic_domain_sandbox_multi_domain_schemas() -> None:
+    """generate_domain_data.py schemas map into AMA taxonomy (not all default Operations)."""
+    assert _heuristic_domain("clinical", "patients", "clinical.patients", "") == "CRM"
+    assert _heuristic_domain("billing", "charges", "billing.charges", "") == "Finance"
+    assert _heuristic_domain("hr", "employees", "hr.employees", "") == "Operations"
+    assert _heuristic_domain("gl", "journal_entries", "gl.journal_entries", "") == "Finance"
+    assert _heuristic_domain("legacy_clinical", "x", "legacy_clinical.x", "") == "Legacy Core"
+    assert _heuristic_domain("temp_clinical", "import_staging", "temp_clinical.import_staging", "") == "Technical Debt"
+
+
 def test_enrich_adds_domains(tmp_path: Path) -> None:
     disc = {
         "enabled": True,

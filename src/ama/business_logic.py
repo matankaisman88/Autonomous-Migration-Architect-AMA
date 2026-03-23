@@ -85,6 +85,24 @@ def _heuristic_domain(schema: str, table: str, full_name: str, comment: str) -> 
         return "Marketing"
     if sch == "analytics":
         return "Analytics"
+    # Multi-domain sandbox fixtures (tools/generate_domain_data.py): map schema → AMA taxonomy
+    # (Finance, Logistics, CRM, …). Unknown schemas used to fall through to "Operations".
+    if sch in ("gl", "ar", "billing"):
+        return "Finance"
+    if sch == "clinical":
+        return "CRM"
+    if sch in ("hr", "payroll"):
+        return "Operations"
+    if sch in ("wms", "fleet"):
+        return "Logistics"
+    if sch == "catalog":
+        return "Logistics"
+    if sch == "pos":
+        return "Operations"
+    if sch.startswith("legacy_"):
+        return "Legacy Core"
+    if sch.startswith("temp_"):
+        return "Technical Debt"
     if sch == "sales":
         if any(
             k in tlow

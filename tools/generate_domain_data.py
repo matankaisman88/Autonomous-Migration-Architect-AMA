@@ -57,15 +57,22 @@ def _q(t: TableSpec) -> str:
 
 
 def _ddl_fn(t: TableSpec) -> str:
-    return f"{t.schema}_{t.table}.json".replace(".", "_")
+    # Replace only schema/table dots — do not turn ".json" into "_json".
+    return f"{t.schema}_{t.table}".replace(".", "_") + ".json"
 
 
 def _join_key(a: TableSpec, b: TableSpec) -> str:
     ca, cb = set(a.ddl_columns), set(b.ddl_columns)
-    for c in sorted(ca & cb):
+    common = sorted(ca & cb)
+    for c in common:
         if c.endswith("_id"):
             return c
-    return sorted(ca & cb)[0]
+    if common:
+        return common[0]
+    raise ValueError(
+        f"No shared DDL column between {_q(a)} and {_q(b)} for JOIN/git_sql; "
+        "add a matching FK column (e.g. department_id) to both table specs."
+    )
 
 
 def _tbl(
@@ -114,7 +121,7 @@ def _reg() -> dict[str, DomainVocabulary]:
         ["hr", "payroll", "legacy_hr", "temp_hr"],
         _rows_to_tables(
             [
-                ("hr", "employees", ("employee_id", "first_name", "last_name", "email", "department", "job_title", "hire_date", "is_active", "manager_id"), {"שם_פרטי": "first_name", "שם_משפחה": "last_name", "מחלקה": "department", "תפקיד": "job_title", "תאריך_גיוס": "hire_date", "פעיל": "is_active"}, "N"),
+                ("hr", "employees", ("employee_id", "department_id", "first_name", "last_name", "email", "department", "job_title", "hire_date", "is_active", "manager_id"), {"שם_פרטי": "first_name", "שם_משפחה": "last_name", "מחלקה": "department", "תפקיד": "job_title", "תאריך_גיוס": "hire_date", "פעיל": "is_active"}, "N"),
                 ("hr", "departments", ("department_id", "name", "cost_center", "head_count", "budget_amount"), {"שם_מחלקה": "name", "תקציב": "budget_amount"}, "N"),
                 ("payroll", "salary_records", ("record_id", "employee_id", "gross_amount", "net_amount", "tax_amount", "pay_period", "paid_at"), {"שכר_ברוטו": "gross_amount", "שכר_נטו": "net_amount", "מס": "tax_amount", "תקופת_שכר": "pay_period"}, "N"),
                 ("legacy_hr", "עובדים_ישנים", (), {"עובד": "employee_id", "משכורת": "gross_amount"}, "L"),
@@ -332,17 +339,26 @@ class DomainFactory:
             for t in v.tables
         )
         t0, t1 = [t for t in v.tables if not t.is_legacy and not t.is_temp][:2]
+        try:
+            rel_sb = sb.resolve().relative_to(Path.cwd().resolve())
+        except ValueError:
+            rel_sb = Path(sb.name)
+        rel_s = rel_sb.as_posix()
         (sb / "README.md").write_text(
             f"# {v.display} sandbox ({v.name})\n\n"
             f"Fictional {v.display} org migrating mixed Hebrew/English SQL; AMA inventories assets and waves.\n\n"
             f"## Tables\n\n{tls}\n\n## Quickstart\n\n```bash\n"
+            f"# One command (generates fixtures + report + exports inside this folder):\n"
+            f"bash demo.sh --domain {v.name}\n\n"
+            f"# Or manual ingest (report JSON under this sandbox):\n"
             f"python tools/generate_domain_data.py --domain {v.name} --lines {n_lines}\n\n"
-            f"ama-ingest run \\\n  --data-root . \\\n  --sql-logs \"{sb.name}/sql_logs/{v.name}_prod.jsonl\" \\\n"
-            f"  --ddl-manifest \"{sb.name}/ddl/manifest.json\" \\\n"
-            f"  --glossary \"{sb.name}/glossary/{v.name}_glossary.json\" \\\n"
-            f"  --glossary-dirty \"{sb.name}/glossary/{v.name}_glossary_dirty.json\" \\\n"
-            f"  --comms-dir \"{sb.name}/comms\" \\\n  --git-sql-roots \"{sb.name}/git_sql\" \\\n"
-            f"  --target-schema dbo --target-table orders \\\n  --discovery-mode --discovery-merge-all \\\n  --format json -o report.json\n```\n\n"
+            f"ama-ingest run \\\n  --data-root . \\\n  --sql-logs \"{rel_s}/sql_logs/{v.name}_prod.jsonl\" \\\n"
+            f"  --ddl-manifest \"{rel_s}/ddl/manifest.json\" \\\n"
+            f"  --glossary \"{rel_s}/glossary/{v.name}_glossary.json\" \\\n"
+            f"  --glossary-dirty \"{rel_s}/glossary/{v.name}_glossary_dirty.json\" \\\n"
+            f"  --comms-dir \"{rel_s}/comms\" \\\n  --git-sql-roots \"{rel_s}/git_sql\" \\\n"
+            f"  --target-schema dbo --target-table orders \\\n  --discovery-mode --discovery-merge-all \\\n"
+            f"  --format json -o \"{rel_s}/{v.name}_report.json\"\n```\n\n"
             f"Or: `bash demo.sh --sandbox {sb}`\n\n## What to look for\n\n"
             f"- Review: {', '.join(v.review_bands)}.\n"
             f"- Bilingual probes → glossary co-occurrence.\n"
@@ -357,9 +373,17 @@ def main() -> None:
     p.add_argument("--lines", type=int, default=10000, help="SQL log row count (default: 10000)")
     p.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     p.add_argument("--out-dir", type=str, default="out", help="Parent output directory (default: out/)")
+    p.add_argument(
+        "--print-path-only",
+        action="store_true",
+        help="Print only the absolute sandbox path (for scripts / demo.sh --domain).",
+    )
     args = p.parse_args()
     factory = DomainFactory(args.domain, seed=args.seed)
     sandbox = factory.generate(n_lines=args.lines, out_parent=Path(args.out_dir))
+    if args.print_path_only:
+        print(sandbox)
+        return
     print(f"\nSandbox: {sandbox}")
     print("\nQuickstart:")
     print(f"  bash demo.sh --sandbox {sandbox}")

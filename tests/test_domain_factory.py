@@ -8,13 +8,16 @@ import pytest
 
 try:
     import importlib.util
+    import sys
 
+    _mod_name = "ama_tests_generate_domain_data"
     spec = importlib.util.spec_from_file_location(
-        "generate_domain_data",
+        _mod_name,
         Path(__file__).resolve().parents[1] / "tools" / "generate_domain_data.py",
     )
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
+    sys.modules[_mod_name] = mod
     spec.loader.exec_module(mod)
     DomainFactory = mod.DomainFactory
     SKIP = False
@@ -48,7 +51,7 @@ class TestDomainFactory:
     def test_manifest_entries_resolve(self, tmp_path: Path) -> None:
         factory = DomainFactory("logistics", seed=42)
         sandbox = factory.generate(n_lines=300, out_parent=tmp_path)
-        manifest = json.loads((sandbox / "ddl" / "manifest.json").read_text())
+        manifest = json.loads((sandbox / "ddl" / "manifest.json").read_text(encoding="utf-8"))
         for k, v in manifest.items():
             if k.startswith("_"):
                 continue
@@ -91,14 +94,14 @@ class TestDomainFactory:
         sandbox = factory.generate(n_lines=1000, out_parent=tmp_path)
 
         log = next((sandbox / "sql_logs").glob("*.jsonl"))
-        manifest = json.loads((sandbox / "ddl" / "manifest.json").read_text())
+        manifest = json.loads((sandbox / "ddl" / "manifest.json").read_text(encoding="utf-8"))
         all_cols: list[str] = []
         for k, v in manifest.items():
             if k.startswith("_"):
                 continue
             ddl_file = sandbox / v
             if ddl_file.is_file():
-                raw = json.loads(ddl_file.read_text())
+                raw = json.loads(ddl_file.read_text(encoding="utf-8"))
                 cols = raw if isinstance(raw, list) else raw.get("columns", [])
                 all_cols.extend(cols)
 

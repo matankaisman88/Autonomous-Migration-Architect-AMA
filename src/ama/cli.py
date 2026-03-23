@@ -249,7 +249,9 @@ def _ensure_utf8_stdout() -> None:
 
 def _print_dashboard_hint(*, json_path: Path | None = None) -> None:
     if json_path is not None:
-        print(f"\nTo view interactively, run: ama-dashboard --report-path {json_path}")
+        # Double-quote so Windows paths paste into cmd.exe, PowerShell, and Git Bash.
+        p = str(Path(json_path).resolve())
+        print(f'\nTo view interactively, run: ama-dashboard --report-path "{p}"')
     else:
         print(
             "\nTo view interactively, export JSON (--format json -o report.json) then run: "

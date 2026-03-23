@@ -19,7 +19,7 @@ No manual inventory. No spreadsheets. Repeatable from day one.
 - **Exports** — **`ama-ingest export-plan`** writes Jira bulk-create JSON (ADF descriptions) or Confluence wiki storage HTML. Inline Markdown in rationales (**bold**, `` `code` ``) is converted to Jira ADF `strong` / `code` marks and HTML `<strong>` / `<code>`.
 - **Glossary tooling** — **`ama-ingest generate-glossary`** mines Hebrew/RTL ↔ English co-occurrences from SQL logs into a candidate glossary JSON (optional LLM assist).
 - **One-command demo** — Repository root **`demo.sh`** (Bash/Git Bash): regenerate Kfar data → ingest with discovery + merge-all → Jira + Confluence exports → prints output paths.
-- **Multi-domain fixtures** — **`tools/generate_domain_data.py`** builds a full AMA sandbox (DDL, JSONL logs, glossary, comms, Git SQL, README) for **`finance`**, **`hr`**, **`logistics`**, **`retail`**, or **`healthcare`**, under **`out/sandbox_{domain}_YYYYMMDD_HHMMSS/`**. Run **`bash demo.sh --sandbox …`** with the printed path to ingest that tree instead of Kfar (no new dependencies).
+- **Multi-domain fixtures** — **`tools/generate_domain_data.py`** builds a full AMA sandbox (DDL, JSONL logs, glossary, comms, Git SQL, README) for **`finance`**, **`hr`**, **`logistics`**, **`retail`**, or **`healthcare`**, under **`out/sandbox_{domain}_YYYYMMDD_HHMMSS/`**. One command: **`bash demo.sh --domain hr`** (generates the sandbox, then runs ingest + exports). Or generate only, then **`bash demo.sh --sandbox …`** with the printed path (no new dependencies).
 
 ## Demo (30 seconds)
 
@@ -36,24 +36,45 @@ bash demo.sh
 
 ```bash
 python tools/generate_kfar_supply.py
-ama-ingest run --sql-logs "sample_data/kfar_supply/sql_logs/*.jsonl" --ddl-manifest sample_data/kfar_supply/ddl/kfar_manifest.json --glossary sample_data/kfar_supply/glossary/kfar_glossary.json --glossary-dirty sample_data/kfar_supply/glossary/kfar_glossary_dirty.json --comms-dir sample_data/kfar_supply/comms --git-sql-roots sample_data/kfar_supply/git_sql --target-schema dbo --target-table orders --discovery-mode --discovery-merge-all --format json -o kfar_report.json
-ama-ingest export-plan --report kfar_report.json --format jira --out kfar_export_jira.json
-ama-ingest export-plan --report kfar_report.json --format confluence --out kfar_export_confluence.html
-ama-dashboard --report-path kfar_report.json
+ama-ingest run --sql-logs "sample_data/kfar_supply/sql_logs/*.jsonl" --ddl-manifest sample_data/kfar_supply/ddl/kfar_manifest.json --glossary sample_data/kfar_supply/glossary/kfar_glossary.json --glossary-dirty sample_data/kfar_supply/glossary/kfar_glossary_dirty.json --comms-dir sample_data/kfar_supply/comms --git-sql-roots sample_data/kfar_supply/git_sql --target-schema dbo --target-table orders --discovery-mode --discovery-merge-all --format json -o sample_data/kfar_supply/kfar_report.json
+ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format jira --out sample_data/kfar_supply/kfar_export_jira.json
+ama-ingest export-plan --report sample_data/kfar_supply/kfar_report.json --format confluence --out sample_data/kfar_supply/kfar_export_confluence.html
+ama-dashboard --report-path sample_data/kfar_supply/kfar_report.json
 ```
 
 See **`sample_data/kfar_supply/README.md`** for a step-by-step quickstart (optional `generate-glossary`, explicit log path, and `--ddl-columns`).
 
 ### Multi-domain sandbox (optional)
 
-Generate an isolated fixture set for another vertical, then point **`demo.sh`** at it:
+Pass **`--domain`** to **`demo.sh`** or **`tools/generate_domain_data.py`** using one of these values:
+
+| `--domain` | Vertical (fixture story) |
+|------------|-------------------------|
+| **`finance`** | General ledger + accounts receivable (journal entries, invoices, payments) |
+| **`hr`** | HR + payroll (employees, departments, salary records) |
+| **`logistics`** | WMS + fleet (shipments, inventory, vehicles) |
+| **`retail`** | Catalog + POS (products, transactions, returns) |
+| **`healthcare`** | Clinical + billing (patients, visits, charges) |
+
+**Single command** (generate sandbox + full **`demo.sh`** pipeline):
+
+```bash
+bash demo.sh --domain hr
+# Optional: bash demo.sh --domain finance --lines 8000 --seed 99
+```
+
+**Two steps** (generate only, then ingest an existing folder):
 
 ```bash
 python tools/generate_domain_data.py --domain hr --lines 10000 --seed 42
 bash demo.sh --sandbox out/sandbox_hr_YYYYMMDD_HHMMSS   # exact path printed by the generator
 ```
 
-Each run writes a timestamped directory under **`out/`** (gitignored) with **`ddl/manifest.json`**, **`sql_logs/{domain}_prod.jsonl`**, **`glossary/{domain}_glossary*.json`**, **`comms/`**, and **`git_sql/`**. The printed **`--sandbox`** path is the same tree **`demo.sh`** expects.
+Each run writes a timestamped directory under **`out/`** (gitignored) with **`ddl/manifest.json`**, **`sql_logs/{domain}_prod.jsonl`**, **`glossary/{domain}_glossary*.json`**, **`comms/`**, and **`git_sql/`**.
+
+**`demo.sh`** writes the JSON report and exports **inside the active sandbox**: **`sample_data/kfar_supply/kfar_*.json`** (and HTML) for the default Kfar run, and **`out/sandbox_{domain}_…/{domain}_report.json`** (plus matching Jira/Confluence names) for **`--domain`**.
+
+**Dashboard “business domain” vs `--domain`:** The **`--domain`** flag only picks which **fixture pack** to generate (finance, hr, …). The AMA report still classifies each table into the **fixed portfolio taxonomy** used everywhere in the product: Finance, Logistics, CRM, Marketing, Analytics, Operations, Legacy Core, Technical Debt. So **`--domain healthcare`** does not create a “Healthcare” bucket in the UI; clinical/billing tables are mapped into those portfolios (for example clinical → CRM, billing → Finance). Regenerate the report after upgrading AMA if you rely on these labels.
 
 **What you'll see in the dashboard:**
 
@@ -176,7 +197,7 @@ Load from **`.env`** in the working directory when present.
 | `src/ama/` | Library and CLI |
 | `src/ama/export/` | Jira / Confluence sinks, inline Markdown helpers (`md_inline.py`) |
 | `LICENSE` | MIT license text |
-| `demo.sh` | One-shot demo: default Kfar path, or **`--sandbox PATH`** for a **`generate_domain_data.py`** tree → ingest → export-plan (Jira + Confluence) |
+| `demo.sh` | One-shot demo: default Kfar; **`--domain NAME`** generates a multi-domain sandbox then ingest; **`--sandbox PATH`** uses an existing tree → export-plan (Jira + Confluence) |
 | `src/ama/planner/` | Migration planner (waves, lineage order, rationale) |
 | `tests/` | Pytest suite (100+ tests) |
 | `sample_data/` | Shared fixtures for default pipeline |
