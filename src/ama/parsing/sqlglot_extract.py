@@ -11,14 +11,14 @@ from ama.sanitize import normalize_sql_identifier
 
 def qualified_key_from_table(node: exp.Table) -> str:
     """
-    Stable database.schema.table key from sqlglot (supports multi-part names).
-    Uses rendered SQL so 4-part names stay consistent with the parser.
+    Stable schema.table key from sqlglot AST parts — never includes alias.
+
+    Uses node.parts (catalog, db, name as Identifier objects) rather than
+    node.sql() so aliased references like ``FROM finance.payments AS p``
+    yield ``finance.payments``, not ``finance.payments_as_p``.
     """
-    raw = node.sql()
-    s = raw.replace('"', "").replace("`", "").strip()
-    if not s:
-        return ""
-    parts = [normalize_sql_identifier(p) for p in s.split(".") if p.strip()]
+    parts = [normalize_sql_identifier(p.name) for p in node.parts if p.name]
+    parts = [p for p in parts if p]
     return ".".join(parts) if parts else ""
 
 
@@ -74,27 +74,46 @@ def _collect_columns(
 
 
 def _resolve_aliases(select_expr: exp.Select) -> tuple[dict[str, str], str | None]:
+    """Map table aliases and short names to qualified keys (includes JOIN tables)."""
     alias_to_table: dict[str, str] = {}
     default_table: str | None = None
-    for frm in select_expr.find_all(exp.From):
-        if not frm.this:
-            continue
-        node = frm.this
-        alias = None
+
+    def _register_from_node(node: exp.Expression | None) -> None:
+        nonlocal default_table
+        if not node:
+            return
+        alias: str | None = None
         if isinstance(node, exp.Alias):
             alias = _norm_ident(node.alias)
             inner = node.this
         else:
             inner = node
-
         if isinstance(inner, exp.Table):
+            if not alias and inner.alias:
+                al = inner.alias
+                if isinstance(al, str):
+                    alias = _norm_ident(al)
+                elif isinstance(al, exp.TableAlias):
+                    tid = al.this
+                    alias = _norm_ident(
+                        str(tid.name) if hasattr(tid, "name") else str(tid)
+                    )
+                else:
+                    alias = _norm_ident(str(al))
             key = qualified_key_from_table(inner)
             if not default_table:
                 default_table = key
             if alias:
                 alias_to_table[alias] = key
             short = _norm_ident(str(inner.name)) or str(inner.name)
-            alias_to_table[short] = key
+            if short:
+                alias_to_table[short] = key
+
+    for frm in select_expr.find_all(exp.From):
+        _register_from_node(frm.this)
+    for join in select_expr.find_all(exp.Join):
+        _register_from_node(join.this)
+
     return alias_to_table, default_table
 
 

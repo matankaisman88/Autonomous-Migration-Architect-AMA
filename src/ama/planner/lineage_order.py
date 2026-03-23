@@ -3,14 +3,13 @@ Lineage-aware ordering for migration planning.
 
 The report ``lineage.edges`` list comes from :class:`ama.lineage.LineageGraph`: **undirected**
 co-query weights (both directions stored). We **orient** each pair using a total order on
-inventory tables — **ascending** ``(priority_score, full_name)`` — so the lower-priority
-endpoint is treated as migrating **before** the higher-priority one (typical for dimension /
-source vs fact / heavy consumer in the same query). That yields a **DAG** (subgraph of the
-total order). We then run **Kahn** topological sort; when several nodes are ready, we pick
-the **highest** ``priority_score`` first (business-critical when the DAG allows).
+inventory tables — **descending** ``priority_score`` (then ``full_name``) — so the
+higher-priority (more-queried) endpoint is treated as the **source** and migrates **before**
+the lower-priority dependent. That yields a **DAG** (subgraph of the total order). We then
+run **Kahn** topological sort; when several nodes are ready, we pick the **highest**
+``priority_score`` first (business-critical when the DAG allows).
 
-With **no** lineage edges, ordering collapses to **descending** priority (same as the legacy
-planner behavior).
+With **no** lineage edges, ordering collapses to **descending** priority (highest first).
 """
 
 from __future__ import annotations
@@ -53,20 +52,26 @@ def _undirected_pairs_from_edges(
     return pairs
 
 
-def _rank_ascending(names: list[str], priority: dict[str, float]) -> dict[str, int]:
-    """Lower (priority_score, name) = earlier in the orientation backbone."""
-    sorted_n = sorted(names, key=lambda n: (priority.get(n, 0.0), n.lower()))
+def _rank_descending(names: list[str], priority: dict[str, float]) -> dict[str, int]:
+    """
+    Higher priority_score = rank 0 = migrates first.
+
+    Tables with more query volume are more likely to be source/dimension
+    tables that downstream consumers depend on. They migrate before their
+    lower-volume dependents.
+    """
+    sorted_n = sorted(names, key=lambda n: (-priority.get(n, 0.0), n.lower()))
     return {n: i for i, n in enumerate(sorted_n)}
 
 
 def _orient_pairs_to_dag(
     pairs: set[tuple[str, str]],
-    rank_asc: dict[str, int],
+    rank_desc: dict[str, int],
 ) -> list[tuple[str, str]]:
-    """Each undirected pair becomes one directed edge following ``rank_asc`` order."""
+    """Each undirected pair becomes one directed edge following ``rank_desc`` order."""
     dag: list[tuple[str, str]] = []
     for a, b in pairs:
-        ra, rb = rank_asc[a], rank_asc[b]
+        ra, rb = rank_desc[a], rank_desc[b]
         if ra < rb:
             dag.append((a, b))
         elif rb < ra:
@@ -143,8 +148,8 @@ def migration_order_full_names(
         order = sorted(names, key=lambda n: (-priority.get(n, 0.0), n.lower()))
         return order, False
 
-    rank_asc = _rank_ascending(names, priority)
-    dag = _orient_pairs_to_dag(pairs, rank_asc)
+    rank_desc = _rank_descending(names, priority)
+    dag = _orient_pairs_to_dag(pairs, rank_desc)
     order = _kahn_max_priority(names, dag, priority)
     return order, True
 

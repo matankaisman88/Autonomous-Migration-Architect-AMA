@@ -7,20 +7,20 @@ from ama.planner.lineage_order import migration_order_full_names
 
 
 def test_migration_order_respects_lineage_pair() -> None:
-    """Lower-priority table migrates before higher-priority co-queried neighbor (invoices before payments)."""
+    """Higher-priority (more-queried) table is the source and migrates first."""
     rows = [
-        {
-            "full_name": "finance.payments",
-            "business_domain": "Finance",
-            "priority_score": 90.0,
-            "query_count": 1,
-            "status": "",
-        },
         {
             "full_name": "finance.invoices",
             "business_domain": "Finance",
-            "priority_score": 80.0,
-            "query_count": 1,
+            "priority_score": 100.0,
+            "query_count": 1830,
+            "status": "",
+        },
+        {
+            "full_name": "finance.payments",
+            "business_domain": "Finance",
+            "priority_score": 49.54,
+            "query_count": 1100,
             "status": "",
         },
     ]
@@ -33,7 +33,9 @@ def test_migration_order_respects_lineage_pair() -> None:
     }
     order, used = migration_order_full_names(rows, report)
     assert used is True
-    assert order.index("finance.invoices") < order.index("finance.payments")
+    assert order.index("finance.invoices") < order.index("finance.payments"), (
+        f"Expected invoices before payments, got order: {order}"
+    )
 
 
 def test_plan_from_report_lineage_wave_order() -> None:
@@ -42,17 +44,17 @@ def test_plan_from_report_lineage_wave_order() -> None:
             "enabled": True,
             "inventory": [
                 {
-                    "full_name": "finance.payments",
+                    "full_name": "finance.invoices",
                     "business_domain": "Finance",
-                    "priority_score": 90.0,
-                    "query_count": 1,
+                    "priority_score": 95.0,
+                    "query_count": 1800,
                     "status": "",
                 },
                 {
-                    "full_name": "finance.invoices",
+                    "full_name": "finance.payments",
                     "business_domain": "Finance",
-                    "priority_score": 80.0,
-                    "query_count": 1,
+                    "priority_score": 60.0,
+                    "query_count": 1100,
                     "status": "",
                 },
             ],
@@ -66,7 +68,9 @@ def test_plan_from_report_lineage_wave_order() -> None:
     plan = AutonomousPlanner().plan_from_report(report, max_tables_per_wave=10, max_waves=10)
     assert len(plan.waves) == 1
     names = [t.full_name for t in plan.waves[0].tables]
-    assert names.index("finance.invoices") < names.index("finance.payments")
+    assert names.index("finance.invoices") < names.index("finance.payments"), (
+        f"Expected invoices before payments, got: {names}"
+    )
     assert any("lineage co-query" in n for n in plan.notes)
 
 

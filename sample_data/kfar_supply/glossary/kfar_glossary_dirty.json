@@ -1,0 +1,12 @@
+{
+  "custid": "customer_id",
+  "invdate": "created_at",
+  "invnum": "invoice_id",
+  "ordstatus": "status",
+  "payref": "payment_id",
+  "כמ": "quantity",
+  "מחיר_מכירה": "unit_price",
+  "סטט": "status",
+  "סכ": "amount",
+  "תאריך": "created_at"
+}

@@ -130,6 +130,11 @@ def build_discovery_payload(
 
     inventory: list[dict[str, Any]] = []
     for key in sorted(discovery_tables.keys(), key=lambda k: (-discovery_tables[k].query_count, k)):
+        # Skip bare schema-name tokens (no dot = not a schema.table reference)
+        # These appear when the SQL parser encounters schema-qualified aliases and
+        # the schema prefix leaks as a standalone key (e.g. "dbo", "finance").
+        if "." not in key:
+            continue
         st = discovery_tables[key]
         db, schema, table = split_qualified_name(key)
         if not db and default_database:

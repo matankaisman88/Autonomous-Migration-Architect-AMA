@@ -1,0 +1,12 @@
+{
+  "columns": [
+    "customer_id",
+    "customer_name",
+    "email",
+    "city",
+    "country_code",
+    "phone",
+    "is_active",
+    "created_at"
+  ]
+}

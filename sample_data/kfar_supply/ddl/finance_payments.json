@@ -1,0 +1,10 @@
+{
+  "columns": [
+    "payment_id",
+    "invoice_id",
+    "amount",
+    "paid_at",
+    "payment_status",
+    "currency"
+  ]
+}

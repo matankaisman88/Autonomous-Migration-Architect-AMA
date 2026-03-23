@@ -1,0 +1,10 @@
+{
+  "columns": [
+    "shipment_id",
+    "order_id",
+    "tracking_number",
+    "shipment_status",
+    "shipped_at",
+    "warehouse_id"
+  ]
+}

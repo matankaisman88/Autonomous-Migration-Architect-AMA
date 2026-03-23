@@ -1,0 +1,124 @@
+{
+  "סכום_נטו": "invoice_id",
+  "תאריך_תשלום": "payment_id",
+  "מחיר": "line_id",
+  "שם_לקוח": "email",
+  "קוד_מדינה": "customer_id",
+  "סטטוס_משלוח": "shipment_id",
+  "עיר": "customer_id",
+  "הנחה": "customer_id",
+  "סכום": "amount",
+  "סטטוס": "status",
+  "תאריך_יצירה": "created_at",
+  "_meta": {
+    "generated_by": "ama.glossary",
+    "rtl_tokens_found": 11,
+    "rtl_tokens_resolved": 11,
+    "llm_used": false,
+    "llm_tokens_translated": 0,
+    "warnings": [],
+    "candidates": [
+      {
+        "source_term": "סכום_נטו",
+        "target_column": "invoice_id",
+        "confidence": 0.95,
+        "method": "cooccurrence",
+        "co_occurrence_count": 3176,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "תאריך_תשלום",
+        "target_column": "payment_id",
+        "confidence": 0.625,
+        "method": "cooccurrence",
+        "co_occurrence_count": 1588,
+        "llm_explanation": "",
+        "alternatives": [
+          "invoice_id"
+        ]
+      },
+      {
+        "source_term": "מחיר",
+        "target_column": "line_id",
+        "confidence": 0.625,
+        "method": "cooccurrence",
+        "co_occurrence_count": 1588,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "שם_לקוח",
+        "target_column": "email",
+        "confidence": 0.625,
+        "method": "cooccurrence",
+        "co_occurrence_count": 1588,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "קוד_מדינה",
+        "target_column": "customer_id",
+        "confidence": 0.625,
+        "method": "cooccurrence",
+        "co_occurrence_count": 1588,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "סטטוס_משלוח",
+        "target_column": "shipment_id",
+        "confidence": 0.625,
+        "method": "cooccurrence",
+        "co_occurrence_count": 1588,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "עיר",
+        "target_column": "customer_id",
+        "confidence": 0.3129,
+        "method": "cooccurrence",
+        "co_occurrence_count": 63,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "הנחה",
+        "target_column": "customer_id",
+        "confidence": 0.3129,
+        "method": "cooccurrence",
+        "co_occurrence_count": 63,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "סכום",
+        "target_column": "amount",
+        "confidence": 0.3061,
+        "method": "cooccurrence",
+        "co_occurrence_count": 30,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "סטטוס",
+        "target_column": "status",
+        "confidence": 0.3061,
+        "method": "cooccurrence",
+        "co_occurrence_count": 30,
+        "llm_explanation": "",
+        "alternatives": []
+      },
+      {
+        "source_term": "תאריך_יצירה",
+        "target_column": "created_at",
+        "confidence": 0.3061,
+        "method": "cooccurrence",
+        "co_occurrence_count": 30,
+        "llm_explanation": "",
+        "alternatives": []
+      }
+    ]
+  }
+}

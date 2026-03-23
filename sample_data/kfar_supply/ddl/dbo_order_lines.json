@@ -1,0 +1,11 @@
+{
+  "columns": [
+    "line_id",
+    "order_id",
+    "product_id",
+    "quantity",
+    "unit_price",
+    "discount",
+    "net_amount"
+  ]
+}

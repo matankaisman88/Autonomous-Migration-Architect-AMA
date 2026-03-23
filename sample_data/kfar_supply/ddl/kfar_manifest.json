@@ -1,0 +1,9 @@
+{
+  "_comment": "Kfar Supply DDL manifest — schema.table -> DDL file relative to data root",
+  "dbo.orders": "sample_data/kfar_supply/ddl/dbo_orders.json",
+  "dbo.order_lines": "sample_data/kfar_supply/ddl/dbo_order_lines.json",
+  "dbo.customers": "sample_data/kfar_supply/ddl/dbo_customers.json",
+  "finance.invoices": "sample_data/kfar_supply/ddl/finance_invoices.json",
+  "finance.payments": "sample_data/kfar_supply/ddl/finance_payments.json",
+  "logistics.shipments": "sample_data/kfar_supply/ddl/logistics_shipments.json"
+}

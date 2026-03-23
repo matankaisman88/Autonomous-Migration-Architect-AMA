@@ -1,0 +1,13 @@
+{
+  "columns": [
+    "invoice_id",
+    "order_id",
+    "amount",
+    "net_amount",
+    "vat_amount",
+    "vat_rate",
+    "status",
+    "due_date",
+    "created_at"
+  ]
+}

@@ -4,6 +4,7 @@ version = "1.0.0"
 description = "Autonomous Migration Architect: SQL log ingestion, DDL alignment, discovery, and managerial reports"
 requires-python = ">=3.11"
 readme = "README.md"
+license = { text = "MIT" }
 dependencies = [
     "rich>=13.0.0",
     "sqlglot>=23.0.0",

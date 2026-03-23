@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import glob
 import json
 import sys
 from collections.abc import Callable
@@ -45,6 +46,7 @@ from ama.business_logic import (
 from ama.data_quality import run_dq_suite
 from ama.hitl_apply import apply_hitl_to_report, load_hitl_sidecar
 from ama.log_analysis import LogAnalysisConfig, LogAnalysisEngine
+from ama.export import ExportConfig, write_export
 from ama.planner import AutonomousPlanner
 from ama.report_sinks import ExcelReportSink, JsonReportSink
 from ama.discovery import (
@@ -190,6 +192,41 @@ def _glob_sql_logs(root: Path, pattern: str) -> list[Path]:
     return sorted({p for p in root.glob(pattern) if p.is_file()})
 
 
+def _expand_explicit_sql_logs(root: Path, raw_paths: list[str]) -> list[Path]:
+    """
+    Resolve ``--sql-logs`` paths. Expands ``*`` / ``?`` globs relative to ``root``
+    (Windows shells do not expand globs like Bash).
+    """
+    out: list[Path] = []
+    seen: set[Path] = set()
+    for raw in raw_paths:
+        s = raw.strip()
+        if not s:
+            continue
+        p = Path(s).expanduser()
+        cand = str(p)
+        if glob.has_magic(cand) or glob.has_magic(s):
+            pattern = cand if p.is_absolute() else str(root / s)
+            recursive = "**" in pattern
+            matches = sorted(glob.glob(pattern, recursive=recursive))
+            if not matches:
+                print(
+                    f"warning: --sql-logs glob matched no files: {pattern}",
+                    file=sys.stderr,
+                )
+            for m in matches:
+                mp = Path(m).resolve()
+                if mp.is_file() and mp not in seen:
+                    seen.add(mp)
+                    out.append(mp)
+            continue
+        target = p.resolve()
+        if target not in seen:
+            seen.add(target)
+            out.append(target)
+    return sorted(out, key=lambda x: str(x).lower())
+
+
 def _resolve_output_spec(args: argparse.Namespace) -> str | None:
     """
     None = print to terminal only (JSON full; Markdown summary).
@@ -284,7 +321,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         scope = settings.migration_context.strip()
     sql_paths = _glob_sql_logs(root, settings.sql_logs_glob)
     if args.sql_logs:
-        sql_paths = [Path(p).resolve() for p in args.sql_logs]
+        sql_paths = _expand_explicit_sql_logs(root, args.sql_logs)
 
     discovery_mode = getattr(args, "discovery_mode", False)
     no_target = getattr(args, "no_target", False)
@@ -804,6 +841,51 @@ def cmd_plan(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_export_plan(args: argparse.Namespace) -> int:
+    """Write Jira bulk-create JSON or Confluence HTML from a discovery report."""
+    report_path = Path(args.report).expanduser().resolve()
+    if not report_path.is_file():
+        print(f"Report not found: {report_path}", file=sys.stderr)
+        return 1
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"Invalid report JSON: {e}", file=sys.stderr)
+        return 1
+    config = ExportConfig(
+        format=args.format,
+        project_key=args.project_key,
+        epic_prefix=args.epic_prefix,
+    )
+    plan = AutonomousPlanner().plan_from_report(
+        report,
+        max_tables_per_wave=args.max_tables_per_wave,
+        max_waves=args.max_waves,
+    )
+    out_arg = getattr(args, "out", "") or ""
+    if out_arg.strip():
+        out_path = Path(out_arg).expanduser().resolve()
+    else:
+        disc = report.get("discovery") or {}
+        target = str(
+            report.get("migration_context")
+            or disc.get("scope_reference")
+            or disc.get("target_full_table")
+            or report.get("target_table")
+            or "plan",
+        )
+        safe = "".join(
+            c if c.isalnum() or c in "._-" else "_" for c in target.strip()
+        )[:80] or "plan"
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        ext = "json" if config.format == "jira" else "html"
+        out_path = (Path.cwd() / f"ama_export_{safe}_{ts}.{ext}").resolve()
+    write_export(plan, config, out_path)
+    n_tables = sum(len(w.tables) for w in plan.waves)
+    print(f"Exported {len(plan.waves)} waves ({n_tables} tables) -> {out_path}")
+    return 0
+
+
 def cmd_log_scan(args: argparse.Namespace) -> int:
     """Stream-scan SQL JSONL files and print LogAnalysisSummary JSON."""
     paths = [Path(p).expanduser().resolve() for p in (args.sql_logs or [])]
@@ -827,6 +909,87 @@ def cmd_log_scan(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_generate_glossary(args: argparse.Namespace) -> int:
+    """Mine SQL logs for RTL/ASCII co-occurrences and produce a candidate glossary."""
+    import json as _json
+
+    from ama.glossary import generate_glossary_from_logs
+
+    # Load DDL columns
+    ddl_path = Path(args.ddl_columns).expanduser().resolve()
+    if not ddl_path.is_file():
+        print(f"DDL file not found: {ddl_path}", file=sys.stderr)
+        return 1
+    ddl_cols = load_ddl_columns(ddl_path)
+
+    # If manifest provided, union all DDL columns from all mapped tables
+    if getattr(args, "ddl_manifest", None):
+        manifest_path = Path(args.ddl_manifest).expanduser().resolve()
+        if manifest_path.is_file():
+            manifest = load_ddl_manifest(manifest_path)
+            root = project_root()
+            for table_key, rel_path in manifest.items():
+                if table_key.startswith("_"):
+                    continue
+                p = (root / rel_path).resolve()
+                if p.is_file():
+                    extra = load_ddl_columns(p)
+                    ddl_cols = list(dict.fromkeys(ddl_cols + extra))
+
+    # Resolve log paths
+    log_paths = [Path(p).expanduser().resolve() for p in args.sql_logs]
+    missing = [p for p in log_paths if not p.is_file()]
+    if missing:
+        for p in missing:
+            print(f"Log file not found: {p}", file=sys.stderr)
+        return 1
+
+    env = args.env if args.env else None
+
+    print(
+        f"Mining {len(log_paths)} log file(s) for RTL/ASCII co-occurrences "
+        f"(min_count={args.min_count}, env={env or 'all'})...",
+        file=sys.stderr,
+    )
+
+    result = generate_glossary_from_logs(
+        log_paths,
+        ddl_cols,
+        env_filter=env,
+        min_cooccurrence_count=args.min_count,
+        llm_enabled=not getattr(args, "no_llm", False),
+    )
+
+    out_path = Path(args.out).expanduser().resolve()
+    export = result.to_export_dict()
+    out_path.write_text(
+        _json.dumps(export, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    # Print summary
+    n_candidates = len(result.candidates)
+    n_rtl = result.rtl_tokens_found
+    n_resolved = result.rtl_tokens_resolved
+    print(
+        f"RTL tokens found: {n_rtl} | resolved: {n_resolved} | "
+        f"candidates: {n_candidates} | LLM used: {result.llm_used}",
+        file=sys.stderr,
+    )
+    for w in result.warnings:
+        print(f"  warning: {w}", file=sys.stderr)
+    print(f"Wrote candidate glossary → {out_path}", file=sys.stderr)
+
+    if n_candidates == 0:
+        print(
+            "No candidates found. Check that RTL column names appear alongside "
+            "DDL column names in the same queries, and that --min-count is not too high.",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
 def main() -> None:
     p = argparse.ArgumentParser(
         prog="ama-ingest",
@@ -836,9 +999,19 @@ def main() -> None:
 
     r = sub.add_parser("run", help="Run SQL + comms + git + importance v0")
     r.add_argument("--data-root", type=str, default=None, help="Project root (default: package root)")
-    r.add_argument("--sql-logs", nargs="*", help="Explicit SQL log JSONL files")
+    r.add_argument(
+        "--sql-logs",
+        nargs="*",
+        help="Explicit SQL log JSONL files or globs (globs expanded; use on Windows where * is not shell-expanded)",
+    )
     r.add_argument("--comms-dir", type=str, default=None)
-    r.add_argument("--git-root", type=str, default=None)
+    r.add_argument(
+        "--git-root",
+        "--git-sql-roots",
+        type=str,
+        default=None,
+        help="Root directory to scan for Git SQL (overrides AMA_GIT_SQL_ROOTS; single path)",
+    )
     r.add_argument("--env", type=str, default="prod", help="Filter sql log env (use '' for all)")
     r.add_argument("--skip-vectors", action="store_true")
     r.add_argument(
@@ -1059,6 +1232,55 @@ def main() -> None:
     )
     pl.set_defaults(func=cmd_plan)
 
+    ep = sub.add_parser(
+        "export-plan",
+        help="Export migration plan to Jira bulk-create JSON or Confluence wiki HTML",
+    )
+    ep.add_argument(
+        "--report",
+        type=str,
+        required=True,
+        help="Path to report.json (must contain discovery inventory)",
+    )
+    ep.add_argument(
+        "--format",
+        type=str,
+        choices=["jira", "confluence"],
+        required=True,
+        help="Output format",
+    )
+    ep.add_argument(
+        "--out",
+        type=str,
+        default="",
+        help="Output file path (default: auto-named in cwd)",
+    )
+    ep.add_argument(
+        "--project-key",
+        type=str,
+        default="MIG",
+        help="Jira project key (jira format only, default: MIG)",
+    )
+    ep.add_argument(
+        "--epic-prefix",
+        type=str,
+        default="Wave",
+        help="Prefix for epic summaries (default: Wave)",
+    )
+    ep.add_argument(
+        "--max-tables-per-wave",
+        type=int,
+        default=25,
+        metavar="N",
+    )
+    ep.add_argument(
+        "--max-waves",
+        type=int,
+        default=20,
+        metavar="N",
+    )
+    ep.set_defaults(func=cmd_export_plan)
+
     ls = sub.add_parser(
         "log-scan",
         help="Stream-scan SQL JSONL log files and print parse telemetry (no full ingest report)",
@@ -1100,6 +1322,58 @@ def main() -> None:
         help="With --progress, emit every N records (default: 50000)",
     )
     ls.set_defaults(func=cmd_log_scan)
+
+    gg = sub.add_parser(
+        "generate-glossary",
+        help=(
+            "Auto-generate a candidate Hebrew/RTL→English glossary from SQL logs "
+            "(co-occurrence mining + optional LLM translation). "
+            "Output: candidate_glossary.json ready for use with --glossary."
+        ),
+    )
+    gg.add_argument(
+        "sql_logs",
+        nargs="+",
+        metavar="PATH",
+        help="One or more .jsonl SQL log files to mine",
+    )
+    gg.add_argument(
+        "--ddl-columns",
+        type=str,
+        required=True,
+        help="JSON DDL file: {columns: [...]} or [...] — the target DDL column list",
+    )
+    gg.add_argument(
+        "--ddl-manifest",
+        type=str,
+        default=None,
+        help="Optional DDL manifest to load all DDL columns across all mapped tables",
+    )
+    gg.add_argument(
+        "--out",
+        type=str,
+        default="candidate_glossary.json",
+        help="Output path for the candidate glossary JSON (default: candidate_glossary.json)",
+    )
+    gg.add_argument(
+        "--min-count",
+        type=int,
+        default=3,
+        metavar="N",
+        help="Minimum co-occurrence count to include a pair (default: 3)",
+    )
+    gg.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="Skip LLM translation even if AMA_OPENAI_API_KEY is set",
+    )
+    gg.add_argument(
+        "--env",
+        type=str,
+        default="prod",
+        help="Filter log rows by env field (default: prod; use '' for all)",
+    )
+    gg.set_defaults(func=cmd_generate_glossary)
 
     args = p.parse_args()
     if args.cmd == "run" and args.env == "":

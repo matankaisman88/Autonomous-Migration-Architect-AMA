@@ -1,0 +1,40 @@
+{"channel": "migration-planning", "text": "Cutover plan: dbo.orders must land before finance.invoices — finance depends on order_id.", "ts": "1704067200.000101"}
+{"channel": "migration-planning", "text": "Confirm lineage from dbo.orders to dbo.order_lines for wave 1.", "ts": "1704067200.000102"}
+{"channel": "finance-it", "text": "finance.invoices and finance.payments: validate paydt mapping in review queue.", "ts": "1704067200.000103"}
+{"channel": "finance-it", "text": "Hebrew חשבונית column still appears in legacy_hebrew.חשבוניות — needs manual map.", "ts": "1704067200.000104"}
+{"channel": "exec-reporting", "text": "VP asks: timeline for Finance domain once invoices and payments are in Synapse.", "ts": "1704067200.000105"}
+{"channel": "migration-planning", "text": "Is temp_junk.Tmp_staging safe to drop post-migration? No DDL entry.", "ts": "1704067200.000106"}
+{"channel": "finance-it", "text": "logistics.shipments joins dbo.orders on order_id — include in discovery inventory.", "ts": "1704067200.000107"}
+{"channel": "migration-planning", "text": "Glossary should resolve סכום and סטטוס on dbo.orders to amount/status.", "ts": "1704067200.000108"}
+{"channel": "exec-reporting", "text": "Kfar Supply: prioritize wholesale B2B orders table dbo.orders as migration anchor.", "ts": "1704067200.000109"}
+{"channel": "finance-it", "text": "Review customerid vs customer_id on orders — HITL candidate.", "ts": "1704067200.000110"}
+{"channel": "migration-planning", "text": "Domain clustering: Operations (orders, lines), Finance (invoices, payments), Logistics.", "ts": "1704067200.000111"}
+{"channel": "finance-it", "text": "Payments after invoices in planner topo-sort — confirm in report.", "ts": "1704067200.000112"}
+{"channel": "migration-planning", "text": "dbo.customers.custname flagged — dirty glossary should map to customer_name.", "ts": "1704067200.000113"}
+{"channel": "exec-reporting", "text": "Azure Synapse target: Hebrew identifiers in legacy_hebrew.חשבוניות remain risky.", "ts": "1704067200.000114"}
+{"channel": "finance-it", "text": "finance.payments: תאריך_תשלום → paid_at via glossary.", "ts": "1704067200.000115"}
+{"channel": "migration-planning", "text": "Cross-schema JOIN finance.invoices to dbo.orders appears in monthly revenue SQL.", "ts": "1704067200.000116"}
+{"channel": "migration-planning", "text": "Tracknum on shipments vs tracking_number in DDL — review band.", "ts": "1704067200.000117"}
+{"channel": "finance-it", "text": "Invoices invamt column in logs — near net_amount.", "ts": "1704067200.000118"}
+{"channel": "exec-reporting", "text": "Operations wave: dbo.order_lines qty/prc shorthand needs QA.", "ts": "1704067200.000119"}
+{"channel": "migration-planning", "text": "Six mapped DDL tables + legacy_hebrew.חשבוניות + temp_junk.Tmp_staging in scope.", "ts": "1704067200.000120"}
+{"channel": "finance-it", "text": "Synapse pipeline: load dbo.orders first, then finance.invoices.", "ts": "1704067200.000121"}
+{"channel": "migration-planning", "text": "Hebrew invoice bridge SQL references legacy_hebrew.חשבוניות LEFT JOIN finance.invoices.", "ts": "1704067200.000122"}
+{"channel": "exec-reporting", "text": "Risk: Tmp_staging in temp_junk used for ad-hoc loads.", "ts": "1704067200.000123"}
+{"channel": "finance-it", "text": "מעמ and סכום_נטו on finance.invoices map to vat_rate and net_amount.", "ts": "1704067200.000124"}
+{"channel": "migration-planning", "text": "Discovery should list logistics.shipments with logistics domain.", "ts": "1704067200.000125"}
+{"channel": "finance-it", "text": "Payment תשלום field ambiguity — watch merge confidence.", "ts": "1704067200.000126"}
+{"channel": "migration-planning", "text": "Git SQL under sample_data/kfar_supply/git_sql mirrors analyst queries.", "ts": "1704067200.000127"}
+{"channel": "exec-reporting", "text": "Board readout: migration waves from AMA planner JSON.", "ts": "1704067200.000128"}
+{"channel": "finance-it", "text": "orddate typo columns on dbo.orders — review queue expectation.", "ts": "1704067200.000129"}
+{"channel": "migration-planning", "text": "Kfar Supply קפאר סאפליי: bilingual columns documented in glossary.", "ts": "1704067200.000130"}
+{"channel": "finance-it", "text": "finance.invoices joined to finance.payments on invoice_id in SQL logs.", "ts": "1704067200.000131"}
+{"channel": "migration-planning", "text": "dbo.customers joined to dbo.orders for customer_summary.sql pattern.", "ts": "1704067200.000132"}
+{"channel": "exec-reporting", "text": "Impact vs readiness scatter should highlight dbo.orders hub.", "ts": "1704067200.000133"}
+{"channel": "finance-it", "text": "Legacy חשבוניות table still in production per ops thread.", "ts": "1704067200.000134"}
+{"channel": "migration-planning", "text": "Use discovery-mode run for full inventory including unmapped tables.", "ts": "1704067200.000135"}
+{"channel": "finance-it", "text": "Shipments KPI SQL joins logistics.shipments to dbo.orders.", "ts": "1704067200.000136"}
+{"channel": "exec-reporting", "text": "Finance domain cluster: invoices before payments ordering.", "ts": "1704067200.000137"}
+{"channel": "migration-planning", "text": "HITL: expect several 0.4–0.8 confidence merges from dirty shorthand.", "ts": "1704067200.000138"}
+{"channel": "finance-it", "text": "Validate מספר_מעקב maps to tracking_number on shipments.", "ts": "1704067200.000139"}
+{"channel": "migration-planning", "text": "temp_junk.Tmp_staging — confirm no production dependency before drop.", "ts": "1704067200.000140"}

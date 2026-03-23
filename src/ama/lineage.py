@@ -47,7 +47,10 @@ class LineageGraph:
     def _add_clique(self, table_keys: list[str]) -> None:
         if len(self._pair_w) >= self._max_total:
             return
-        uq = list(dict.fromkeys(table_keys))
+        # Exclude bare schema-name tokens (no dot = not a schema.table reference).
+        # These leak when the SQL parser encounters schema-qualified aliases and
+        # the schema prefix is emitted as a standalone key (e.g. "dbo", "finance").
+        uq = list(dict.fromkeys(k for k in table_keys if "." in k))
         n = len(uq)
         for i in range(n):
             for j in range(i + 1, n):
