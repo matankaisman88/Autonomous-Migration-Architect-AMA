@@ -23,6 +23,33 @@ No manual inventory. No spreadsheets. Repeatable from day one.
 - **One-command demo** — Repository root **`demo.sh`** (Bash/Git Bash): regenerate Kfar data → ingest with discovery + merge-all → Jira + Confluence exports → prints output paths.
 - **Multi-domain fixtures** — **`tools/generate_domain_data.py`** builds a full AMA sandbox (DDL, JSONL logs, glossary, comms, Git SQL, README) for **`finance`**, **`hr`**, **`logistics`**, **`retail`**, or **`healthcare`**, under **`out/sandbox_{domain}_YYYYMMDD_HHMMSS/`**. SQL logs include varied patterns (multi-way joins, CTEs, self-joins, and a small share of **broken lineage** joins to fictional `ghost_system.*` tables for integration testing). One command: **`bash demo.sh --domain hr`** (generates the sandbox, then runs ingest + exports). Or generate only, then **`bash demo.sh --sandbox …`** with the printed path (no new dependencies).
 
+## Installation
+
+Clone and enter the repository:
+
+```bash
+git clone <repository-url>
+cd Autonomous-Migration-Architect-AMA
+```
+
+### Quick install (recommended)
+
+**Windows (PowerShell):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/install.ps1
+# Optional extras: -Embed, -Viz, or -All
+```
+
+**macOS / Linux / Git Bash:**
+
+```bash
+bash scripts/install.sh
+# Optional extras: --embed, --viz, or --all
+```
+
+Create a **`.env`** file in the working directory (optional) with `AMA_*` variables — loaded automatically by `IngestionSettings`.
+
 ## Demo (30 seconds)
 
 > **Dataset:** Kfar Supply Ltd. — fictional Israeli wholesale distributor,
@@ -122,22 +149,6 @@ Each run writes a timestamped directory under **`out/`** (gitignored) with **`dd
 | `ama.security` | Path redaction, secret masking, path-traversal guard |
 | `ama.schemas` | Pydantic report contracts (`AmaReportBoundarySchema`, schema version) |
 | `ama.ui` | Streamlit dashboard (8 tabs) |
-
-## Installation
-
-```bash
-git clone <repository-url> && cd Autonomous-Migration-Architect-AMA
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Unix: source .venv/bin/activate
-pip install -e .
-# Optional: heavier embeddings
-pip install -e ".[embed]"
-# Optional: interactive lineage graph in the dashboard (Tables tab)
-pip install -e ".[viz]"
-```
-
-Create a **`.env`** file in the working directory (optional) with `AMA_*` variables — loaded automatically by `IngestionSettings`.
 
 ## CLI Reference
 
