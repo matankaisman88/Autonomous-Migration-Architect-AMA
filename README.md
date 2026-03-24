@@ -65,6 +65,13 @@ bash demo.sh
 .\demo.ps1
 ```
 
+If PowerShell blocks script execution on Windows, run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\demo.ps1
+```
+
 **Option B — same steps manually (PowerShell-friendly one-liners):**
 
 ```bash
