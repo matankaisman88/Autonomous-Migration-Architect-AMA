@@ -24,6 +24,8 @@ _DEFAULT_TOOL_SPECS: list[dict[str, Any]] = [
     {"name": "execute_dbt_test", "args": {"model": "string"}},
     {"name": "apply_fix", "args": {"model": "string", "error_log": "string"}},
     {"name": "request_write_permission", "args": {"model": "string", "sql": "string", "schema_yml": "optional string"}},
+    {"name": "generate_synthetic_rows", "args": {"table": "string", "row_count": "optional int"}},
+    {"name": "validate_sql_on_duckdb", "args": {"sql": "string", "dialect": "optional duckdb|snowflake|bigquery|redshift"}},
 ]
 
 
@@ -181,6 +183,28 @@ def _dispatch_tool(
         if on_protected_commit is not None:
             on_protected_commit(payload.get("pending_write") or {})
         return payload
+    if tool_name == "generate_synthetic_rows":
+        table_key = str(args.get("table") or args.get("table_key") or "").strip()
+        row_count = args.get("row_count")
+        try:
+            rc_int = int(row_count) if row_count is not None else None
+        except (TypeError, ValueError):
+            rc_int = None
+        if rc_int is None:
+            rc_int = sample_row_cap
+        duckdb_path = dbt_project_dir / "target" / "duckdb.db"
+        return agent_tools.generate_synthetic_rows(
+            report=report,
+            report_path=report_path,
+            table=table_key,
+            duckdb_path=duckdb_path,
+            row_count=rc_int,
+            sample_row_cap=sample_row_cap,
+        )
+    if tool_name == "validate_sql_on_duckdb":
+        sql = str(args.get("sql") or "")
+        dialect = str(args.get("dialect") or default_dialect or "duckdb").strip().lower()
+        return agent_tools.validate_sql_on_duckdb(sql=sql, dialect=dialect)
     raise ValueError(f"unknown tool: {tool_name}")
 
 

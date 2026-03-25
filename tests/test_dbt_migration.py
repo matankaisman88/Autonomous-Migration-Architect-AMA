@@ -117,6 +117,37 @@ def test_generate_model_artifact_sets_mapping_rows_on_artifact(monkeypatch) -> N
     assert isinstance(artifact.ai_telemetry, list)
 
 
+def test_generate_model_artifact_rejects_llm_row_filters(monkeypatch) -> None:
+    monkeypatch.setattr("ama.dbt_migration.mapping.has_openai_api_key", lambda: False)
+    monkeypatch.setattr("ama.dbt_migration.generator.has_openai_api_key", lambda: True)
+    monkeypatch.setattr(
+        "ama.dbt_migration.generator._call_schema_agent",
+        lambda **_kwargs: ({"context_analysis": "ok", "suggested_columns": ["invoice_id"], "confidence": 0.95}, 10, 0.95),
+    )
+    monkeypatch.setattr(
+        "ama.dbt_migration.generator._call_dbt_agent",
+        lambda **_kwargs: (
+            "SELECT invoice_id, status FROM finance.invoices WHERE status = 'unpaid'",
+            "drafted with filter",
+            20,
+            0.9,
+        ),
+    )
+
+    artifact, _mapped = generate_model_artifact(
+        table_key="finance.invoices",
+        raw_columns=["invoice_id", "status"],
+        glossary={},
+        alias_registry={},
+        target_dialect=TargetDialect.DUCKDB,
+        broken=False,
+        rationale="migrate all invoices",
+    )
+
+    assert artifact.generation_mode == "legacy"
+    assert "where status = 'unpaid'" not in artifact.sql.lower()
+
+
 def test_generator_ignores_usage_columns_missing_from_ddl(tmp_path) -> None:
     manifest = tmp_path / "manifest.json"
     usage = tmp_path / "usage.csv"

@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import queue
 import threading
 import time
@@ -68,6 +69,223 @@ from ama.dbt_migration.service import (
     start_generate_dbt_checkpoint_a_job,
 )
 from ama.dbt_migration.runner import approve_checkpoint_b_sql, reject_checkpoint_b_to_dlq
+
+_DBT_JINJA_BLOCK_RE = re.compile(r"({{.*?}}|{%-?.*?-%})", flags=re.DOTALL)
+
+
+def _format_sql_for_display(sql: str, *, dialect: str) -> str:
+    """
+    Pretty-print SQL for UI display only.
+
+    - dbt config/Jinja blocks are stripped before formatting (sqlglot can't parse them)
+    - formatted SQL is reattached after the extracted blocks
+    """
+    import sqlglot
+
+    raw = sql or ""
+    if not raw.strip():
+        return raw
+
+    blocks = _DBT_JINJA_BLOCK_RE.findall(raw) or []
+    # Remove all jinja blocks, keep only the SQL statement body.
+    body = _DBT_JINJA_BLOCK_RE.sub("", raw).strip()
+    if not body:
+        return raw
+
+    # Best-effort dialect handling: if sqlglot can't apply the dialect, fallback to generic formatting.
+    formatted_body = body
+    try:
+        parsed = sqlglot.parse_one(body)
+        # sqlglot auto-detects input dialect; we only set an output dialect when possible.
+        # pretty=True enforces multi-line formatting for the UI.
+        formatted_body = parsed.sql(pretty=True)
+    except Exception:
+        formatted_body = body
+
+    prefix = "\n".join(b.strip() for b in blocks if isinstance(b, str) and b.strip())
+    if prefix:
+        return prefix + "\n\n" + formatted_body.strip() + "\n"
+    return formatted_body.strip() + "\n"
+
+
+def _normalize_sql_for_compare(sql: str) -> str:
+    """
+    Whitespace-insensitive normalization for UI-only formatting changes.
+
+    Used to detect whether the user meaningfully edited SQL (not merely reformatted it).
+    """
+    if sql is None:
+        return ""
+    # Collapse all whitespace (spaces/newlines/tabs) into single spaces.
+    return re.sub(r"\s+", " ", str(sql).strip())
+
+
+def _extract_source_relations(sql: str) -> set[str]:
+    """
+    Best-effort extraction of source relations referenced by FROM/JOIN.
+
+    Used as a lineage safety guard: Fix Agent must not silently rewrite source
+    schema/table references unless the user explicitly approves.
+    """
+    try:
+        import sqlglot
+        from sqlglot import exp
+    except Exception:
+        return set()
+
+    raw = str(sql or "")
+    body = _DBT_JINJA_BLOCK_RE.sub("", raw).strip()
+    if not body:
+        return set()
+    try:
+        root = sqlglot.parse_one(body)
+    except Exception:
+        return set()
+
+    refs: set[str] = set()
+    for tbl in root.find_all(exp.Table):
+        name = str(tbl.name or "").strip()
+        db = str(tbl.db or "").strip()
+        if not name:
+            continue
+        refs.add(f"{db}.{name}".lower() if db else name.lower())
+    return refs
+
+
+def _extract_top_level_output_columns(sql: str) -> tuple[set[str], bool]:
+    """
+    Return (explicit_output_columns, has_star_projection) for the top-level SELECT.
+
+    Used as a semantic guard to catch obviously wrong manual edits that remain
+    syntactically valid (for example random identifier projections).
+    """
+    try:
+        import sqlglot
+        from sqlglot import exp
+    except Exception:
+        return set(), False
+
+    body = _DBT_JINJA_BLOCK_RE.sub("", str(sql or "")).strip()
+    if not body:
+        return set(), False
+    try:
+        root = sqlglot.parse_one(body)
+    except Exception:
+        return set(), False
+
+    select_node = root if isinstance(root, exp.Select) else root.find(exp.Select)
+    if select_node is None:
+        return set(), False
+
+    cols: set[str] = set()
+    has_star = False
+    for proj in select_node.expressions or []:
+        if isinstance(proj, exp.Star):
+            has_star = True
+            continue
+        if isinstance(proj, exp.Alias):
+            alias = str(proj.alias or "").strip()
+            if alias:
+                cols.add(alias.lower())
+                continue
+            base = proj.this
+        else:
+            base = proj
+        if isinstance(base, exp.Column):
+            name = str(base.name or "").strip()
+            if name:
+                cols.add(name.lower())
+        elif isinstance(base, exp.Identifier):
+            name = str(base.this or "").strip()
+            if name:
+                cols.add(name.lower())
+    return cols, has_star
+
+
+def _find_suspicious_cast_types(sql: str) -> list[str]:
+    """
+    Detect CAST targets that look invalid or unintended.
+
+    sqlglot parses many unknown type identifiers as generic DataType tokens, so we
+    add a defensive allow-list check to catch typos like `VARCHAds...` early.
+    """
+    try:
+        import sqlglot
+        from sqlglot import exp
+    except Exception:
+        return []
+
+    body = _DBT_JINJA_BLOCK_RE.sub("", str(sql or "")).strip()
+    if not body:
+        return []
+    try:
+        root = sqlglot.parse_one(body)
+    except Exception:
+        return []
+
+    allowed = {
+        # common/sqlglot-friendly core
+        "CHAR",
+        "VARCHAR",
+        "TEXT",
+        "STRING",
+        "NCHAR",
+        "NVARCHAR",
+        "INT",
+        "INTEGER",
+        "BIGINT",
+        "SMALLINT",
+        "TINYINT",
+        "HUGEINT",
+        "UBIGINT",
+        "UINTEGER",
+        "USMALLINT",
+        "UTINYINT",
+        "DECIMAL",
+        "NUMERIC",
+        "FLOAT",
+        "DOUBLE",
+        "REAL",
+        "BOOLEAN",
+        "BOOL",
+        "DATE",
+        "TIME",
+        "TIMESTAMP",
+        "TIMESTAMPTZ",
+        "DATETIME",
+        "INTERVAL",
+        "UUID",
+        "JSON",
+        "BLOB",
+        "BYTEA",
+        "VARBYTE",
+        # bigquery / snowflake / redshift extras
+        "INT64",
+        "FLOAT64",
+        "BIGNUMERIC",
+        "NUMBER",
+        "GEOGRAPHY",
+        "SUPER",
+        # complex-ish types
+        "ARRAY",
+        "MAP",
+        "STRUCT",
+        "LIST",
+    }
+    suspicious: list[str] = []
+    for cast_node in root.find_all(exp.Cast):
+        to_expr = cast_node.args.get("to")
+        if to_expr is None:
+            continue
+        raw_type = str(to_expr.sql() if hasattr(to_expr, "sql") else to_expr).strip()
+        base = re.sub(r"\(.*\)$", "", raw_type).strip().upper()
+        base = re.sub(r"\s+", " ", base)
+        # accept enum-like compound types (e.g., TIMESTAMP WITH TIME ZONE)
+        if base in allowed or base.startswith(("ARRAY<", "STRUCT<", "MAP<", "LIST<")):
+            continue
+        if re.search(r"[A-Z]", base):
+            suspicious.append(raw_type)
+    return suspicious
 
 try:
     import plotly.express as px
@@ -269,7 +487,12 @@ def render_tool_output(tool_name: str, result: Any) -> None:
         st.caption(f"Source table: `{table_key}`")
         st.caption("SQL Draft")
         sql = str(result.get("sql") or "")
-        st.code(sql, language="sql")
+        try:
+            mig_state = st.session_state.get("migration_agent") or {}
+            dialect = str(mig_state.get("dialect") or "duckdb")
+        except Exception:
+            dialect = "duckdb"
+        st.code(_format_sql_for_display(sql, dialect=dialect), language="sql")
 
         conf = float(result.get("generation_confidence") or 0.0)
         mode = str(result.get("generation_mode") or "legacy")
@@ -317,18 +540,28 @@ def render_tool_output(tool_name: str, result: Any) -> None:
     if tool_name == "execute_dbt_test":
         model_name = str(result.get("model_name") or result.get("model") or "model")
         success = bool(result.get("success"))
+        stage = str(result.get("stage") or "").strip()
         if success:
-            st.success(f"✅ **{model_name}** passed")
+            st.success(f"✅ **{model_name}** passed dbt run + test")
         else:
-            st.error("❌ Test failed")
+            st.error(f"❌ Validation failed{f' at `{stage}`' if stage else ''}")
             logs = str(result.get("logs") or "")
             with st.expander("View Error Log", expanded=False):
                 st.code(logs or "-- no logs", language="text")
+        run_logs = str(result.get("run_logs") or "")
+        if run_logs and not success:
+            with st.expander("View dbt run log", expanded=False):
+                st.code(run_logs, language="text")
         return
 
     if tool_name == "apply_fix":
         corrected_sql = str(result.get("corrected_sql") or "")
-        st.code(corrected_sql, language="sql")
+        try:
+            mig_state = st.session_state.get("migration_agent") or {}
+            dialect = str(mig_state.get("dialect") or "duckdb")
+        except Exception:
+            dialect = "duckdb"
+        st.code(_format_sql_for_display(corrected_sql, dialect=dialect), language="sql")
         st.write(str(result.get("error_analysis") or ""))
 
         conf = float(result.get("confidence") or 0.0)
@@ -338,12 +571,58 @@ def render_tool_output(tool_name: str, result: Any) -> None:
         elif conf >= 0.6:
             badge = "🟠"
         st.caption(f"Fix confidence: {badge} {conf:.2f}")
+        if bool(result.get("relation_change_blocked")):
+            prev_refs = result.get("blocked_prev_relations") if isinstance(result.get("blocked_prev_relations"), list) else []
+            new_refs = result.get("blocked_new_relations") if isinstance(result.get("blocked_new_relations"), list) else []
+            st.warning("Lineage safety block: Fix SQL changed source relation(s); explicit approval is required.")
+            if prev_refs or new_refs:
+                st.caption(f"Previous refs: {', '.join(str(x) for x in prev_refs) or '—'}")
+                st.caption(f"Fix refs: {', '.join(str(x) for x in new_refs) or '—'}")
         return
 
     if tool_name == "request_write_permission":
         pending = result.get("pending_write") if isinstance(result.get("pending_write"), dict) else {}
         sql = str(pending.get("sql") or result.get("sql") or "")
-        st.code(sql, language="sql")
+        try:
+            mig_state = st.session_state.get("migration_agent") or {}
+            dialect = str(mig_state.get("dialect") or "duckdb")
+        except Exception:
+            dialect = "duckdb"
+        st.code(_format_sql_for_display(sql, dialect=dialect), language="sql")
+        return
+
+    if tool_name == "generate_synthetic_rows":
+        table_key = str(result.get("table_key") or "—")
+        row_cap = int(result.get("row_cap") or 0)
+        source = str(result.get("sample_rows_source") or "unknown")
+        rows = result.get("sample_rows") if isinstance(result.get("sample_rows"), list) else []
+        st.markdown(f"**Synthetic rows** for `{table_key}`")
+        st.caption(f"Requested rows: {row_cap} · Source: `{source or 'unknown'}`")
+        if rows:
+            df = pd.DataFrame([r for r in rows if isinstance(r, dict)])
+            if not df.empty:
+                st.dataframe(df.head(10), use_container_width=True, hide_index=True)
+                st.success(f"Generated {len(rows)} synthetic row(s).")
+            else:
+                st.warning("Synthetic payload had no tabular rows.")
+        else:
+            st.warning("No synthetic rows returned.")
+        warn = str(result.get("sample_rows_warning") or "").strip()
+        if warn:
+            with st.expander("Generation warning", expanded=False):
+                st.code(warn, language="text")
+        return
+
+    if tool_name == "validate_sql_on_duckdb":
+        ok = bool(result.get("ok"))
+        dialect = str(result.get("dialect") or "duckdb")
+        reasons = result.get("reasons") if isinstance(result.get("reasons"), list) else []
+        if ok:
+            st.success(f"SQL validation passed ({dialect}).")
+        else:
+            st.error(f"SQL validation failed ({dialect}).")
+            for reason in reasons[:6]:
+                st.markdown(f"- {reason}")
         return
 
     st.success("✅ Command Executed")
@@ -497,7 +776,7 @@ def _agent_role_for_tool(tool_name: str) -> tuple[str, str]:
     if name in {"propose_dbt_model"}:
         return "Developer", "Drafting dbt SQL and YAML."
     if name in {"execute_dbt_test", "test_model"}:
-        return "QA Lead", "Validating generated model with dbt tests."
+        return "QA Lead", "Validating generated model with dbt run + test."
     if name in {"apply_fix"}:
         return "Developer", "Applying self-correction based on QA findings."
     if name in {"request_write_permission", "commit_to_disk"}:
@@ -706,7 +985,33 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
         model_name = str(pending_write.get("model_name") or "")
         st.info(f"Action required: review and approve SQL for `{model_name}`.")
         st.markdown(f"### Review & Approve: `{model_name}`")
-        st.code(str(pending_write.get("sql") or ""), language="sql")
+        try:
+            mig_state = st.session_state.get("migration_agent") or {}
+            dialect = str(mig_state.get("dialect") or "duckdb")
+        except Exception:
+            dialect = "duckdb"
+        st.code(_format_sql_for_display(str(pending_write.get("sql") or ""), dialect=dialect), language="sql")
+        if bool(pending_write.get("relation_change_blocked")):
+            prev_refs = pending_write.get("blocked_prev_relations") if isinstance(pending_write.get("blocked_prev_relations"), list) else []
+            new_refs = pending_write.get("blocked_new_relations") if isinstance(pending_write.get("blocked_new_relations"), list) else []
+            st.warning(
+                "Lineage safety check: Fix Agent changed source relation(s). "
+                "Review and explicitly approve before using corrected SQL."
+            )
+            if prev_refs or new_refs:
+                st.caption(f"Previous refs: {', '.join(str(x) for x in prev_refs) or '—'}")
+                st.caption(f"Fix refs: {', '.join(str(x) for x in new_refs) or '—'}")
+            if st.button("Approve Relation Change and Use Fix SQL", key=f"approve_relation_change_{model_name}"):
+                candidate = str(pending_write.get("blocked_candidate_sql") or "")
+                if candidate.strip():
+                    pending_write["sql"] = candidate
+                    pending_write["relation_change_blocked"] = False
+                    pending_write.pop("blocked_candidate_sql", None)
+                    pending_write.pop("blocked_prev_relations", None)
+                    pending_write.pop("blocked_new_relations", None)
+                    state["pending_write"] = pending_write
+                    st.success("Relation change approved. Corrected SQL loaded into approval gate.")
+                    st.rerun()
         mapping_rows = pending_write.get("mapping_rows")
         if not isinstance(mapping_rows, list) or not mapping_rows:
             # Fallback: reuse mapping rows from the last `propose_dbt_model` tool output.
@@ -741,7 +1046,7 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
         if bool(state.get("manual_edit_mode", False)):
             edited_sql = st.text_area(
                 "Edit SQL before writing",
-                value=str(pending_write.get("sql") or ""),
+                value=_format_sql_for_display(str(pending_write.get("sql") or ""), dialect=str(mig_state.get("dialect") or "duckdb")),
                 height=200,
                 key=f"migration_agent_edit_sql_{model_name}",
             )
@@ -770,7 +1075,7 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                 return
 
             with st.status("Agent is working...", expanded=True) as status:
-                status.write(f"Running dbt test on {model_name}")
+                status.write(f"Running dbt run + test on {model_name}")
                 test_result = migration_agent_tools.test_model(
                     dbt_project_dir=dbt_project_dir,
                     model_name=model_name,
@@ -787,19 +1092,42 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                         attempt_history=[],
                     )
                     corrected_sql = str(fix.get("corrected_sql") or "")
+                    fix_payload = dict(fix) if isinstance(fix, dict) else {"corrected_sql": corrected_sql}
                     if corrected_sql.strip():
-                        pending = migration_agent_tools.request_write_permission(
-                            model=model_name,
-                            sql=corrected_sql,
-                            mapping_rows=mapping_rows if isinstance(mapping_rows, list) else None,
-                        ).get("pending_write") or {}
+                        previous_refs = _extract_source_relations(sql_to_write)
+                        corrected_refs = _extract_source_relations(corrected_sql)
+                        relation_changed = bool(previous_refs and corrected_refs and previous_refs != corrected_refs)
+                        if relation_changed:
+                            pending = migration_agent_tools.request_write_permission(
+                                model=model_name,
+                                sql=sql_to_write,
+                                mapping_rows=mapping_rows if isinstance(mapping_rows, list) else None,
+                            ).get("pending_write") or {}
+                            pending["relation_change_blocked"] = True
+                            pending["blocked_candidate_sql"] = corrected_sql
+                            pending["blocked_prev_relations"] = sorted(previous_refs)
+                            pending["blocked_new_relations"] = sorted(corrected_refs)
+                            fix_payload["relation_change_blocked"] = True
+                            fix_payload["blocked_prev_relations"] = sorted(previous_refs)
+                            fix_payload["blocked_new_relations"] = sorted(corrected_refs)
+                            fix_payload["error_analysis"] = (
+                                str(fix_payload.get("error_analysis") or "").strip()
+                                + "\nLineage safety block: corrected SQL changed source relation(s). "
+                                "User must explicitly approve relation change before applying."
+                            ).strip()
+                        else:
+                            pending = migration_agent_tools.request_write_permission(
+                                model=model_name,
+                                sql=corrected_sql,
+                                mapping_rows=mapping_rows if isinstance(mapping_rows, list) else None,
+                            ).get("pending_write") or {}
                         state["pending_write"] = pending
                     state.setdefault("messages", []).append(
                         {
                             "role": "tool",
                             "tool_name": "apply_fix",
-                            "tool_result": fix,
-                            "content": json.dumps({"tool_name": "apply_fix", "result": fix}, ensure_ascii=False),
+                            "tool_result": fix_payload,
+                            "content": json.dumps({"tool_name": "apply_fix", "result": fix_payload}, ensure_ascii=False),
                         }
                     )
                 else:
@@ -999,7 +1327,33 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
         model_name = str(pending_write.get("model_name") or "")
         st.info(f"Action required: review and approve SQL for `{model_name}`.")
         st.markdown(f"### Review & Approve: `{model_name}`")
-        st.code(str(pending_write.get("sql") or ""), language="sql")
+        try:
+            mig_state = st.session_state.get("migration_agent") or {}
+            dialect = str(mig_state.get("dialect") or "duckdb")
+        except Exception:
+            dialect = "duckdb"
+        st.code(_format_sql_for_display(str(pending_write.get("sql") or ""), dialect=dialect), language="sql")
+        if bool(pending_write.get("relation_change_blocked")):
+            prev_refs = pending_write.get("blocked_prev_relations") if isinstance(pending_write.get("blocked_prev_relations"), list) else []
+            new_refs = pending_write.get("blocked_new_relations") if isinstance(pending_write.get("blocked_new_relations"), list) else []
+            st.warning(
+                "Lineage safety check: Fix Agent changed source relation(s). "
+                "Review and explicitly approve before using corrected SQL."
+            )
+            if prev_refs or new_refs:
+                st.caption(f"Previous refs: {', '.join(str(x) for x in prev_refs) or '—'}")
+                st.caption(f"Fix refs: {', '.join(str(x) for x in new_refs) or '—'}")
+            if st.button("Approve Relation Change and Use Fix SQL", key=f"approve_relation_change_bottom_{model_name}"):
+                candidate = str(pending_write.get("blocked_candidate_sql") or "")
+                if candidate.strip():
+                    pending_write["sql"] = candidate
+                    pending_write["relation_change_blocked"] = False
+                    pending_write.pop("blocked_candidate_sql", None)
+                    pending_write.pop("blocked_prev_relations", None)
+                    pending_write.pop("blocked_new_relations", None)
+                    state["pending_write"] = pending_write
+                    st.success("Relation change approved. Corrected SQL loaded into approval gate.")
+                    st.rerun()
 
         mapping_rows = pending_write.get("mapping_rows")
         if not isinstance(mapping_rows, list) or not mapping_rows:
@@ -1017,7 +1371,10 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
         if bool(state.get("manual_edit_mode", False)):
             edited_sql = st.text_area(
                 "Edit SQL before writing",
-                value=str(pending_write.get("sql") or ""),
+                value=_format_sql_for_display(
+                    str(pending_write.get("sql") or ""),
+                    dialect=dialect if isinstance(dialect, str) and dialect else "duckdb",
+                ),
                 height=200,
                 key=f"migration_agent_edit_sql_{model_name}",
             )
@@ -1027,8 +1384,22 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
             original_sql = str(pending_write.get("sql") or "")
             used_manual_edit = bool(state.get("manual_edit_mode", False))
             sql_to_write = edited_sql if used_manual_edit else original_sql
-            manual_fix_applied = used_manual_edit and sql_to_write.strip() != original_sql.strip()
+            manual_fix_applied = used_manual_edit and _normalize_sql_for_compare(sql_to_write) != _normalize_sql_for_compare(original_sql)
             schema_yml = str(pending_write.get("schema_yml") or "")
+            # Lineage guard for manual edits: source relations should not change silently.
+            # (Fix-Agent relation changes are handled via explicit approval flow separately.)
+            if used_manual_edit:
+                original_refs = _extract_source_relations(original_sql)
+                edited_refs = _extract_source_relations(sql_to_write)
+                if original_refs and edited_refs and original_refs != edited_refs:
+                    st.error(
+                        "QA Lead rejected SQL: manual edit changed source relation(s). "
+                        "For migration safety, keep the original source lineage."
+                    )
+                    st.caption(f"Original refs: {', '.join(sorted(original_refs)[:8])}")
+                    st.caption(f"Edited refs: {', '.join(sorted(edited_refs)[:8])}")
+                    state["manual_edit_mode"] = True
+                    return
 
             # QA Lead gate (syntax only): validate with sqlglot before writing and before dbt test.
             # This makes manual SQL edits immediately visible as "wrong" when they are not parseable.
@@ -1046,6 +1417,33 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
             except Exception as exc:
                 # Don't block the user if QA validator itself errors; dbt test will still surface compilation errors.
                 st.warning(f"QA Lead sqlglot validation skipped due to internal error: {exc}")
+            suspicious_casts = _find_suspicious_cast_types(sql_to_write)
+            if suspicious_casts:
+                st.error(
+                    "QA Lead rejected SQL: suspicious CAST target type(s) detected. "
+                    "Please fix cast type names before approval."
+                )
+                st.caption("Suspicious cast types: " + ", ".join(sorted(set(suspicious_casts))[:8]))
+                state["manual_edit_mode"] = True
+                return
+            # Semantic guard: block random/suspicious manual projections that no longer
+            # align with mapped target columns (while still being syntactically valid SQL).
+            if isinstance(mapping_rows, list) and mapping_rows:
+                expected_aliases = {
+                    str(r.get("english_alias") or "").strip().lower()
+                    for r in mapping_rows
+                    if isinstance(r, dict) and str(r.get("english_alias") or "").strip()
+                }
+                projected_cols, has_star = _extract_top_level_output_columns(sql_to_write)
+                if expected_aliases and projected_cols and not has_star and projected_cols.isdisjoint(expected_aliases):
+                    st.error(
+                        "QA Lead rejected SQL: projected columns do not match expected model aliases. "
+                        "This looks like a semantic mismatch (not a migration-safe projection)."
+                    )
+                    st.caption(f"Expected aliases (sample): {', '.join(sorted(expected_aliases)[:8])}")
+                    st.caption(f"Projected columns: {', '.join(sorted(projected_cols)[:8])}")
+                    state["manual_edit_mode"] = True
+                    return
 
             output_dir.mkdir(parents=True, exist_ok=True)
             sql_path = output_dir / f"{model_name}.sql"
@@ -1059,7 +1457,7 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                 return
 
             with st.status("Agent is working...", expanded=True) as status:
-                status.write(f"Running dbt test on {model_name}")
+                status.write(f"Running dbt run + test on {model_name}")
                 test_result = migration_agent_tools.test_model(
                     dbt_project_dir=dbt_project_dir,
                     model_name=model_name,
@@ -1067,22 +1465,6 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                 state["model_status_by_name"][model_name] = "SUCCESS" if bool(test_result.get("success")) else "HITL_REQUIRED"
                 state["pending_write"] = None
                 state["manual_edit_mode"] = False
-                if manual_fix_applied:
-                    manual_fix_result = {
-                        "model_name": model_name,
-                        "corrected_sql": sql_to_write,
-                        "error_analysis": "Manual SQL edit approved and applied by user.",
-                        "confidence": 1.0,
-                        "source": "manual_edit",
-                    }
-                    state.setdefault("messages", []).append(
-                        {
-                            "role": "tool",
-                            "tool_name": "apply_fix",
-                            "tool_result": manual_fix_result,
-                            "content": json.dumps({"tool_name": "apply_fix", "result": manual_fix_result}, ensure_ascii=False),
-                        }
-                    )
                 if not bool(test_result.get("success")):
                     status.write(f"Running Fix Agent on {model_name}")
                     fix = migration_agent_tools.apply_fix(
@@ -1092,22 +1474,61 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                         attempt_history=[],
                     )
                     corrected_sql = str(fix.get("corrected_sql") or "")
+                    fix_payload = dict(fix) if isinstance(fix, dict) else {"corrected_sql": corrected_sql}
                     if corrected_sql.strip():
-                        pending = migration_agent_tools.request_write_permission(
-                            model=model_name,
-                            sql=corrected_sql,
-                            mapping_rows=mapping_rows if isinstance(mapping_rows, list) else None,
-                        ).get("pending_write") or {}
+                        previous_refs = _extract_source_relations(sql_to_write)
+                        corrected_refs = _extract_source_relations(corrected_sql)
+                        relation_changed = bool(previous_refs and corrected_refs and previous_refs != corrected_refs)
+                        if relation_changed:
+                            pending = migration_agent_tools.request_write_permission(
+                                model=model_name,
+                                sql=sql_to_write,
+                                mapping_rows=mapping_rows if isinstance(mapping_rows, list) else None,
+                            ).get("pending_write") or {}
+                            pending["relation_change_blocked"] = True
+                            pending["blocked_candidate_sql"] = corrected_sql
+                            pending["blocked_prev_relations"] = sorted(previous_refs)
+                            pending["blocked_new_relations"] = sorted(corrected_refs)
+                            fix_payload["relation_change_blocked"] = True
+                            fix_payload["blocked_prev_relations"] = sorted(previous_refs)
+                            fix_payload["blocked_new_relations"] = sorted(corrected_refs)
+                            fix_payload["error_analysis"] = (
+                                str(fix_payload.get("error_analysis") or "").strip()
+                                + "\nLineage safety block: corrected SQL changed source relation(s). "
+                                "User must explicitly approve relation change before applying."
+                            ).strip()
+                        else:
+                            pending = migration_agent_tools.request_write_permission(
+                                model=model_name,
+                                sql=corrected_sql,
+                                mapping_rows=mapping_rows if isinstance(mapping_rows, list) else None,
+                            ).get("pending_write") or {}
                         state["pending_write"] = pending
                     state.setdefault("messages", []).append(
                         {
                             "role": "tool",
                             "tool_name": "apply_fix",
-                            "tool_result": fix,
-                            "content": json.dumps({"tool_name": "apply_fix", "result": fix}, ensure_ascii=False),
+                            "tool_result": fix_payload,
+                            "content": json.dumps({"tool_name": "apply_fix", "result": fix_payload}, ensure_ascii=False),
                         }
                     )
                 else:
+                    if manual_fix_applied:
+                        manual_fix_result = {
+                            "model_name": model_name,
+                            "corrected_sql": sql_to_write,
+                            "error_analysis": "Manual SQL edit approved and applied by user.",
+                            "confidence": 1.0,
+                            "source": "manual_edit",
+                        }
+                        state.setdefault("messages", []).append(
+                            {
+                                "role": "tool",
+                                "tool_name": "apply_fix",
+                                "tool_result": manual_fix_result,
+                                "content": json.dumps({"tool_name": "apply_fix", "result": manual_fix_result}, ensure_ascii=False),
+                            }
+                        )
                     run_agent_turn(
                         state=state,
                         report=report,

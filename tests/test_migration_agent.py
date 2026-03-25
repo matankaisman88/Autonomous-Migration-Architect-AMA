@@ -224,4 +224,43 @@ def test_get_tools_contains_required_migration_agent_functions() -> None:
         "execute_dbt_test",
         "apply_fix",
         "request_write_permission",
+        "generate_synthetic_rows",
+        "validate_sql_on_duckdb",
+    ]
+
+
+def test_test_model_runs_dbt_run_before_tests(monkeypatch, tmp_path: Path) -> None:
+    calls: list[list[str]] = []
+
+    def _fake_run_command(command: list[str], _cwd: Path) -> tuple[int, str, str]:
+        calls.append(command)
+        if command[:2] == ["dbt", "run"]:
+            return 1, "", "Compilation Error: invalid type DECIMAL1"
+        return 0, "ok", ""
+
+    monkeypatch.setattr("ama.migration_agent.agent_tools._run_command", _fake_run_command)
+    out = agent_tools.test_model(dbt_project_dir=tmp_path, model_name="finance_payments")
+    assert out["success"] is False
+    assert out["stage"] == "dbt_run"
+    assert "DECIMAL1" in str(out["logs"])
+    assert calls == [["dbt", "run", "--select", "finance_payments"]]
+
+
+def test_test_model_runs_tests_only_after_successful_run(monkeypatch, tmp_path: Path) -> None:
+    calls: list[list[str]] = []
+
+    def _fake_run_command(command: list[str], _cwd: Path) -> tuple[int, str, str]:
+        calls.append(command)
+        if command[:2] == ["dbt", "run"]:
+            return 0, "run ok", ""
+        return 0, "test ok", ""
+
+    monkeypatch.setattr("ama.migration_agent.agent_tools._run_command", _fake_run_command)
+    out = agent_tools.test_model(dbt_project_dir=tmp_path, model_name="finance_payments")
+    assert out["success"] is True
+    assert out["stage"] == "dbt_test"
+    assert out["run_return_code"] == 0
+    assert calls == [
+        ["dbt", "run", "--select", "finance_payments"],
+        ["dbt", "test", "--select", "finance_payments"],
     ]

@@ -8,6 +8,9 @@ import re
 from pathlib import Path
 from typing import Any, Callable
 
+import sqlglot
+from sqlglot import exp
+
 from ama.ai_query_helper import (
     OpenAIAuthError,
     OpenAIQueryError,
@@ -68,6 +71,24 @@ def _build_normal_model_sql(
 def _looks_like_select_sql(sql: str) -> bool:
     text = (sql or "").strip().lower()
     return "select" in text and "from" in text
+
+
+def _has_row_level_where_filter(sql: str) -> bool:
+    """
+    Detect row-level filters in generated SELECT SQL.
+
+    For migration-full-copy defaults, we reject LLM SQL that introduces WHERE clauses
+    and fall back to deterministic all-rows projection.
+    """
+    try:
+        root = sqlglot.parse_one(sql)
+    except Exception:
+        # Let existing syntax validation/self-heal handle parse issues.
+        return False
+    for select_node in root.find_all(exp.Select):
+        if select_node.args.get("where") is not None:
+            return True
+    return False
 
 
 def _contains_hebrew(value: str) -> bool:
@@ -651,12 +672,12 @@ def generate_model_artifact(
                         "is_fallback_active": False,
                     }
                 )
-                if _looks_like_select_sql(llm_sql):
+                if _looks_like_select_sql(llm_sql) and not _has_row_level_where_filter(llm_sql):
                     sql = llm_sql
                     generation_mode = "ai"
                     generation_confidence = float(dbt_conf)
                 else:
-                    fallback_reason = "dbt_agent_invalid_sql"
+                    fallback_reason = "dbt_agent_invalid_or_filtered_sql"
                     logger.warning(
                         "llm_agent_fallback",
                         extra={

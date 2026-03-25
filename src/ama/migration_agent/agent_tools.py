@@ -6,6 +6,7 @@ from typing import Any
 
 from ama.dbt_migration.generator import generate_model_artifact
 from ama.dbt_migration.models import TargetDialect
+from ama.dbt_migration.sql_self_heal import validate_sql_with_sqlglot
 from ama.dbt_migration.runner import _run_command, _run_fix_agent
 from ama.dbt_migration.sql_transpile import validate_target_dialect
 from ama.planner import AutonomousPlanner
@@ -83,7 +84,7 @@ def get_tools() -> list[dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "execute_dbt_test",
-                "description": "Run dbt test for a model and return logs.",
+                "description": "Run dbt run + dbt test for a model and return logs.",
                 "parameters": {
                     "type": "object",
                     "properties": {"model": {"type": "string"}},
@@ -118,6 +119,39 @@ def get_tools() -> list[dict[str, Any]]:
                         "sql": {"type": "string"},
                     },
                     "required": ["model", "sql"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "generate_synthetic_rows",
+                "description": "Generate mock rows for a given source table using schema evidence (and synthetic fallbacks).",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "table": {"type": "string"},
+                        "row_count": {"type": "integer", "minimum": 1, "maximum": 50},
+                    },
+                    "required": ["table"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "validate_sql_on_duckdb",
+                "description": "Validate SQL syntax using SQLGlot (dbt/Jinja blocks are stripped). Intended for fast pre-approval QA.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "sql": {"type": "string"},
+                        "dialect": {
+                            "type": "string",
+                            "description": "Target dialect (duckdb|snowflake|bigquery|redshift). If omitted, defaults to duckdb.",
+                        },
+                    },
+                    "required": ["sql"],
                 },
             },
         },
@@ -342,13 +376,29 @@ def generate_sql(
 
 
 def test_model(*, dbt_project_dir: Path, model_name: str) -> dict[str, Any]:
-    rc, out, err = _run_command(["dbt", "test", "--select", model_name], dbt_project_dir)
-    logs = (err or out or "").strip()
+    # Important: `dbt test` can return success when a model has zero tests.
+    # Run `dbt run` first so invalid SQL is caught before test-only pass states.
+    run_rc, run_out, run_err = _run_command(["dbt", "run", "--select", model_name], dbt_project_dir)
+    run_logs = (run_err or run_out or "").strip()
+    if run_rc != 0:
+        return {
+            "model_name": model_name,
+            "success": False,
+            "stage": "dbt_run",
+            "return_code": run_rc,
+            "logs": run_logs,
+        }
+
+    test_rc, test_out, test_err = _run_command(["dbt", "test", "--select", model_name], dbt_project_dir)
+    test_logs = (test_err or test_out or "").strip()
     return {
         "model_name": model_name,
-        "success": rc == 0,
-        "return_code": rc,
-        "logs": logs,
+        "success": test_rc == 0,
+        "stage": "dbt_test",
+        "return_code": test_rc,
+        "logs": test_logs,
+        "run_return_code": run_rc,
+        "run_logs": run_logs,
     }
 
 
@@ -470,6 +520,77 @@ def analyze_schema(
     if hebrew_columns:
         payload["hebrew_columns"] = hebrew_columns
     return payload
+
+
+def generate_synthetic_rows(
+    *,
+    report: dict[str, Any],
+    report_path: Path,
+    table: str,
+    duckdb_path: Path,
+    row_count: int = 10,
+    sample_row_cap: int = 10,
+) -> dict[str, Any]:
+    """
+    Generate mock rows for the given table.
+
+    Implementation detail:
+    - Reuses `inspect_table` logic so we get either real DuckDB samples or synthetic fallback.
+    - Returns a structured payload that the router can summarize in `final`.
+    """
+    table_key = str(table).strip()
+    cap = max(1, int(row_count or sample_row_cap or 10))
+    # Reuse analyze_schema so we benefit from existing synthetic fallback behavior
+    # when DuckDB rows are unavailable.
+    payload = analyze_schema(
+        report=report,
+        report_path=report_path,
+        table=table_key,
+        duckdb_path=duckdb_path,
+        sample_row_cap=cap,
+    )
+    rows = payload.get("sample_rows") if isinstance(payload.get("sample_rows"), list) else []
+    if not rows:
+        # Last-resort deterministic fallback: build rows from known columns.
+        cols: list[str] = []
+        for c in (payload.get("ddl_columns") or []):
+            if isinstance(c, str) and c.strip():
+                cols.append(c.strip())
+        for c in (payload.get("observed_columns") or []):
+            if isinstance(c, str) and c.strip():
+                cols.append(c.strip())
+        cols = list(dict.fromkeys(cols))
+        if cols:
+            rows = [{col: _synthetic_value_for_column(col) for col in cols} for _ in range(cap)]
+            payload["sample_rows"] = rows
+            payload["sample_rows_source"] = "synthetic_last_resort"
+    # Keep response small: only expose what is needed for QA summaries.
+    out: dict[str, Any] = {
+        "table_key": table_key,
+        "row_cap": cap,
+        "sample_rows": rows,
+        "sample_rows_available": bool(payload.get("sample_rows_available")),
+        "sample_rows_warning": payload.get("sample_rows_warning") if isinstance(payload.get("sample_rows_warning"), str) else "",
+        "inferred_types": payload.get("inferred_types") if isinstance(payload.get("inferred_types"), dict) else {},
+        "sample_rows_source": str(payload.get("sample_rows_source") or ""),
+    }
+    return out
+
+
+def validate_sql_on_duckdb(*, sql: str, dialect: str = "duckdb") -> dict[str, Any]:
+    """
+    Fast syntax validation using SQLGlot (sqlglot-backed, not an actual execution).
+
+    The function name is kept aligned with router intent: it is intended to prevent
+    dbt test failures caused by invalid SQL syntax before any write/test gate.
+    """
+    target = validate_target_dialect(dialect)
+    ok, reasons = validate_sql_with_sqlglot(sql, target_dialect=target)
+    return {
+        "ok": ok,
+        "dialect": target.value,
+        "reasons": reasons,
+    }
 
 
 def propose_dbt_model(

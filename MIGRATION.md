@@ -412,6 +412,10 @@ The `Migration Agent` tab is a chat-first workflow for goal-oriented dbt migrati
 - `request_write_permission` is equivalent to final Checkpoint B sign-off for file creation: no SQL is written until you click **Approve**.
 - Chat output is table-focused: current-table tool output is shown inline, while unrelated prior-table details are collapsed.
 - Duplicate gate noise is removed (`request_write_permission` is shown in the approval gate, not repeated in chat bubbles).
+- **Default migration semantics: all rows.** For migration models, the system preserves full source-row coverage by default.
+  - Business row filters (for example `WHERE status='unpaid'`) are treated as unsafe unless the user explicitly requests a filtered target dataset.
+  - If an LLM draft introduces an unrequested business filter, AMA rejects that draft and falls back to deterministic all-rows SQL.
+  - This prevents silent row-loss regressions during source-to-target migration.
 
 Example conversation:
 
@@ -505,6 +509,7 @@ The AI Cockpit validation sequence is:
 
 1. **Architect planning**: interpret source metadata, map Hebrew columns, and define migration intent.
 2. **Developer draft**: generate dbt SQL/YAML for the configured target dialect.
+   - Guardrail: default draft semantics preserve all source rows; unrequested business `WHERE` filters are blocked.
 3. **QA syntax gate**: validate SQL with `sqlglot` before model review.
 4. **Self-healing loop**: if QA rejects, call Developer self-correction (max 3).
 5. **HITL escalation**: if still invalid, emit `CRITICAL_REASON` and require manual intervention.
