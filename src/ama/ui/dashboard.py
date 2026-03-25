@@ -287,6 +287,32 @@ def _find_suspicious_cast_types(sql: str) -> list[str]:
             suspicious.append(raw_type)
     return suspicious
 
+
+def _has_top_level_where_clause(sql: str) -> bool:
+    """
+    Detect a top-level WHERE clause in the model SELECT.
+
+    In migration mode we preserve full-row semantics by default, so ad-hoc business
+    filters should be blocked unless explicitly supported.
+    """
+    try:
+        import sqlglot
+        from sqlglot import exp
+    except Exception:
+        return False
+
+    body = _DBT_JINJA_BLOCK_RE.sub("", str(sql or "")).strip()
+    if not body:
+        return False
+    try:
+        root = sqlglot.parse_one(body)
+    except Exception:
+        return False
+    select_node = root if isinstance(root, exp.Select) else root.find(exp.Select)
+    if select_node is None:
+        return False
+    return select_node.args.get("where") is not None
+
 try:
     import plotly.express as px
     import plotly.graph_objects as go
@@ -1424,6 +1450,16 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                     "Please fix cast type names before approval."
                 )
                 st.caption("Suspicious cast types: " + ", ".join(sorted(set(suspicious_casts))[:8]))
+                state["manual_edit_mode"] = True
+                return
+            # Migration guardrail: block business row filters in model SQL by default.
+            # Exception: keep incremental predicate patterns used by dbt incremental models.
+            if "is_incremental()" not in sql_to_write and _has_top_level_where_clause(sql_to_write):
+                st.error(
+                    "QA Lead rejected SQL: row-level WHERE filter detected. "
+                    "Migration models must preserve all source rows by default."
+                )
+                st.caption("Remove business filters (for example date/status predicates) from migration models.")
                 state["manual_edit_mode"] = True
                 return
             # Semantic guard: block random/suspicious manual projections that no longer
