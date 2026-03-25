@@ -18,7 +18,7 @@ No manual inventory. No spreadsheets. Repeatable from day one.
 
 - **Discovery + lineage** — Multi-schema inventory, domain clustering, and an undirected co-query lineage graph (bare schema-name tokens from the parser are filtered so edges only connect real `schema.table` keys).
 - **Broken lineage** — Tables referenced in SQL that are not listed in the DDL manifest are flagged in the JSON report (`lineage.broken_table_keys`, `ddl_manifest_table_keys`), surfaced as **warnings** on ingest (exit code 0), and shown in the **Planner** (`is_broken`, `missing_parents`, review wave for manifest gaps) and **Tables** tab lineage graph (diamond nodes, warning tooltip).
-- **AI Cockpit (dbt Migration ops console)** — Fast, resumable Checkpoint A generation via async jobs + progress events (with polling/auto-refresh); confidence-aware semantic mapping with HITL gating; always-show DDL columns with `[DDL_ONLY_WARNING]`; wave stress test, risk/scenario analysis, optional synthetic data generation, chat-assisted SQL patch proposals, and a Fix-loop UI for Checkpoint B.
+- **Migration Agent (chat-first AI cockpit)** — Goal-oriented dbt migration with a human approval gate (`request_write_permission`), structured intelligence feed tables, per-wave progress tracking, automatic dbt test + fix loop, synthetic sample fallback when source DuckDB tables are unavailable, and confidence-aware mapping review.
 - **Dashboard KPI alignment** — Executive **% Confirmed** uses merge rows whose `source_table` appears in the **filtered inventory** (same scope as the Domains tab and table list), so percentages stay consistent with sidebar filters.
 - **Alias merge scope** — Default single-table merge for the migration anchor, or `**--discovery-merge-all`** to run the four-tier resolver against every discovered table in DDL scope (recommended for the Kfar demo so review-band candidates appear across schemas).
 - **Exports** — `**ama-ingest export-plan`** defaults to **Jira CSV** (one Task per inventory row, `utf-8-sig`, `csv.QUOTE_ALL`, one-line flattened **Description**, no Project Key column — pick the project in Jira’s import UI). Use `**--format jira-json`** for Jira Cloud bulk-create JSON (epics/stories, ADF). **Confluence** is wiki storage HTML. Inline Markdown in wave rationales maps to Jira ADF / HTML where applicable.
@@ -174,7 +174,7 @@ Each run writes a timestamped directory under `**out/**` (gitignored) with `**dd
 | `ama.log_analysis`   | Streaming log scan facade (no full ingest — telemetry only)                                                                 |
 | `ama.security`       | Path redaction, secret masking, path-traversal guard                                                                        |
 | `ama.schemas`        | Pydantic report contracts (`AmaReportBoundarySchema`, schema version)                                                       |
-| `ama.ui`             | Streamlit dashboard (8 tabs)                                                                                                |
+| `ama.ui`             | Streamlit dashboard (9 tabs, including Migration Agent)                                                                    |
 
 
 ## CLI Reference
@@ -229,7 +229,7 @@ AMA does **not** call Jira or Confluence APIs directly. It writes **files** you 
 | **Tables**             | Per-table merge breakdown + optional **pyvis** lineage neighborhood graph; manifest-unknown tables (vs `ddl_manifest_table_keys`) render as **warning** styling                                        |
 | **Data quality**       | DQ suite results: boundary validation, schema version, ingestion stats                                                                                                                                 |
 | **Review (HITL)**      | Approve / reject ambiguous alias mappings; writes `.hitl.json` sidecar                                                                                                                                 |
-| **dbt Migration (AI Cockpit)** | Async Checkpoint A generation (job persistence + progress polling/auto-refresh), compact models grid + selected-model details, confidence-aware mapping preview, wave stress test, risk meter + scenario ideas, optional synthetic data, chat-assisted patch proposals, and Checkpoint B Fix-loop with telemetry/cost summary. |
+| **Migration Agent**        | Chat-first migration workflow with tool orchestration (`list_waves`, `analyze_schema`, `propose_dbt_model`, `execute_dbt_test`, `apply_fix`) and mandatory write approval gate; structured intelligence feed with per-wave progress. |
 
 
 ## Alias Resolution

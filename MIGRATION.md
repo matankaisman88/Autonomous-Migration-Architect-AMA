@@ -391,49 +391,54 @@ Bypass behavior:
 
 The Streamlit dashboard can orchestrate the dbt migration lifecycle without manual terminal steps.
 
+### Using the Migration Agent Chat
+
+The `Migration Agent` tab is a chat-first workflow for goal-oriented dbt migration with a mandatory human gate.
+
+- First load shows a dialect selector and chat input.
+- Advanced paths/settings are available under collapsed `⚙️ Settings`.
+- The agent uses tools (`list_waves`, `analyze_schema`, `propose_dbt_model`, `execute_dbt_test`, `apply_fix`, `request_write_permission`) and pauses on write permission.
+- `request_write_permission` is equivalent to final Checkpoint B sign-off for file creation: no SQL is written until you click **Approve**.
+
+Example conversation:
+
+1. User: `Inspect the orders table and generate a model for Snowflake.`
+2. Agent tools: `list_waves` -> `analyze_schema` -> `propose_dbt_model`.
+3. UI shows SQL preview + mapping rows (when Hebrew translation exists) and waits for approval.
+4. User clicks **Approve ✅**:
+   - SQL is written to the configured model output directory.
+   - `execute_dbt_test` runs automatically.
+5. If test fails:
+   - `apply_fix` runs automatically.
+   - corrected SQL is returned to `request_write_permission` for re-approval.
+
 ### Where to start
 
 1. Launch the dashboard: `ama-dashboard --report-path path/to/report.json`
-2. Open the `dbt Migration` tab.
-3. Configure:
-   - Target Dialect
-   - Report Path
-   - Optional Glossary Path
-   - Output Directory (dbt models output)
+2. Open the `Migration Agent` tab.
+3. Choose target dialect and start with a prompt like: `Migrate Wave 1`.
+4. Review the Intelligence Feed tables, then use the human gate (`Proceed to Migration Gate` -> `Approve ✅`) per model.
 
 #### dbt prerequisites
 - `dbt_project.yml` must exist at the repo root (the app uses generated models under `models/ama_generated`).
 - dbt requires a `profiles.yml` with at least one usable profile/target under `~/.dbt` (or the directory set by `DBT_PROFILES_DIR`).
 - If `~/.dbt/profiles.yml` is missing, the runner will generate a minimal DuckDB template to unblock compilation; you should replace it with your real connection/credentials.
 
-### Flow: Config -> Checkpoint A -> dbt Run -> Checkpoint B -> DLQ
+### Flow: Chat Intent -> Intelligence Feed -> Human Gate -> dbt Test/Fix
 
-1. **Generate Checkpoint A**: the UI produces per-model SQL + mapping rows but does not write or execute.
-2. **Approve Wave (Checkpoint A)**: the UI writes edited `.sql` + `schema.yml` files for the wave.
-3. **dbt execution**: the UI runs `dbt run` + `dbt test` for all models in the wave with bounded retries.
-4. **Checkpoint B (if needed)**: if any model exhausts automatic retries, the UI pauses and requires manual correction:
-   - Approve with Fix overwrites the failing model `.sql`
-   - Re-executes only that model
-   - Or Route to DLQ creates a DLQ record with `error_stage: "CHECKPOINT_B_REJECTION"`
-5. **DLQ**: the UI provides a searchable viewer for `dlq_records.jsonl` (DLQ Contract fields preserved).
+1. **User intent**: prompt the agent (for example, `Migrate all tables in wave 1`).
+2. **Intelligence Feed**: tool outputs are rendered as structured tables (waves, schema, proposals, tests, fixes).
+3. **Human Gate**: for each model, the agent must request write permission before creating/updating SQL on disk.
+4. **Execution loop**: after approval, dbt test runs automatically; on failure, Fix Agent proposes corrected SQL and returns to approval.
+5. **Progress tracking**: wave progress is shown as `completed/total` with a progress bar (for example `1/2`).
 
-### Async Checkpoint A (Ops Console behavior)
+### Legacy Notes
 
-In the `dbt Migration` tab, “Generate Checkpoint A” runs as an async background job:
-
-- Job state persists under `out/checkpoints/jobs/<job_id>.json`
-- Per-model progress is appended to `out/checkpoints/jobs/<job_id>.events.jsonl` (`JOB_TOTAL`, `MODEL_START`, `MODEL_DONE`, `CHECKPOINT_A_SAVED`, …)
-- The resulting `CheckpointAArtifact` is persisted to `out/checkpoints/jobs/<job_id>.checkpoint_a.json`
-- The UI polls job status and can auto-refresh while the job is `RUNNING`
-- Wave execution uses persisted job state as well (background dbt run/test orchestration), polled via lightweight status files under `out/checkpoints/jobs/wave_exec/<job_id>.json` and results under `out/checkpoints/jobs/wave_exec/<job_id>.result.json`
-
-This makes the tab responsive during generation and supports resuming after reruns.
-
-If you change generation logic or want a fresher draft after a bug fix, use the **“Regenerate Draft (queued wave)”** button (Beginner Mode-friendly) to refresh the persisted Checkpoint A artifact for that queued wave.
+The previous `dbt Migration` ops-console flow (Checkpoint A/B screens and async generation jobs) remains documented for CLI/backward-compatibility context, but primary dashboard operations are now chat-driven through `Migration Agent`.
 
 ### Working with AI Agents
 
-The `dbt Migration` tab now exposes agentic generation and fix-loop metadata directly in the UI.
+The `Migration Agent` tab exposes agentic generation and fix-loop metadata directly in the UI.
 
 - **Agent badges**
   - `🤖 AI`: model SQL was accepted from the LLM path.

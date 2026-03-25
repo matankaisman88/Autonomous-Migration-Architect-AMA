@@ -55,28 +55,9 @@ from ama.ui.report_helpers import (
     load_report_json,
     pct_confirmed_filtered,
 )
-from ama.dbt_migration.writer import write_model_artifacts
-from ama.dbt_migration.runner import (
-    execute_models_with_fix_loop,
-    approve_checkpoint_b_sql,
-    reject_checkpoint_b_to_dlq,
-)
-from ama.dbt_migration.service import run_generate_dbt
-from ama.dbt_migration.service import start_generate_dbt_checkpoint_a_job, poll_generate_dbt_checkpoint_a_job
-from ama.dbt_migration.service import apply_ai_fix_from_checkpoint
-from ama.dbt_migration.service import (
-    analyze_model_risk_and_scenarios,
-    generate_synthetic_data_for_model,
-    propose_sql_patch_from_chat,
-    run_wave_stress_test,
-)
-from ama.dbt_migration.models import (
-    MigrationSessionState,
-    MigrationStatus,
-    ModelRunState,
-    RunnerFinalStatus,
-)
-from ama.env_resolver import get_env, get_openai_model
+from ama.env_resolver import get_env, get_openai_model, has_openai_api_key
+from ama.migration_agent.engine import init_state as init_migration_agent_state, run_agent_turn
+from ama.migration_agent import agent_tools as migration_agent_tools
 
 try:
     import plotly.express as px
@@ -148,17 +129,7 @@ def _render_planner_tab(report: dict[str, Any]) -> None:
                 continue
         wave_ids_sorted = sorted(wave_ids_num)
         if wave_ids_sorted:
-            wave_pick = st.selectbox(
-                "Selective Generation (dbt Migration tab)",
-                options=[None] + wave_ids_sorted,
-                format_func=lambda x: "—" if x is None else f"Wave {x}",
-                index=0,
-                key="planner_wave_pick",
-            )
-            if st.button("Queue into dbt Migration tab", key="planner_queue_wave"):
-                st.session_state.setdefault("dbt_migration", {})
-                st.session_state["dbt_migration"]["selected_wave_id"] = wave_pick
-                st.success("Queued wave selection. Open the `dbt Migration` tab to continue.")
+            st.caption("Tip: in `Migration Agent`, type `Migrate Wave <id>` to start a wave.")
     st.metric("Migration waves", len(waves))
     if not waves:
         st.info(
@@ -184,6 +155,763 @@ def _render_planner_tab(report: dict[str, Any]) -> None:
                 st.dataframe(pd.DataFrame(tbls), use_container_width=True, hide_index=True)
             else:
                 st.caption("No tables in this wave.")
+
+
+def render_tool_output(tool_name: str, result: Any) -> None:
+    """
+    Migration Agent Intelligence Feed renderer.
+
+    Tool results must NEVER be rendered as raw JSON.
+    """
+    if not isinstance(result, dict):
+        st.write("✅ Command Executed")
+        return
+
+    # Tool execution error payloads
+    if "error" in result and isinstance(result.get("error"), str):
+        with st.expander(f"View Error (tool: {tool_name})", expanded=False):
+            st.error(str(result.get("error")))
+        return
+
+    if tool_name == "list_waves":
+        waves = result.get("waves") if isinstance(result.get("waves"), list) else []
+        rows: list[dict[str, Any]] = []
+        for w in waves:
+            if not isinstance(w, dict):
+                continue
+            tables_val = w.get("tables")
+            if isinstance(tables_val, list):
+                tables_disp = len(tables_val)
+            else:
+                tables_disp = tables_val if tables_val is not None else "—"
+            rows.append(
+                {
+                    "Wave": w.get("wave_id") if w.get("wave_id") is not None else "—",
+                    "Tables": tables_disp,
+                    "Status": str(w.get("status") or "PENDING"),
+                }
+            )
+        st.table(rows if rows else [{"Wave": "—", "Tables": "—", "Status": "—"}])
+        return
+
+    if tool_name == "analyze_schema":
+        ddl_cols = result.get("ddl_columns") if isinstance(result.get("ddl_columns"), list) else []
+        observed_cols = result.get("observed_columns") if isinstance(result.get("observed_columns"), list) else []
+        inferred_types = result.get("inferred_types") if isinstance(result.get("inferred_types"), dict) else {}
+        cols: list[str] = []
+        for c in list(ddl_cols) + list(observed_cols):
+            if isinstance(c, str) and c.strip():
+                cols.append(c.strip())
+        cols = list(dict.fromkeys(cols))
+
+        sample_rows = result.get("sample_rows") if isinstance(result.get("sample_rows"), list) else []
+        first_row = sample_rows[0] if sample_rows and isinstance(sample_rows[0], dict) else {}
+        sample_unavailable = not sample_rows and bool(result.get("sample_rows_warning"))
+        rows1: list[dict[str, Any]] = []
+        for col in cols[:30]:
+            sample_val = first_row.get(col) if isinstance(first_row, dict) else None
+            if sample_val is None and sample_unavailable:
+                sval = "N/A (source table not available in DuckDB)"
+            else:
+                sval = "" if sample_val is None else str(sample_val)
+            ctype = str(inferred_types.get(col) or "Unknown")
+            rows1.append({"Column Name": col, "Type": ctype, "Sample Value": sval})
+        st.table(rows1 if rows1 else [{"Column Name": "—", "Type": "—", "Sample Value": ""}])
+
+        hebrew_columns = result.get("hebrew_columns")
+        if isinstance(hebrew_columns, list) and hebrew_columns:
+            rows2: list[dict[str, Any]] = []
+            for r in hebrew_columns:
+                if not isinstance(r, dict):
+                    continue
+                rows2.append(
+                    {
+                        "Hebrew Name": r.get("hebrew_name") or "—",
+                        "English Alias": r.get("english_alias") or "—",
+                        "Source": r.get("source") or "—",
+                    }
+                )
+            if rows2:
+                st.table(rows2)
+
+        if result.get("sample_rows_warning"):
+            with st.expander("Notes", expanded=False):
+                warn_kind = str(result.get("sample_rows_warning_kind") or "")
+                if warn_kind == "source_table_missing":
+                    st.info(
+                        "Live source rows are not available in local DuckDB for this table. "
+                        "Showing synthetic sample values inferred from DDL."
+                    )
+                else:
+                    st.warning("DuckDB sample-row query failed. Showing fallback sample values.")
+                if str(result.get("sample_rows_source") or "") == "synthetic_from_ddl":
+                    st.caption("Showing synthetic sample values inferred from DDL columns.")
+                with st.expander("Technical details", expanded=False):
+                    st.code(str(result.get("sample_rows_warning") or ""), language="text")
+        return
+
+    if tool_name == "propose_dbt_model":
+        table_key = str(result.get("table_key") or "—")
+        model_name = str(result.get("model_name") or "—")
+        st.markdown(f"**Proposed dbt model**: `{model_name}`")
+        st.caption(f"Source table: `{table_key}`")
+        st.caption("SQL Draft")
+        sql = str(result.get("sql") or "")
+        st.code(sql, language="sql")
+
+        conf = float(result.get("generation_confidence") or 0.0)
+        mode = str(result.get("generation_mode") or "legacy")
+        st.caption("Generation Summary")
+        st.table([{"Confidence": f"{conf:.2f}", "Generation Mode": mode}])
+
+        mapping_rows = result.get("mapping_rows") if isinstance(result.get("mapping_rows"), list) else []
+        if mapping_rows:
+            low_cnt = 0
+            top_rows: list[dict[str, Any]] = []
+            for r in mapping_rows:
+                if not isinstance(r, dict):
+                    continue
+                c = r.get("confidence")
+                try:
+                    c_val = float(c) if c is not None else None
+                except (TypeError, ValueError):
+                    c_val = None
+                if c_val is not None and c_val < 0.8:
+                    low_cnt += 1
+                if len(top_rows) < 8:
+                    top_rows.append(
+                        {
+                            "Hebrew": r.get("hebrew_name") or "—",
+                            "Alias": r.get("english_alias") or "—",
+                            "Source": r.get("source") or "—",
+                            "Conf": "" if c_val is None else f"{c_val:.2f}",
+                        }
+                    )
+            st.caption(
+                f"Mapping summary: showing {min(8, len(mapping_rows))}/{len(mapping_rows)} rows (low conf: {low_cnt})."
+            )
+            st.table(top_rows)
+        return
+
+    if tool_name == "execute_dbt_test":
+        model_name = str(result.get("model_name") or result.get("model") or "model")
+        success = bool(result.get("success"))
+        if success:
+            st.success(f"✅ **{model_name}** passed")
+        else:
+            st.error("❌ Test failed")
+            logs = str(result.get("logs") or "")
+            with st.expander("View Error Log", expanded=False):
+                st.code(logs or "-- no logs", language="text")
+        return
+
+    if tool_name == "apply_fix":
+        corrected_sql = str(result.get("corrected_sql") or "")
+        st.code(corrected_sql, language="sql")
+        st.write(str(result.get("error_analysis") or ""))
+
+        conf = float(result.get("confidence") or 0.0)
+        badge = "🔴"
+        if conf >= 0.8:
+            badge = "🟢"
+        elif conf >= 0.6:
+            badge = "🟠"
+        st.caption(f"Fix confidence: {badge} {conf:.2f}")
+        return
+
+    if tool_name == "request_write_permission":
+        pending = result.get("pending_write") if isinstance(result.get("pending_write"), dict) else {}
+        sql = str(pending.get("sql") or result.get("sql") or "")
+        st.code(sql, language="sql")
+        return
+
+    st.success("✅ Command Executed")
+
+
+def _build_intelligence_feed(messages: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    feed = {
+        "waves": [],
+        "schema": [],
+        "proposals": [],
+        "tests": [],
+        "fixes": [],
+    }
+    for msg in messages:
+        if not isinstance(msg, dict) or str(msg.get("role") or "") != "tool":
+            continue
+        tool_name = str(msg.get("tool_name") or "")
+        res = msg.get("tool_result")
+        if not isinstance(res, dict):
+            continue
+        if tool_name == "list_waves":
+            for w in res.get("waves") or []:
+                if isinstance(w, dict):
+                    feed["waves"].append(
+                        {
+                            "Wave": w.get("wave_id"),
+                            "Tables": len(w.get("tables") or []),
+                            "Status": w.get("status") or "PENDING",
+                        }
+                    )
+        elif tool_name == "analyze_schema":
+            feed["schema"].append(
+                {
+                    "Table": res.get("table_key") or "—",
+                    "DDL Columns": len(res.get("ddl_columns") or []),
+                    "Observed Columns": len(res.get("observed_columns") or []),
+                    "Sample Rows": len(res.get("sample_rows") or []),
+                    "Note": "DDL only" if bool(res.get("sample_rows_warning")) else "",
+                }
+            )
+        elif tool_name == "propose_dbt_model":
+            feed["proposals"].append(
+                {
+                    "Table": res.get("table_key") or "—",
+                    "Model": res.get("model_name") or "—",
+                    "Confidence": f"{float(res.get('generation_confidence') or 0.0):.2f}",
+                    "Mode": res.get("generation_mode") or "legacy",
+                    "Mappings": len(res.get("mapping_rows") or []),
+                }
+            )
+        elif tool_name == "execute_dbt_test":
+            feed["tests"].append(
+                {
+                    "Model": res.get("model_name") or res.get("model") or "—",
+                    "Success": bool(res.get("success")),
+                    "Return Code": res.get("return_code"),
+                }
+            )
+        elif tool_name == "apply_fix":
+            conf = float(res.get("confidence") or 0.0)
+            feed["fixes"].append(
+                {
+                    "Model": res.get("model_name") or "—",
+                    "Confidence": f"{conf:.2f}",
+                    "Status": "ready" if bool(res.get("corrected_sql")) else "empty",
+                }
+            )
+    return feed
+
+
+def _extract_wave_scope_from_messages(messages: list[dict[str, Any]]) -> tuple[int | None, dict[str, str]]:
+    """
+    Best-effort parse of target wave + table scope from recent user prompt and list_waves result.
+    """
+    import re
+
+    selected_wave: int | None = None
+    for msg in reversed(messages):
+        if not isinstance(msg, dict):
+            continue
+        if str(msg.get("role") or "") != "user":
+            continue
+        text = str(msg.get("content") or "").lower()
+        m = re.search(r"\bwave\s+(\d+)\b", text)
+        if m:
+            try:
+                selected_wave = int(m.group(1))
+            except ValueError:
+                selected_wave = None
+            break
+
+    model_to_table: dict[str, str] = {}
+    for msg in reversed(messages):
+        if not isinstance(msg, dict):
+            continue
+        if str(msg.get("role") or "") != "tool" or str(msg.get("tool_name") or "") != "list_waves":
+            continue
+        res = msg.get("tool_result")
+        if not isinstance(res, dict):
+            continue
+        waves = res.get("waves")
+        if not isinstance(waves, list):
+            continue
+        for w in waves:
+            if not isinstance(w, dict):
+                continue
+            try:
+                wid = int(w.get("wave_id"))
+            except (TypeError, ValueError):
+                continue
+            if selected_wave is not None and wid != selected_wave:
+                continue
+            for t in w.get("tables") or []:
+                if isinstance(t, str) and t.strip():
+                    table_key = t.strip()
+                    model_to_table[table_key.replace(".", "_")] = table_key
+            if selected_wave is not None:
+                break
+        break
+    return selected_wave, model_to_table
+
+
+def _build_review_steps(messages: list[dict[str, Any]], model_name: str) -> list[dict[str, Any]]:
+    """
+    Build ordered, per-model review steps from tool messages.
+    """
+    model_name = str(model_name or "").strip()
+    out: list[dict[str, Any]] = []
+    for msg in messages:
+        if not isinstance(msg, dict) or str(msg.get("role") or "") != "tool":
+            continue
+        tool_name = str(msg.get("tool_name") or "")
+        result = msg.get("tool_result")
+        if not isinstance(result, dict):
+            continue
+
+        tkey = str(result.get("table_key") or "")
+        mkey = str(result.get("model_name") or result.get("model") or "")
+
+        # Match by model name or table-derived model name.
+        table_model = tkey.replace(".", "_") if tkey else ""
+        if model_name and model_name not in {mkey, table_model}:
+            # Keep request_write_permission for current model even if wrapper shape differs.
+            pending = result.get("pending_write") if isinstance(result.get("pending_write"), dict) else {}
+            if str(pending.get("model_name") or "") != model_name:
+                continue
+
+        if tool_name in {"analyze_schema", "propose_dbt_model", "execute_dbt_test", "apply_fix", "request_write_permission"}:
+            out.append({"tool_name": tool_name, "result": result})
+    return out
+
+
+def _review_step_meta(tool_name: str) -> tuple[str, str]:
+    mapping = {
+        "analyze_schema": ("Schema Check", "Validate columns and sample values for source context."),
+        "propose_dbt_model": ("SQL Proposal", "Review generated dbt SQL draft and confidence."),
+        "execute_dbt_test": ("dbt Test Result", "Confirm whether the generated model passes dbt tests."),
+        "apply_fix": ("Fix Suggestion", "Review AI-proposed correction after a failing test."),
+        "request_write_permission": ("Write Approval", "Final human gate before writing SQL to disk."),
+    }
+    return mapping.get(tool_name, ("Review", "Inspect tool output and decide whether to proceed."))
+
+
+def _render_migration_agent_tab(report: dict[str, Any]) -> None:
+    st.subheader("Migration Agent")
+    st.session_state.setdefault(
+        "migration_agent",
+        {
+            "messages": [],
+            "pending_write": None,
+            "tokens_used_total": 0,
+            "cost_est_total": 0.0,
+            "model_status_by_name": {},
+            "dialect": "duckdb",
+            "report_path": str(Path(get_env("AMA_REPORT_PATH", "")).resolve()) if get_env("AMA_REPORT_PATH", "").strip() else "",
+            "dbt_project_dir": str(Path(".").resolve()),
+            "output_dir": str(Path("models/ama_generated").resolve()),
+            "glossary_path": "",
+            "sample_row_cap": 10,
+            "manual_edit_mode": False,
+            "proceed_to_gate": False,
+            "review_step_idx": 0,
+            "review_model_name": "",
+        },
+    )
+    state: dict[str, Any] = init_migration_agent_state(st.session_state["migration_agent"])
+
+    if not has_openai_api_key():
+        st.warning("Set `AMA_OPENAI_API_KEY` (or `OPENAI_API_KEY`) to enable Migration Agent chat.")
+
+    info_c1, info_c2 = st.columns([1, 3])
+    info_c1.caption(f"tokens_used: `{int(state.get('tokens_used_total') or 0)}`")
+    info_c2.caption(f"cost_est: `${float(state.get('cost_est_total') or 0.0):.4f}`")
+    state["dialect"] = st.selectbox(
+        "Dialect",
+        options=["duckdb", "snowflake", "bigquery", "redshift"],
+        index=["duckdb", "snowflake", "bigquery", "redshift"].index(str(state.get("dialect") or "duckdb")),
+        key="migration_agent_dialect",
+    )
+
+    with st.expander("⚙️ Settings", expanded=False):
+        state["report_path"] = st.text_input(
+            "Report Path",
+            value=str(state.get("report_path") or ""),
+            placeholder="path/to/report.json",
+            key="migration_agent_report_path",
+        )
+        state["dbt_project_dir"] = st.text_input(
+            "dbt Project Dir",
+            value=str(state.get("dbt_project_dir") or ""),
+            placeholder=".",
+            key="migration_agent_dbt_project_dir",
+        )
+        state["output_dir"] = st.text_input(
+            "Output Directory",
+            value=str(state.get("output_dir") or ""),
+            placeholder="models/ama_generated",
+            key="migration_agent_output_dir",
+        )
+        state["glossary_path"] = st.text_input(
+            "Glossary Path (optional)",
+            value=str(state.get("glossary_path") or ""),
+            placeholder="path/to/glossary.json",
+            key="migration_agent_glossary_path",
+        )
+        state["sample_row_cap"] = int(
+            st.number_input(
+                "Sample Rows",
+                min_value=1,
+                max_value=50,
+                value=int(state.get("sample_row_cap") or 10),
+                step=1,
+                key="migration_agent_sample_row_cap",
+            )
+        )
+
+    report_path = Path(str(state.get("report_path") or "")).expanduser().resolve()
+    if not report_path.is_file():
+        report_path = Path(str(state.get("report_path") or ".")).expanduser().resolve()
+    dbt_project_dir = Path(str(state.get("dbt_project_dir") or ".")).expanduser().resolve()
+    output_dir = Path(str(state.get("output_dir") or "models/ama_generated")).expanduser().resolve()
+    glossary_path_raw = str(state.get("glossary_path") or "").strip()
+    glossary_path = Path(glossary_path_raw).expanduser().resolve() if glossary_path_raw else None
+
+    feed = _build_intelligence_feed(state.get("messages") or [])
+    selected_wave, wave_models = _extract_wave_scope_from_messages(state.get("messages") or [])
+    st.markdown("### Intelligence Feed")
+    # Keep feed compact and decision-oriented (no raw tool-by-tool chatter).
+    if feed["proposals"] or feed["tests"] or feed["fixes"] or feed["schema"]:
+        model_status: dict[str, dict[str, str]] = {}
+        for row in feed["proposals"]:
+            m = str(row.get("Model") or "—")
+            model_status.setdefault(m, {})
+            model_status[m]["Proposed"] = "✅"
+            model_status[m]["Confidence"] = str(row.get("Confidence") or "—")
+        for row in feed["schema"]:
+            t = str(row.get("Table") or "—").replace(".", "_")
+            model_status.setdefault(t, {})
+            model_status[t]["Schema Analyzed"] = "✅"
+        for row in feed["tests"]:
+            m = str(row.get("Model") or "—")
+            model_status.setdefault(m, {})
+            model_status[m]["Test"] = "✅" if bool(row.get("Success")) else "❌"
+        for row in feed["fixes"]:
+            m = str(row.get("Model") or "—")
+            model_status.setdefault(m, {})
+            model_status[m]["Fix"] = "✅"
+
+        matrix_rows: list[dict[str, Any]] = []
+        for model_name in sorted(model_status.keys()):
+            item = model_status.get(model_name, {})
+            matrix_rows.append(
+                {
+                    "Model": model_name,
+                    "Schema": item.get("Schema Analyzed", "—"),
+                    "Proposed": item.get("Proposed", "—"),
+                    "Test": item.get("Test", "—"),
+                    "Fix": item.get("Fix", "—"),
+                    "Confidence": item.get("Confidence", "—"),
+                }
+            )
+        st.table(matrix_rows[:30] if matrix_rows else [{"Model": "—", "Schema": "—", "Proposed": "—", "Test": "—", "Fix": "—", "Confidence": "—"}])
+
+        # Wave progress bar (e.g. 1/2) when a wave scope is known.
+        if wave_models:
+            completed = 0
+            for model_name in wave_models.keys():
+                item = model_status.get(model_name, {})
+                if item.get("Test") == "✅":
+                    completed += 1
+            total = len(wave_models)
+            progress = float(completed / max(1, total))
+            label = f"{completed}/{total}"
+            if selected_wave is not None:
+                st.caption(f"Wave {selected_wave} progress: {label}")
+            else:
+                st.caption(f"Wave progress: {label}")
+            st.progress(progress)
+    elif feed["waves"]:
+        # If only waves exist, show one concise waves table.
+        st.table(feed["waves"][-10:])
+
+    pending_write = state.get("pending_write")
+    if isinstance(pending_write, dict) and pending_write.get("model_name"):
+        current_model = str(pending_write.get("model_name") or "")
+        if str(state.get("review_model_name") or "") != current_model:
+            state["review_model_name"] = current_model
+            state["review_step_idx"] = 0
+
+        review_steps = _build_review_steps(state.get("messages") or [], current_model)
+        max_idx = max(0, len(review_steps) - 1)
+        try:
+            step_idx = int(state.get("review_step_idx") or 0)
+        except (TypeError, ValueError):
+            step_idx = 0
+        step_idx = min(max(0, step_idx), max_idx)
+        state["review_step_idx"] = step_idx
+
+        if not bool(state.get("proceed_to_gate", False)):
+            st.info("Review step-by-step, then proceed to migration gate.")
+            if review_steps:
+                st.caption(f"Review Step {step_idx + 1}/{len(review_steps)} for `{current_model}`")
+                cur = review_steps[step_idx]
+                tool_name = str(cur.get("tool_name") or "")
+                result = cur.get("result")
+                step_title, step_help = _review_step_meta(tool_name)
+                st.markdown(f"**{step_title}**")
+                st.caption(step_help)
+                with st.container():
+                    render_tool_output(tool_name, result)
+                nav1, nav2 = st.columns(2)
+                if nav1.button("◀ Previous Step", key="migration_agent_prev_review_step", disabled=step_idx <= 0):
+                    state["review_step_idx"] = max(0, step_idx - 1)
+                    st.rerun()
+                if nav2.button("Next Step ▶", key="migration_agent_next_review_step", disabled=step_idx >= max_idx):
+                    state["review_step_idx"] = min(max_idx, step_idx + 1)
+                    st.rerun()
+
+            cgo1, cgo2 = st.columns(2)
+            if cgo1.button("Proceed to Migration Gate", key="migration_agent_go_gate"):
+                state["proceed_to_gate"] = True
+                st.rerun()
+            if cgo2.button("Keep Reviewing", key="migration_agent_keep_review"):
+                # Explicit keep-review action advances one step to guide users progressively.
+                if review_steps:
+                    state["review_step_idx"] = min(max_idx, step_idx + 1)
+                    st.rerun()
+            return
+        model_name = str(pending_write.get("model_name") or "")
+        st.markdown(f"### Review & Approve: `{model_name}`")
+        st.code(str(pending_write.get("sql") or ""), language="sql")
+        mapping_rows = pending_write.get("mapping_rows")
+        if not isinstance(mapping_rows, list) or not mapping_rows:
+            # Fallback: reuse mapping rows from the last `propose_dbt_model` tool output.
+            for msg in reversed(state.get("messages") or []):
+                if not isinstance(msg, dict):
+                    continue
+                if msg.get("role") != "tool" or str(msg.get("tool_name") or "") != "propose_dbt_model":
+                    continue
+                tr = msg.get("tool_result")
+                if isinstance(tr, dict) and isinstance(tr.get("mapping_rows"), list):
+                    mapping_rows = tr.get("mapping_rows")
+                    break
+
+        if isinstance(mapping_rows, list) and mapping_rows:
+            heb_rows = [
+                r
+                for r in mapping_rows
+                if isinstance(r, dict) and any("\u0590" <= ch <= "\u05FF" for ch in str(r.get("hebrew_name") or ""))
+            ]
+            if heb_rows:
+                rows: list[dict[str, Any]] = []
+                for r in heb_rows:
+                    rows.append(
+                        {
+                            "Hebrew Name": r.get("hebrew_name") or "—",
+                            "English Alias": r.get("english_alias") or "—",
+                            "Source": r.get("source") or "—",
+                        }
+                    )
+                st.table(rows[:30])
+        edit_mode = bool(state.get("manual_edit_mode", False))
+        if not edit_mode:
+            if st.button("Manual Edit ✏️", key="migration_agent_manual_edit"):
+                state["manual_edit_mode"] = True
+                st.rerun()
+        edited_sql = str(pending_write.get("sql") or "")
+        if bool(state.get("manual_edit_mode", False)):
+            edited_sql = st.text_area(
+                "Edit SQL before writing",
+                value=str(pending_write.get("sql") or ""),
+                height=200,
+                key=f"migration_agent_edit_sql_{model_name}",
+            )
+
+        btn1, btn2, btn3 = st.columns(3)
+        if btn1.button("Approve ✅", key="migration_agent_approve_write"):
+            sql_to_write = edited_sql if bool(state.get("manual_edit_mode", False)) else str(pending_write.get("sql") or "")
+            schema_yml = str(pending_write.get("schema_yml") or "")
+            output_dir.mkdir(parents=True, exist_ok=True)
+            sql_path = output_dir / f"{model_name}.sql"
+            schema_path = output_dir / f"{model_name}.schema.yml"
+            try:
+                sql_path.write_text(sql_to_write.rstrip() + "\n", encoding="utf-8")
+                if schema_yml.strip():
+                    schema_path.write_text(schema_yml, encoding="utf-8")
+            except OSError as exc:
+                st.error(f"Write failed: {exc}")
+                return
+
+            with st.status("Agent is working...", expanded=True) as status:
+                status.write(f"Running dbt test on {model_name}")
+                test_result = migration_agent_tools.test_model(
+                    dbt_project_dir=dbt_project_dir,
+                    model_name=model_name,
+                )
+                state["model_status_by_name"][model_name] = "SUCCESS" if bool(test_result.get("success")) else "HITL_REQUIRED"
+                state["pending_write"] = None
+                state["manual_edit_mode"] = False
+                if not bool(test_result.get("success")):
+                    status.write(f"Running Fix Agent on {model_name}")
+                    fix = migration_agent_tools.apply_fix(
+                        dbt_project_dir=dbt_project_dir,
+                        model_name=model_name,
+                        error_log=str(test_result.get("logs") or ""),
+                        attempt_history=[],
+                    )
+                    corrected_sql = str(fix.get("corrected_sql") or "")
+                    if corrected_sql.strip():
+                        pending = migration_agent_tools.request_write_permission(
+                            model=model_name,
+                            sql=corrected_sql,
+                            mapping_rows=mapping_rows if isinstance(mapping_rows, list) else None,
+                        ).get("pending_write") or {}
+                        state["pending_write"] = pending
+                    state.setdefault("messages", []).append(
+                        {
+                            "role": "tool",
+                            "tool_name": "apply_fix",
+                            "tool_result": fix,
+                            "content": json.dumps({"tool_name": "apply_fix", "result": fix}, ensure_ascii=False),
+                        }
+                    )
+                else:
+                    run_agent_turn(
+                        state=state,
+                        report=report,
+                        report_path=report_path,
+                        dbt_project_dir=dbt_project_dir,
+                        output_dir=output_dir,
+                        glossary_path=glossary_path,
+                        tool_result_message={
+                            "tool_name": "execute_dbt_test",
+                            "result": test_result,
+                        },
+                        sample_row_cap=int(state.get("sample_row_cap") or 10),
+                        default_dialect=str(state.get("dialect") or "duckdb"),
+                    )
+                    # Auto-continue wave migration: if this model passed and there are
+                    # remaining tables in the selected wave, precompute the next model
+                    # and open its write gate without requiring another user prompt.
+                    selected_wave, wave_models = _extract_wave_scope_from_messages(state.get("messages") or [])
+                    if wave_models:
+                        completed_models = {
+                            str(k): str(v)
+                            for k, v in (state.get("model_status_by_name") or {}).items()
+                            if str(v) == "SUCCESS"
+                        }
+                        remaining = [m for m in sorted(wave_models.keys()) if m not in completed_models]
+                        if remaining and not state.get("pending_write"):
+                            next_model = remaining[0]
+                            next_table = wave_models.get(next_model) or next_model.replace("_", ".", 1)
+                            status.write(f"Preparing next table in wave: {next_table}")
+                            try:
+                                schema_out = migration_agent_tools.analyze_schema(
+                                    report=report,
+                                    report_path=report_path,
+                                    table=next_table,
+                                    duckdb_path=dbt_project_dir / "target" / "duckdb.db",
+                                    sample_row_cap=int(state.get("sample_row_cap") or 10),
+                                )
+                                state.setdefault("messages", []).append(
+                                    {
+                                        "role": "tool",
+                                        "tool_name": "analyze_schema",
+                                        "tool_result": schema_out,
+                                        "content": json.dumps({"tool_name": "analyze_schema", "result": schema_out}, ensure_ascii=False),
+                                    }
+                                )
+                                proposal = migration_agent_tools.propose_dbt_model(
+                                    report=report,
+                                    report_path=report_path,
+                                    table=next_table,
+                                    dialect=str(state.get("dialect") or "duckdb"),
+                                    glossary_path=glossary_path,
+                                )
+                                state.setdefault("messages", []).append(
+                                    {
+                                        "role": "tool",
+                                        "tool_name": "propose_dbt_model",
+                                        "tool_result": proposal,
+                                        "content": json.dumps({"tool_name": "propose_dbt_model", "result": proposal}, ensure_ascii=False),
+                                    }
+                                )
+                                pending = migration_agent_tools.request_write_permission(
+                                    model=str(proposal.get("model_name") or next_model),
+                                    sql=str(proposal.get("sql") or ""),
+                                    schema_yml=str(proposal.get("schema_yml") or ""),
+                                    mapping_rows=proposal.get("mapping_rows") if isinstance(proposal.get("mapping_rows"), list) else None,
+                                ).get("pending_write") or {}
+                                state["pending_write"] = pending
+                                state["review_model_name"] = str(pending.get("model_name") or next_model)
+                                state["review_step_idx"] = 0
+                                state["proceed_to_gate"] = False
+                                state.setdefault("messages", []).append(
+                                    {
+                                        "role": "assistant",
+                                        "content": f"Prepared next table in Wave {selected_wave or ''}: {next_table}. Review and approve when ready.",
+                                    }
+                                )
+                            except Exception as exc:
+                                state.setdefault("messages", []).append(
+                                    {
+                                        "role": "assistant",
+                                        "content": f"Auto-continue failed for next table ({next_table}): {exc}",
+                                    }
+                                )
+                status.update(label="Done", state="complete")
+                state["proceed_to_gate"] = False
+            st.rerun()
+
+        if btn2.button("Skip ⏭️", key="migration_agent_cancel_write"):
+            state["pending_write"] = None
+            state["manual_edit_mode"] = False
+            state["proceed_to_gate"] = False
+            with st.status("Agent is working...", expanded=False) as status:
+                run_agent_turn(
+                    state=state,
+                    report=report,
+                    report_path=report_path,
+                    dbt_project_dir=dbt_project_dir,
+                    output_dir=output_dir,
+                    glossary_path=glossary_path,
+                    tool_result_message={
+                        "tool_name": "request_write_permission",
+                        "approved": False,
+                        "message": "User cancelled write.",
+                    },
+                    sample_row_cap=int(state.get("sample_row_cap") or 10),
+                    default_dialect=str(state.get("dialect") or "duckdb"),
+                )
+                status.update(label="Done", state="complete")
+            st.rerun()
+        if btn3.button("Manual Edit ✏️", key="migration_agent_manual_edit_alt"):
+            state["manual_edit_mode"] = True
+            st.rerun()
+
+    # Chat stream: show only user/assistant conversation; tool chatter is summarized
+    # in the Intelligence Feed to keep wave-level migration readable.
+    for msg in state.get("messages", []):
+        if not isinstance(msg, dict):
+            continue
+        role = str(msg.get("role") or "")
+        if role == "system":
+            continue
+        if role == "tool":
+            continue
+        avatar = "🤖" if role == "assistant" else "👤"
+        with st.chat_message(role, avatar=avatar):
+            st.write(str(msg.get("content") or ""))
+
+    user_prompt = st.chat_input("Try: Migrate Wave 1")
+    if user_prompt:
+        with st.status("Agent is working...", expanded=True) as status:
+            status.write("Planning next migration actions")
+            run_agent_turn(
+                state=state,
+                report=report,
+                report_path=report_path,
+                dbt_project_dir=dbt_project_dir,
+                output_dir=output_dir,
+                glossary_path=glossary_path,
+                user_message=str(user_prompt),
+                sample_row_cap=int(state.get("sample_row_cap") or 10),
+                on_tool_start=lambda name: status.write(f"Running tool: {name}"),
+                default_dialect=str(state.get("dialect") or "duckdb"),
+            )
+            status.update(label="Done", state="complete")
+        st.rerun()
 
 
 def _render_dbt_migration_tab(report: dict[str, Any]) -> None:
@@ -1476,7 +2204,7 @@ def main() -> None:
             "Tables",
             "Data quality",
             "Review (HITL)",
-            "dbt Migration",
+            "Migration Agent",
         ]
     )
 
@@ -2359,7 +3087,7 @@ search over every raw SQL line in the logs.
             st.caption("Submit is disabled when no local `report_path_resolved` exists (upload mode).")
 
     with tabs[8]:
-        _render_dbt_migration_tab(report)
+        _render_migration_agent_tab(report)
 
     st.divider()
     st.caption(
