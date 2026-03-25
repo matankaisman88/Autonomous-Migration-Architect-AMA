@@ -1,0 +1,512 @@
+# AMA dbt Migration Guide
+
+This guide documents the `ama-ingest generate-dbt` workflow for transforming AMA report metadata into executable dbt models with HITL gating and controlled execution.
+
+## Workflow Overview
+
+At a high level, `generate-dbt` performs a two-phase flow:
+
+1. Validate runtime `TARGET_DIALECT`.
+2. Read AMA report inventory/lineage and optional glossary.
+3. Build model SQL (or broken-lineage stubs) and schema artifacts.
+4. Produce **Checkpoint A** payload for mandatory human review.
+5. After explicit approval, write model files and optionally execute `dbt run` + `dbt test`.
+6. On failure, enter fix loop (bounded retries); route exhausted failures to DLQ.
+
+## CLI Reference
+
+Command:
+
+```bash
+# Bash / Git Bash
+ama-ingest generate-dbt \
+  --report REPORT.json \
+  --target-dialect duckdb \
+  --output-dir models/ama_generated
+```
+
+```powershell
+# PowerShell (Windows)
+ama-ingest generate-dbt `
+  --report REPORT.json `
+  --target-dialect duckdb `
+  --output-dir models/ama_generated
+```
+
+| Flag | Required | Type | Description |
+| --- | --- | --- | --- |
+| `--report` | Yes | `str` | Path to AMA report JSON. |
+| `--target-dialect` | Yes | `str` | Runtime target dialect. Supported: `duckdb`, `snowflake`, `bigquery`, `redshift`. |
+| `--glossary` | No | `str` | Path to AMA glossary JSON for Hebrew-English mapping. |
+| `--output-dir` | No | `str` | Output dbt models directory. Equivalent to `--models-dir` in current CLI wiring. |
+| `--dbt-project-dir` | No | `str` | dbt project root. Default: parent of `--models-dir`. |
+| `--approve-checkpoint-a` | No | flag | Approves Checkpoint A and allows artifact write/execution. |
+| `--run-dbt` | No | flag | Runs `dbt run` and `dbt test` after approval. |
+
+Example (generate only, hold for review):
+
+```bash
+# Bash / Git Bash
+ama-ingest generate-dbt \
+  --report sample_data/kfar_supply/kfar_report.json \
+  --target-dialect duckdb \
+  --glossary sample_data/kfar_supply/glossary/kfar_glossary.json \
+  --output-dir models/ama_generated
+```
+
+```powershell
+# PowerShell (Windows)
+ama-ingest generate-dbt `
+  --report sample_data/kfar_supply/kfar_report.json `
+  --target-dialect duckdb `
+  --glossary sample_data/kfar_supply/glossary/kfar_glossary.json `
+  --output-dir models/ama_generated
+```
+
+Example (approve and execute):
+
+```bash
+# Bash / Git Bash
+ama-ingest generate-dbt \
+  --report sample_data/kfar_supply/kfar_report.json \
+  --target-dialect duckdb \
+  --approve-checkpoint-a \
+  --run-dbt \
+  --dbt-project-dir .
+```
+
+```powershell
+# PowerShell (Windows)
+ama-ingest generate-dbt `
+  --report sample_data/kfar_supply/kfar_report.json `
+  --target-dialect duckdb `
+  --approve-checkpoint-a `
+  --run-dbt `
+  --dbt-project-dir .
+```
+
+## Checkpoint A
+
+Checkpoint A is a mandatory intermediate state that exposes generation artifacts before execution.
+
+### Why it exists
+
+- Prevents execution before human validation.
+- Surfaces mapping fallbacks and unresolved lineage early.
+- Creates a deterministic handoff for corrections/rework.
+
+### JSON example
+
+```json
+{
+  "wave_summary": "Wave 2: Finance tables prioritized by query volume and lineage dependencies.",
+  "generated_models": [
+    {
+      "table_key": "dbo.orders",
+      "model_name": "dbo_orders",
+      "review_required": false,
+      "is_stub": false,
+      "sql": "{{ config(materialized='view') }}\n\nSELECT ...",
+      "schema_yml": "version: 2\nmodels:\n  - name: dbo_orders\n    columns: []\n"
+    },
+    {
+      "table_key": "ghost_system.payments_archive",
+      "model_name": "ghost_system_payments_archive",
+      "review_required": true,
+      "is_stub": true,
+      "sql": "-- WARNING: UNRESOLVED BROKEN LINEAGE\n...",
+      "schema_yml": "version: 2\nmodels:\n  - name: ghost_system_payments_archive\n    columns: []\n"
+    }
+  ],
+  "mapping_rows": [
+    {
+      "hebrew_name": "סכום_כולל",
+      "english_alias": "total_amount",
+      "source": "Glossary",
+      "warning_flags": []
+    },
+    {
+      "hebrew_name": "תאור",
+      "english_alias": "taor",
+      "source": "Transliteration",
+      "warning_flags": ["[TRANSLITERATION_WARNING]"]
+    }
+  ],
+  "review_required_tables": [
+    "ghost_system.payments_archive",
+    "dbo.customers"
+  ]
+}
+```
+
+### YAML view example
+
+```yaml
+wave_summary: "Wave 2: Finance tables prioritized by query volume and lineage dependencies."
+generated_models:
+  - table_key: "dbo.orders"
+    model_name: "dbo_orders"
+    review_required: false
+    is_stub: false
+  - table_key: "ghost_system.payments_archive"
+    model_name: "ghost_system_payments_archive"
+    review_required: true
+    is_stub: true
+mapping_rows:
+  - hebrew_name: "סכום_כולל"
+    english_alias: "total_amount"
+    source: "Glossary"
+    warning_flags: []
+  - hebrew_name: "תאור"
+    english_alias: "taor"
+    source: "Transliteration"
+    warning_flags:
+      - "[TRANSLITERATION_WARNING]"
+review_required_tables:
+  - "ghost_system.payments_archive"
+  - "dbo.customers"
+```
+
+## DLQ (Dead Letter Queue) Specification
+
+Models rejected after max fix attempts are routed to DLQ.
+
+### Required fields
+
+- `original_payload`
+- `error_reason`
+- `error_stage`
+- `timestamp`
+- `run_id`
+
+### JSONL record format
+
+```json
+{
+  "original_payload": {
+    "model_name": "dbo_orders",
+    "sql": "select ...",
+    "attempt_count": 3
+  },
+  "error_reason": "column does not exist: customer_segment_id",
+  "error_stage": "dbt_run",
+  "timestamp": "2026-03-25T14:32:01.123456+00:00",
+  "run_id": "c8d233ec-79e1-4c3c-a8df-5ef8e3d862d6"
+}
+```
+
+## Localization and Mapping
+
+Mapping uses glossary first, transliteration fallback second.
+
+| Hebrew Name | English Alias | Source | Notes |
+| --- | --- | --- | --- |
+| `סכום_כולל` | `total_amount` | Glossary | Stable business term across wave. |
+| `תאריך_הזמנה` | `order_date` | Glossary | Used for date dimension filters. |
+| `תאור` | `taor` | Transliteration | Flagged with `[TRANSLITERATION_WARNING]` and requires review. |
+
+Business logic example:
+
+```sql
+select
+  "סכום_כולל" as total_amount,
+  cast("תאריך_הזמנה" as date) as order_date
+from "dbo.orders"
+```
+
+## Fix Loop Logic
+
+When `--run-dbt` is enabled:
+
+1. Execute `dbt run` then `dbt test`.
+2. On failure, parse error signatures (`column does not exist`, `type mismatch`, `syntax error`, fallback unknown).
+3. Call patching logic to regenerate SQL for the failed model.
+4. Retry until success or `max_attempts` is reached.
+5. If exhausted, mark model rejected and persist DLQ record.
+
+Status outcomes:
+
+- `SUCCESS`: all models pass.
+- `PARTIAL`: at least one model passes, at least one rejected.
+- `FAILURE`: no models pass or fatal setup failure.
+
+## Checkpoint B (Manual Circuit Breaker)
+
+Checkpoint B is triggered when a model exhausts automatic retry attempts. Instead of immediate DLQ routing, AMA writes a review artifact and pauses the model in `HITL_REQUIRED`.
+
+### Checkpoint B artifact schema
+
+```json
+{
+  "model_name": "orders_model",
+  "current_sql": "select ...",
+  "error_log": "Database Error in model orders_model ...",
+  "attempt_history": [
+    {
+      "timestamp": "2026-03-25T14:01:10.000000+00:00",
+      "error_snippet": "syntax error at or near \"from\"",
+      "action_taken": "retry"
+    },
+    {
+      "timestamp": "2026-03-25T14:01:44.000000+00:00",
+      "error_snippet": "column does not exist: customer_segment_id",
+      "action_taken": "checkpoint_b_generated"
+    }
+  ]
+}
+```
+
+### CLI controls
+
+Approve with fixed SQL:
+
+```bash
+# Bash / Git Bash
+ama-ingest generate-dbt \
+  --report sample_data/kfar_supply/kfar_report.json \
+  --target-dialect duckdb \
+  --dbt-project-dir . \
+  --checkpoint-b-model orders_model \
+  --approve-checkpoint-b ./fixes/my_model.sql
+```
+
+```powershell
+# PowerShell (Windows)
+ama-ingest generate-dbt `
+  --report sample_data/kfar_supply/kfar_report.json `
+  --target-dialect duckdb `
+  --dbt-project-dir . `
+  --checkpoint-b-model orders_model `
+  --approve-checkpoint-b .\fixes\my_model.sql
+```
+
+Minimal form (approval path only):
+
+```bash
+# Bash / Git Bash
+ama-ingest generate-dbt \
+  --checkpoint-b-model orders_model \
+  --approve-checkpoint-b ./fixes/my_model.sql
+```
+
+```powershell
+# PowerShell (Windows)
+ama-ingest generate-dbt `
+  --checkpoint-b-model orders_model `
+  --approve-checkpoint-b .\fixes\my_model.sql
+```
+
+Reject and route to DLQ:
+
+```bash
+# Bash / Git Bash
+ama-ingest generate-dbt \
+  --report sample_data/kfar_supply/kfar_report.json \
+  --target-dialect duckdb \
+  --reject-checkpoint-b orders_model
+```
+
+```powershell
+# PowerShell (Windows)
+ama-ingest generate-dbt `
+  --report sample_data/kfar_supply/kfar_report.json `
+  --target-dialect duckdb `
+  --reject-checkpoint-b orders_model
+```
+
+When rejected from Checkpoint B, DLQ entries use:
+
+- `error_stage: "CHECKPOINT_B_REJECTION"`
+
+## Wave Gating and Orchestration
+
+The execution orchestrator enforces strict wave barriers based on topological dependencies:
+
+- Wave 0: Sources
+- Wave 1: Staging
+- Wave 2: Marts
+
+Wave `N+1` is blocked until Wave `N` meets Definition of Ready.
+
+### Definition of Ready (Wave N)
+
+A wave is ready only when 100% of models in the wave are terminally acceptable:
+
+- `SUCCESS`
+- `PARTIAL`
+
+Blocking states:
+
+- `FIXING`
+- `HITL_REQUIRED`
+- `FAILED`
+
+If a model reaches Checkpoint B (`HITL_REQUIRED`), the pipeline pauses after Wave `N` completion and waits for user action (`--approve-checkpoint-b` or `--bypass-wave`).
+
+### Wave control flags
+
+```bash
+# Bash / Git Bash
+ama-ingest generate-dbt \
+  --report sample_data/kfar_supply/kfar_report.json \
+  --target-dialect duckdb \
+  --run-dbt \
+  --bypass-wave 1
+```
+
+```powershell
+# PowerShell (Windows)
+ama-ingest generate-dbt `
+  --report sample_data/kfar_supply/kfar_report.json `
+  --target-dialect duckdb `
+  --run-dbt `
+  --bypass-wave 1
+```
+
+```bash
+# Bash / Git Bash
+ama-ingest generate-dbt \
+  --report sample_data/kfar_supply/kfar_report.json \
+  --target-dialect duckdb \
+  --run-dbt \
+  --stop-on-first-error
+```
+
+```powershell
+# PowerShell (Windows)
+ama-ingest generate-dbt `
+  --report sample_data/kfar_supply/kfar_report.json `
+  --target-dialect duckdb `
+  --run-dbt `
+  --stop-on-first-error
+```
+
+Bypass behavior:
+
+- `--bypass-wave <wave_id>` skips the integrity gate for that wave.
+- Warning log emitted:
+  - `WARNING: Wave {wave_id} bypassed with incomplete models. Proceeding to Wave {wave_id + 1}.`
+
+## UI Usage Guide (Streamlit)
+
+The Streamlit dashboard can orchestrate the dbt migration lifecycle without manual terminal steps.
+
+### Where to start
+
+1. Launch the dashboard: `ama-dashboard --report-path path/to/report.json`
+2. Open the `dbt Migration` tab.
+3. Configure:
+   - Target Dialect
+   - Report Path
+   - Optional Glossary Path
+   - Output Directory (dbt models output)
+
+#### dbt prerequisites
+- `dbt_project.yml` must exist at the repo root (the app uses generated models under `models/ama_generated`).
+- dbt requires a `profiles.yml` with at least one usable profile/target under `~/.dbt` (or the directory set by `DBT_PROFILES_DIR`).
+- If `~/.dbt/profiles.yml` is missing, the runner will generate a minimal DuckDB template to unblock compilation; you should replace it with your real connection/credentials.
+
+### Flow: Config -> Checkpoint A -> dbt Run -> Checkpoint B -> DLQ
+
+1. **Generate Checkpoint A**: the UI produces per-model SQL + mapping rows but does not write or execute.
+2. **Approve Wave (Checkpoint A)**: the UI writes edited `.sql` + `schema.yml` files for the wave.
+3. **dbt execution**: the UI runs `dbt run` + `dbt test` for all models in the wave with bounded retries.
+4. **Checkpoint B (if needed)**: if any model exhausts automatic retries, the UI pauses and requires manual correction:
+   - Approve with Fix overwrites the failing model `.sql`
+   - Re-executes only that model
+   - Or Route to DLQ creates a DLQ record with `error_stage: "CHECKPOINT_B_REJECTION"`
+5. **DLQ**: the UI provides a searchable viewer for `dlq_records.jsonl` (DLQ Contract fields preserved).
+
+### Async Checkpoint A (Ops Console behavior)
+
+In the `dbt Migration` tab, “Generate Checkpoint A” runs as an async background job:
+
+- Job state persists under `out/checkpoints/jobs/<job_id>.json`
+- Per-model progress is appended to `out/checkpoints/jobs/<job_id>.events.jsonl` (`JOB_TOTAL`, `MODEL_START`, `MODEL_DONE`, `CHECKPOINT_A_SAVED`, …)
+- The resulting `CheckpointAArtifact` is persisted to `out/checkpoints/jobs/<job_id>.checkpoint_a.json`
+- The UI polls job status and can auto-refresh while the job is `RUNNING`
+- Wave execution uses persisted job state as well (background dbt run/test orchestration), polled via lightweight status files under `out/checkpoints/jobs/wave_exec/<job_id>.json` and results under `out/checkpoints/jobs/wave_exec/<job_id>.result.json`
+
+This makes the tab responsive during generation and supports resuming after reruns.
+
+If you change generation logic or want a fresher draft after a bug fix, use the **“Regenerate Draft (queued wave)”** button (Beginner Mode-friendly) to refresh the persisted Checkpoint A artifact for that queued wave.
+
+### Working with AI Agents
+
+The `dbt Migration` tab now exposes agentic generation and fix-loop metadata directly in the UI.
+
+- **Agent badges**
+  - `🤖 AI`: model SQL was accepted from the LLM path.
+  - `⚙️ Legacy`: deterministic fallback was used for stability.
+  - `User Modified`: manual SQL edits were made in the editor; this disables the AI badge for that model.
+- **Confidence interpretation**
+  - `< 60%`: high review risk, treat as manual-review-first.
+  - `60–80%`: medium confidence, validate with targeted dbt tests.
+  - `> 80%`: high confidence, still subject to checkpoint gating and wave dependencies.
+- **Behind the Scenes reasoning**
+  - Each model expander shows Schema Agent and dbt Agent reasoning so reviewers can understand selected columns, aliases, and cast choices.
+- **Semantic Translation confidence**
+  - Mapping rows include per-row confidence for Hebrew->English semantic translation.
+  - Rows with confidence `< 0.8` are flagged as low confidence and contribute to `REVIEW_REQUIRED`.
+- **`[TRANSLITERATION_WARNING]` in agentic mode**
+  - This warning means semantic translation was not confidently resolved and transliteration fallback was retained.
+  - Treat these rows as business-risk items that need glossary validation before production cutover.
+- **Field-level mapping confidence**
+  - Every mapping row includes per-row `confidence` and is visually flagged when `confidence < 0.8`.
+  - `Source=Glossary` mappings are deterministic high confidence (typically `1.0`).
+  - `Source=Transliteration` mappings use a lower baseline confidence (typically `0.55`) and carry `[TRANSLITERATION_WARNING]` for review.
+- **`[DDL_ONLY_WARNING]` (always-show DDL columns)**
+  - Some DDL columns may not be observed in the SQL logs used to derive the draft.
+  - The UI still includes those columns in Checkpoint A mapping (so users can see the full DDL contract), but marks them with `[DDL_ONLY_WARNING]`.
+  - Use these rows as a “coverage gap” indicator: they were pulled from the manifest/DDL rather than log evidence.
+- **Wave intelligence & stress tests**
+  - Each wave includes an “Executive AI Summary”.
+  - The “Run AI Stress Test” button triggers the Scenario Agent across the wave and updates wave health + scenario ideas.
+- **Risk meter & scenario test ideas**
+  - The Risk Meter summarizes structural/performance drift risks and lists “agent concerns”.
+  - Scenario test ideas should be converted into focused `dbt test` assertions.
+- **Synthetic data augmentation (gated)**
+  - Data-Gen runs only after explicit approval and a row-cap limit.
+  - “View Synthetic Dataset” lets you inspect the `complex_mock_data.json` used for validation.
+- **Chat-assisted patch proposals (HITL-only)**
+  - “Chat with Model Agent” returns a SQL patch proposal.
+  - Patch application is manual/HITL-only: the UI proposes, the operator decides.
+- **Checkpoint B Fix-loop UI**
+  - When models are in `HITL_REQUIRED`, the UI shows Fix Agent error analysis and a diff between failed SQL and the AI-suggested correction.
+  - You can apply the AI fix (overwrite failing SQL) or route to DLQ after bounded retries.
+- **Telemetry & cost dashboard**
+  - The UI aggregates `tokens_used` per agent type and estimates total run cost.
+  - It also shows agent performance stats (AI success rate, fix-it rate on first try) and respects fallback mode when the LLM is unavailable.
+
+### AI Validation Flow
+
+The AI Cockpit validation sequence is:
+
+1. **Generation**: Schema/dbt agents produce SQL and reasoning.
+2. **Risk Analysis**: Risk Agent rates model risk and surfaces concerns.
+3. **Scenario & Synthetic Testing**: Scenario Agent generates test ideas; Data-Gen can generate `complex_mock_data.json` after explicit approval and row-cap checks.
+4. **Fix-loop & Final Approval**: wave approval + dbt execution + Checkpoint B Fix-loop (diff + apply) when needed.
+
+### Risk Score Interpretation
+
+- **Low**: No major performance/drift/null concerns detected; proceed with normal tests.
+- **Medium**: One or more concerns require targeted assertions (nulls, duplicates, joins, casts).
+- **High**: Critical structural/performance risk; require manual review and explicit validation scenarios before promotion.
+
+Operational guidance:
+
+- Treat **High** as a release gate for that model/wave.
+- Use Scenario Agent outputs to build focused dbt tests.
+- Prefer manual review when Risk Agent is in fallback mode.
+
+### Wave Tracker Screenshot Placeholder
+
+`[Insert screenshot: Wave Progress Tracker with statuses (SUCCESS/RUNNING/HITL_REQUIRED/PENDING/FAILED)]`
+
+### Checkpoint A Screenshot Placeholder
+
+`[Insert screenshot: per-model SQL editor + mapping table with [TRANSLITERATION_WARNING] highlighting]`
+
+### Checkpoint B Screenshot Placeholder
+
+`[Insert screenshot: failing model error log + current SQL editor + attempt history timeline]`

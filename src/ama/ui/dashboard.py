@@ -10,6 +10,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import queue
+import threading
+import time
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -51,6 +55,28 @@ from ama.ui.report_helpers import (
     load_report_json,
     pct_confirmed_filtered,
 )
+from ama.dbt_migration.writer import write_model_artifacts
+from ama.dbt_migration.runner import (
+    execute_models_with_fix_loop,
+    approve_checkpoint_b_sql,
+    reject_checkpoint_b_to_dlq,
+)
+from ama.dbt_migration.service import run_generate_dbt
+from ama.dbt_migration.service import start_generate_dbt_checkpoint_a_job, poll_generate_dbt_checkpoint_a_job
+from ama.dbt_migration.service import apply_ai_fix_from_checkpoint
+from ama.dbt_migration.service import (
+    analyze_model_risk_and_scenarios,
+    generate_synthetic_data_for_model,
+    propose_sql_patch_from_chat,
+    run_wave_stress_test,
+)
+from ama.dbt_migration.models import (
+    MigrationSessionState,
+    MigrationStatus,
+    ModelRunState,
+    RunnerFinalStatus,
+)
+from ama.env_resolver import get_env, get_openai_model
 
 try:
     import plotly.express as px
@@ -73,7 +99,13 @@ def _render_dq_tab(report: dict[str, Any]) -> None:
         "Report contract checks: boundary validation, **schema_version**, **ingestion_stats**, and discovery inventory. "
         "Aligns with **`ama-ingest dq --report report.json`**."
     )
-    dq = run_dq_suite(report)
+    st.caption("Run the suite against this loaded report.")
+    if "dq_last" not in st.session_state:
+        st.session_state["dq_last"] = None
+    if st.button("Run DQ Checks", key="dq_run_btn"):
+        st.session_state["dq_last"] = run_dq_suite(report)
+
+    dq = st.session_state["dq_last"] or run_dq_suite(report)
     d = dq.to_dict()
     c1, c2, c3 = st.columns(3)
     c1.metric("Suite status", "PASS" if d["ok"] else "FAIL")
@@ -101,6 +133,32 @@ def _render_planner_tab(report: dict[str, Any]) -> None:
         for n in notes:
             st.caption(str(n))
     waves = plan_dict.get("waves") or []
+    if waves:
+        st.markdown("---")
+        wave_ids = []
+        for w in waves:
+            if isinstance(w, dict) and "wave_id" in w:
+                wave_ids.append(w["wave_id"])
+        wave_ids_num: set[int] = set()
+        for x in wave_ids:
+            try:
+                if isinstance(x, (int, float, str)):
+                    wave_ids_num.add(int(x))
+            except (TypeError, ValueError):
+                continue
+        wave_ids_sorted = sorted(wave_ids_num)
+        if wave_ids_sorted:
+            wave_pick = st.selectbox(
+                "Selective Generation (dbt Migration tab)",
+                options=[None] + wave_ids_sorted,
+                format_func=lambda x: "—" if x is None else f"Wave {x}",
+                index=0,
+                key="planner_wave_pick",
+            )
+            if st.button("Queue into dbt Migration tab", key="planner_queue_wave"):
+                st.session_state.setdefault("dbt_migration", {})
+                st.session_state["dbt_migration"]["selected_wave_id"] = wave_pick
+                st.success("Queued wave selection. Open the `dbt Migration` tab to continue.")
     st.metric("Migration waves", len(waves))
     if not waves:
         st.info(
@@ -128,11 +186,985 @@ def _render_planner_tab(report: dict[str, Any]) -> None:
                 st.caption("No tables in this wave.")
 
 
+def _render_dbt_migration_tab(report: dict[str, Any]) -> None:
+    """Interactive wrapper for generating and executing dbt models from an AMA report."""
+    st.subheader("dbt Migration")
+    st.caption(
+        "Zero-terminal flow: generate Checkpoint A, inline edit, approve waves, then resolve Checkpoint B and DLQ."
+    )
+    pricing_map = {
+        "gpt-4o-mini": {"input_per_1k": 0.00015, "output_per_1k": 0.0006},
+        "default": {"input_per_1k": 0.0002, "output_per_1k": 0.0008},
+    }
+
+    def _badge_for_model(model_art: Any, user_modified: bool) -> str:
+        if user_modified:
+            return "🛠️ [User Modified]"
+        mode = str(getattr(model_art, "generation_mode", "legacy")).lower()
+        if mode == "ai":
+            return "🟢 [🤖 AI]"
+        return "⚙️ [Legacy]"
+
+    def _confidence_style(conf: float) -> str:
+        if conf < 0.6:
+            return "🔴"
+        if conf < 0.8:
+            return "🟠"
+        return "🟢"
+
+    def _estimate_cost(total_tokens: int) -> float:
+        model_name = str(get_openai_model("default"))
+        rates = pricing_map.get(model_name, pricing_map["default"])
+        # Approx split since telemetry stores total tokens only.
+        return ((total_tokens / 2) / 1000.0) * rates["input_per_1k"] + ((total_tokens / 2) / 1000.0) * rates["output_per_1k"]
+
+    # Session init
+    st.session_state.setdefault(
+        "dbt_migration",
+        {
+            "target_dialect": "duckdb",
+            "glossary_path": "",
+            "report_path": "",
+            "output_dir": str(Path("models/ama_generated").resolve()),
+            "dbt_project_dir": str(Path(".").resolve()),
+            "checkpoint_dir": str(Path("out/checkpoints").resolve()),
+            "dlq_dir": str(Path("out/dbt_dlq").resolve()),
+            "checkpoint_a": None,
+            "generate_job_id": None,
+            "wave_plan": {},
+            "wave_status": {},
+            "model_status": {},
+            "edited_sql": {},
+            "selected_wave_id": None,
+            "selected_model_name": "",
+            "wave_exec_job_id": None,
+            "wave_exec_job_wave_id": None,
+            "auto_refresh_jobs": True,
+            "beginner_mode": False,
+            "auto_started_checkpoint_a_wave": None,
+            "task": None,
+            "task_error": "",
+            "running_models": [],
+            "user_modified": {},
+        },
+    )
+    state: dict[str, Any] = st.session_state["dbt_migration"]
+
+    disc = report.get("discovery") or {}
+    migration_context = str(report.get("migration_context") or report.get("target_table") or "").strip()
+    if migration_context:
+        st.caption(f"Migration context: `{migration_context}`")
+
+    # Resolve report path if available from sidebar
+    report_path_resolved: Path | None = None
+    default_report_path = get_env("AMA_REPORT_PATH", "").strip()
+    if default_report_path and Path(default_report_path).is_file():
+        report_path_resolved = Path(default_report_path).resolve()
+    # NOTE: When user uploads JSON, we have no stable path; in that case, disable file-based execution.
+    if report_path_resolved is None and not state.get("report_path"):
+        st.warning("To execute writes, set `AMA_REPORT_PATH` in your environment or provide a local report path.")
+
+    with st.expander("Configuration", expanded=True):
+        state["target_dialect"] = st.selectbox(
+            "Target Dialect",
+            options=["duckdb", "snowflake", "bigquery", "redshift"],
+            index=["duckdb", "snowflake", "bigquery", "redshift"].index(str(state.get("target_dialect") or "duckdb")),
+        )
+        if report_path_resolved is not None:
+            state["report_path"] = str(report_path_resolved)
+        state["report_path"] = st.text_input(
+            "Report Path",
+            value=str(state.get("report_path") or ""),
+            placeholder="path/to/report.json",
+        )
+        state["glossary_path"] = st.text_input(
+            "Glossary Path (optional)",
+            value=str(state.get("glossary_path") or ""),
+            placeholder="path/to/glossary.json",
+        )
+        state["output_dir"] = st.text_input(
+            "Output Directory",
+            value=str(state.get("output_dir") or ""),
+            placeholder="models/ama_generated",
+        )
+        state["checkpoint_dir"] = st.text_input(
+            "Checkpoint B Directory",
+            value=str(state.get("checkpoint_dir") or ""),
+            placeholder="out/checkpoints",
+        )
+        state["dlq_dir"] = st.text_input(
+            "DLQ Directory",
+            value=str(state.get("dlq_dir") or ""),
+            placeholder="out/dbt_dlq",
+        )
+        state["dbt_project_dir"] = st.text_input(
+            "dbt Project Dir",
+            value=str(state.get("dbt_project_dir") or "."),
+            placeholder=".",
+        )
+        state["beginner_mode"] = bool(
+            st.checkbox(
+                "Beginner Mode (simplified UI)",
+                value=bool(state.get("beginner_mode", False)),
+                key="dbt_mig_beginner_mode",
+            )
+        )
+        state["auto_refresh_jobs"] = bool(
+            st.checkbox(
+                "Auto refresh while jobs run",
+                value=bool(state.get("auto_refresh_jobs", True)),
+                key="dbt_mig_auto_refresh_jobs",
+            )
+        )
+        bypass_val_default = int(state.get("bypass_wave_id") or 0)
+        bypass_val = st.number_input(
+            "Bypass Wave ID (optional)",
+            min_value=0,
+            step=1,
+            value=bypass_val_default,
+            help="If set (non-zero), the orchestrator skips the integrity gate for this wave and continues to the next wave.",
+        )
+        # Treat 0 as unset.
+        state["bypass_wave_id"] = None if int(bypass_val) == 0 else int(bypass_val)
+
+        # Generate Checkpoint A (no writes unless Checkpoint A approved; this UI uses wave approvals for writes)
+        generate_clicked = st.button("Run generate-dbt (Checkpoint A only)", key="dbt_mig_generate")
+        if generate_clicked:
+            # Clear previous execution state
+            state["checkpoint_a"] = None
+            state["generate_job_id"] = None
+            state["wave_plan"] = {}
+            state["wave_status"] = {}
+            state["model_status"] = {}
+            state["edited_sql"] = {}
+            state["running_models"] = []
+            state["task"] = None
+            state["task_error"] = ""
+            state["auto_started_checkpoint_a_wave"] = None
+
+            rp = Path(str(state.get("report_path") or "")).expanduser().resolve()
+            if not rp.is_file():
+                st.error(f"Report not found: {rp}")
+                return
+            glossary_p = state.get("glossary_path") or ""
+            glossary_path = Path(glossary_p).expanduser().resolve() if glossary_p else None
+
+            models_dir = Path(str(state.get("output_dir") or "")).expanduser().resolve()
+            checkpoint_dir = Path(str(state.get("checkpoint_dir") or "")).expanduser().resolve()
+            dlq_dir = Path(str(state.get("dlq_dir") or "")).expanduser().resolve()
+            dbt_project_dir = Path(str(state.get("dbt_project_dir") or "")).expanduser().resolve()
+
+            job_id, _job_payload = start_generate_dbt_checkpoint_a_job(
+                report_path=rp,
+                glossary_path=glossary_path,
+                target_dialect_raw=str(state["target_dialect"]),
+                dbt_models_dir=models_dir,
+                dbt_project_dir=dbt_project_dir,
+                checkpoint_dir=checkpoint_dir,
+                dlq_dir=dlq_dir,
+                bypass_wave=state.get("bypass_wave_id"),
+                wave_id_filter=(
+                    int(state["selected_wave_id"]) if state.get("selected_wave_id") is not None else None
+                ),
+                stop_on_first_error=False,
+                approve_checkpoint_a=False,
+                run_execution=False,
+            )
+            state["generate_job_id"] = job_id
+            wave_hint = (
+                f" (Wave {state['selected_wave_id']} only)" if state.get("selected_wave_id") is not None else ""
+            )
+            st.success(f"Checkpoint A generation started (job_id={job_id}){wave_hint}.")
+            if state.get("selected_wave_id") is not None:
+                st.caption("Selective generation is active: only the queued wave will be drafted in Checkpoint A.")
+
+        # If the generation logic changes, the mapping preview depends on the persisted
+        # `checkpoint_a` artifact. Provide a beginner-friendly “regenerate” button so
+        # the user can refresh the draft without hunting for internal state.
+        if state.get("selected_wave_id") is not None:
+            if st.button("Regenerate Draft (queued wave)", key="dbt_mig_regen_queued"):
+                state["checkpoint_a"] = None
+                state["generate_job_id"] = None
+                state["wave_plan"] = {}
+                state["wave_status"] = {}
+                state["model_status"] = {}
+                state["edited_sql"] = {}
+                state["running_models"] = []
+                state["task"] = None
+                state["task_error"] = ""
+                state["auto_started_checkpoint_a_wave"] = None
+                st.rerun()
+
+        # Beginner/operator automation:
+        # If Planner queued a specific wave and we have no draft yet, auto-start generation once.
+        queued_wave_id = state.get("selected_wave_id")
+        if queued_wave_id is not None:
+            try:
+                queued_wave_id_int = int(queued_wave_id)
+            except (TypeError, ValueError):
+                queued_wave_id_int = None
+
+            if queued_wave_id_int is not None:
+                if state.get("checkpoint_a") is None and state.get("generate_job_id") is None:
+                    if state.get("auto_started_checkpoint_a_wave") != queued_wave_id_int:
+                        rp = Path(str(state.get("report_path") or "")).expanduser().resolve()
+                        if not rp.is_file():
+                            st.warning("Queued wave detected, but Report Path is missing/invalid.")
+                        else:
+                            glossary_p = state.get("glossary_path") or ""
+                            glossary_path = (
+                                Path(glossary_p).expanduser().resolve() if glossary_p else None
+                            )
+                            models_dir = Path(str(state.get("output_dir") or "")).expanduser().resolve()
+                            checkpoint_dir = Path(str(state.get("checkpoint_dir") or "")).expanduser().resolve()
+                            dlq_dir = Path(str(state.get("dlq_dir") or "")).expanduser().resolve()
+                            dbt_project_dir = Path(str(state.get("dbt_project_dir") or "")).expanduser().resolve()
+
+                            job_id, _job_payload = start_generate_dbt_checkpoint_a_job(
+                                report_path=rp,
+                                glossary_path=glossary_path,
+                                target_dialect_raw=str(state["target_dialect"]),
+                                dbt_models_dir=models_dir,
+                                dbt_project_dir=dbt_project_dir,
+                                checkpoint_dir=checkpoint_dir,
+                                dlq_dir=dlq_dir,
+                                bypass_wave=state.get("bypass_wave_id"),
+                                wave_id_filter=queued_wave_id_int,
+                                stop_on_first_error=False,
+                                approve_checkpoint_a=False,
+                                run_execution=False,
+                            )
+                            state["generate_job_id"] = job_id
+                            state["auto_started_checkpoint_a_wave"] = queued_wave_id_int
+                            st.info(
+                                f"Auto-started Selective Checkpoint A generation for Wave {queued_wave_id_int} "
+                                f"(job_id={job_id})."
+                            )
+                            if bool(state.get("beginner_mode", False)):
+                                st.caption(
+                                    "Beginner Mode: draft generation is automatic; approve waves when ready."
+                                )
+
+    # If generation is in progress, poll once per rerun.
+    if state.get("generate_job_id") and not state.get("checkpoint_a"):
+        checkpoint_dir = Path(str(state.get("checkpoint_dir") or "out/checkpoints")).expanduser().resolve()
+        job, checkpoint_a = poll_generate_dbt_checkpoint_a_job(
+            checkpoint_dir=checkpoint_dir,
+            job_id=str(state["generate_job_id"]),
+        )
+        status = str(job.get("status") or "")
+        completed = int(job.get("completed_models") or 0)
+        total = int(job.get("total_models") or 0)
+        if checkpoint_a is not None:
+            state["checkpoint_a"] = checkpoint_a
+            state["generate_job_id"] = None
+
+            # Compute wave plan from planner (tables in waves -> model_names from artifacts by table_key)
+            plan = AutonomousPlanner().plan_from_report(report, max_tables_per_wave=25, max_waves=50)
+            wave_plan: dict[str, Any] = {}
+            table_to_model = {a.table_key: a.model_name for a in checkpoint_a.generated_models}
+            for w in plan.waves:
+                wid = str(w.wave_id)
+                tables = [t.full_name for t in w.tables if t.full_name in table_to_model]
+                if not tables:
+                    continue
+                models = [table_to_model[t] for t in tables]
+                wave_plan[wid] = {"models": models, "tables": tables}
+
+            state["wave_plan"] = wave_plan
+            artifacts_by_model = {a.model_name: a for a in checkpoint_a.generated_models}
+            # Initialize statuses and SQL buffers for all models in scope.
+            for wid in wave_plan.keys():
+                state["wave_status"][wid] = "PENDING"
+                for m in wave_plan[wid]["models"]:
+                    state["model_status"][m] = "PENDING"
+                    if m in artifacts_by_model:
+                        state["edited_sql"].setdefault(m, artifacts_by_model[m].sql)
+                        state["user_modified"].setdefault(m, False)
+        else:
+            if status.upper() == "FAILED":
+                state["generate_job_id"] = None
+                state["task_error"] = str(job.get("error") or "unknown job failure")
+                st.error(state["task_error"])
+                return
+            st.info(
+                "Generating Checkpoint A... "
+                + (f"{completed}/{total}" if total else f"{completed}/?")
+                + f" models completed (status={status})."
+            )
+            if total:
+                st.progress(min(1.0, completed / max(1, total)))
+            else:
+                st.progress(0.0)
+
+            # Show last progress event if available (helps diagnose “stuck” vs “waiting”).
+            events_path = checkpoint_dir / "jobs" / f"{state['generate_job_id']}.events.jsonl"
+            if events_path.is_file():
+                try:
+                    last_line = [ln for ln in events_path.read_text(encoding="utf-8").splitlines() if ln.strip()][-1]
+                    last_evt = json.loads(last_line)
+                    st.caption(f"Last event: `{last_evt.get('event_type')}` at `{last_evt.get('timestamp')}`")
+                except Exception:
+                    st.caption("Last event: (unavailable)")
+
+            if st.button("Refresh status", key="dbt_mig_refresh_generate_job"):
+                st.rerun()
+            if bool(state.get("auto_refresh_jobs", True)):
+                time.sleep(1.0)
+                st.rerun()
+            return
+
+    if not state.get("checkpoint_a"):
+        st.info("Generate Checkpoint A to start the migration orchestration.")
+        return
+
+    checkpoint_a = state["checkpoint_a"]
+    if bool(getattr(checkpoint_a, "auth_error_detected", False)):
+        st.warning("OpenAIAuthError detected. Running in deterministic fallback mode.")
+    if bool(getattr(checkpoint_a, "rate_limit_detected", False)):
+        st.warning("OpenAI rate limit detected. Running in fallback mode for stability.")
+
+    # Wave tracker
+    wave_ids = sorted(state.get("wave_plan") or {}).copy()
+    selected_wave = state.get("selected_wave_id")
+    if selected_wave is not None:
+        sel = str(selected_wave)
+        if sel in (state.get("wave_plan") or {}):
+            wave_ids = [sel]
+    st.markdown("### Wave Progress Tracker")
+    if not wave_ids:
+        st.warning("No waves found in this report (enable discovery-mode ingestion and lineages).")
+        return
+
+    # Display wave statuses as a dataframe
+    wave_rows = []
+    for wid in wave_ids:
+        wave_rows.append(
+            {
+                "Wave": wid,
+                "Status": state["wave_status"].get(wid, "PENDING"),
+                "Models": ", ".join(state["wave_plan"][wid]["models"]),
+            }
+        )
+    st.dataframe(pd.DataFrame(wave_rows), use_container_width=True, hide_index=True)
+
+    # Helper: recompute wave statuses from model statuses.
+    def _recompute_wave_statuses() -> None:
+        for wid in wave_ids:
+            models = state["wave_plan"][wid]["models"]
+            model_states = [state["model_status"].get(m) for m in models]
+            if any(s == "HITL_REQUIRED" for s in model_states):
+                state["wave_status"][wid] = "HITL_REQUIRED"
+            elif all(s in {"SUCCESS"} for s in model_states):
+                state["wave_status"][wid] = "SUCCESS"
+            elif any(s == "FAILED" for s in model_states):
+                state["wave_status"][wid] = "FAILED"
+            else:
+                state["wave_status"][wid] = state["wave_status"].get(wid, "PENDING") or "PENDING"
+
+    # Poll wave execution job (Checkpoint B orchestration) without blocking UI thread.
+    if state.get("wave_exec_job_id") and state.get("wave_exec_job_wave_id"):
+        job_id = str(state["wave_exec_job_id"])
+        wave_id_for_job = str(state["wave_exec_job_wave_id"])
+        wave_job_dir = Path(str(state.get("checkpoint_dir") or "out/checkpoints")).expanduser().resolve() / "jobs" / "wave_exec"
+        job_file = wave_job_dir / f"{job_id}.json"
+        result_file = wave_job_dir / f"{job_id}.result.json"
+        if job_file.is_file():
+            try:
+                job_payload = json.loads(job_file.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                job_payload = {}
+            status = str(job_payload.get("status") or "").upper()
+            if status == "SUCCESS" and result_file.is_file():
+                try:
+                    result_payload = json.loads(result_file.read_text(encoding="utf-8"))
+                    for mtrace in result_payload.get("model_results") or []:
+                        if not isinstance(mtrace, dict):
+                            continue
+                        mn = str(mtrace.get("model_name") or "").strip()
+                        stval = str(mtrace.get("state") or "").strip()
+                        if mn:
+                            state["model_status"][mn] = stval
+                    _recompute_wave_statuses()
+                finally:
+                    state["wave_exec_job_id"] = None
+                    state["wave_exec_job_wave_id"] = None
+            elif status == "FAILED":
+                state["wave_status"][wave_id_for_job] = "FAILED"
+                state["wave_exec_job_id"] = None
+                state["wave_exec_job_wave_id"] = None
+                st.error(f"Wave execution failed: {job_payload.get('error') or 'unknown error'}")
+            else:
+                st.info(f"Wave {wave_id_for_job} executing... (job {job_id})")
+                if bool(state.get("auto_refresh_jobs", True)):
+                    time.sleep(1.0)
+                    st.rerun()
+
+    _recompute_wave_statuses()
+
+    # Find blocking models (if any require HITL)
+    hitl_models = [m for m, s in state["model_status"].items() if s == "HITL_REQUIRED"]
+
+    beginner_mode = bool(state.get("beginner_mode", False))
+    st.divider()
+    st.markdown(
+        "### Checkpoint A (Draft generation) - Beginner"
+        if beginner_mode
+        else "### Checkpoint A (Schema Review) - Ops Console"
+    )
+
+    checkpoint_dir = Path(str(state.get("checkpoint_dir") or "out/checkpoints")).expanduser().resolve()
+    artifacts_by_model = {a.model_name: a for a in getattr(checkpoint_a, "generated_models", []) or []}
+
+    if beginner_mode:
+        total_models = len(artifacts_by_model)
+        hitl_needed = sum(1 for m in state["model_status"].values() if m == "HITL_REQUIRED")
+        st.write(f"Draft ready for **{total_models}** models.")
+        if hitl_needed:
+            st.warning(f"Some models require manual Fix (HITL_REQUIRED): **{hitl_needed}**.")
+        st.info("Beginner flow: approve a wave to run dbt, then fix HITL_REQUIRED models in Checkpoint B.")
+        # Show operator-friendly list of models in the selected wave(s).
+        if wave_ids:
+            for wid in wave_ids:
+                wave_models: list[dict[str, Any]] = []
+                for model_name in state["wave_plan"].get(wid, {}).get("models") or []:
+                    if model_name not in artifacts_by_model:
+                        continue
+                    wave_models.append(
+                        {
+                            "Model": model_name,
+                            "State": state["model_status"].get(model_name, "PENDING"),
+                            "Needs Review": getattr(artifacts_by_model[model_name], "review_required", False),
+                        }
+                    )
+                if wave_models:
+                    st.markdown(f"#### Wave {wid} models")
+                    st.dataframe(
+                        pd.DataFrame(wave_models),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+    else:
+        all_model_names = [m for wid in wave_ids for m in (state["wave_plan"].get(wid, {}).get("models") or [])]
+        # Filter to models that actually exist in checkpoint artifacts.
+        all_model_names = [m for m in all_model_names if m in artifacts_by_model]
+
+        # Ensure controller state exists.
+        state.setdefault("selected_model_name", all_model_names[0] if all_model_names else "")
+        selected_model_name = state.get("selected_model_name") or (all_model_names[0] if all_model_names else "")
+
+        # Build compact models grid (summary only).
+        grid_rows: list[dict[str, Any]] = []
+        for wid in wave_ids:
+            for model_name in state["wave_plan"][wid]["models"]:
+                if model_name not in artifacts_by_model:
+                    continue
+                model_art = artifacts_by_model[model_name]
+                conf = float(getattr(model_art, "generation_confidence", 0.0) or 0.0)
+                grid_rows.append(
+                    {
+                        "Wave": wid,
+                        "Model": model_name,
+                        "Mode": getattr(model_art, "generation_mode", "legacy"),
+                        "Confidence": conf,
+                        "State": state["model_status"].get(model_name, "PENDING"),
+                        "Needs Review": getattr(model_art, "review_required", False),
+                    }
+                )
+
+        if grid_rows:
+            grid_df = pd.DataFrame(grid_rows)
+            # Render as a table and a selection controller.
+            st.dataframe(grid_df, use_container_width=True, hide_index=True)
+            picked = st.selectbox(
+                "Selected model (details panel)",
+                options=all_model_names,
+                index=max(0, all_model_names.index(selected_model_name))
+                if selected_model_name in all_model_names
+                else 0,
+            )
+            state["selected_model_name"] = picked
+            selected_model_name = picked
+        else:
+            st.caption("No models found for the current wave scope.")
+
+        def _render_dbt_model_details(model_name: str) -> None:
+            model_art = artifacts_by_model.get(model_name)
+            if model_art is None:
+                return
+            user_modified = bool(state["user_modified"].get(model_name))
+            conf = float(getattr(model_art, "generation_confidence", 0.0) or 0.0)
+            badge = _badge_for_model(model_art, user_modified)
+            st.markdown(f"#### Model: `{model_name}` {badge}")
+            st.markdown(f"**Confidence:** {_confidence_style(conf)} `{conf:.0%}`")
+
+            edited = st.text_area(
+                "SQL (editable)",
+                value=str(state["edited_sql"].get(model_name) or model_art.sql),
+                height=200,
+                key=f"sql_edit_details_{model_name}",
+            )
+            state["edited_sql"][model_name] = edited
+            state["user_modified"][model_name] = edited.strip() != str(model_art.sql).strip()
+
+            with st.expander("Behind the Scenes", expanded=False):
+                st.markdown("**Schema Agent Reasoning**")
+                st.write(
+                    str(getattr(model_art, "schema_agent_reasoning", "") or "Agent Thought Process pending.")
+                )
+                st.markdown("**dbt Agent Reasoning**")
+                st.write(
+                    str(getattr(model_art, "dbt_agent_reasoning", "") or "Agent Thought Process pending.")
+                )
+                st.markdown("**Semantic Mapping 2.0**")
+                decision_tag = str(getattr(model_art, "mapping_decision_tag", "HUMAN_REQUIRED"))
+                label = "[AI-AUTONOMOUS]" if decision_tag == "AI_AUTONOMOUS" else "[HUMAN-REQUIRED]"
+                st.write(
+                    f"{label} {str(getattr(model_art, 'translation_rationale', '') or 'No translation rationale captured.')}"
+                )
+
+            # Mapping table (field-level confidence preview).
+            rows = model_art.mapping_rows or []
+            if rows:
+                mapped_df = pd.DataFrame(
+                    [
+                        {
+                            "Hebrew": r.hebrew_name,
+                            "English": r.english_alias,
+                            "Confidence": float(r.confidence) if r.confidence is not None else 0.0,
+                            "Source": r.source.value,
+                            "Warnings": ",".join(r.warning_flags or []),
+                            "Low Confidence": "⚠️ Low Confidence"
+                            if ((float(r.confidence) if r.confidence is not None else 0.0) < 0.8)
+                            else "",
+                        }
+                        for r in rows
+                    ]
+                )
+                st.dataframe(mapped_df, use_container_width=True, hide_index=True)
+            else:
+                st.caption("No mapping rows for this model.")
+
+            st.markdown("**Risk Meter & Scenarios**")
+            if st.button(f"Analyze Risk/Scenarios ({model_name})", key=f"risk_scen_details_{model_name}"):
+                insights_row = analyze_model_risk_and_scenarios(
+                    checkpoint_dir=checkpoint_dir,
+                    model_name=model_name,
+                    sql=edited,
+                )
+                checkpoint_a.model_insights.setdefault("models", {})[model_name] = insights_row
+                st.success("Risk and scenarios updated.")
+                st.rerun()
+
+            model_insight = (checkpoint_a.model_insights.get("models") or {}).get(model_name, {})
+            risk_block = model_insight.get("risk") if isinstance(model_insight, dict) else {}
+            risk_level = str((risk_block or {}).get("risk_level") or "Unknown")
+            st.write(f"Risk Meter: **{risk_level}**")
+            concerns = (risk_block or {}).get("concerns") or []
+            for c in concerns[:4]:
+                st.markdown(f"- {c}")
+            scenarios = model_insight.get("scenarios") if isinstance(model_insight, dict) else []
+            if scenarios:
+                st.caption("Scenario Agent test ideas")
+                for sc in scenarios[:3]:
+                    st.markdown(f"- {sc}")
+
+            st.markdown("**Synthetic Data Augmentation**")
+            complexity = float(getattr(model_art, "complexity_score", 0.0) or 0.0)
+            st.write(f"Complexity Score: `{complexity:.2f}`")
+            approve_synth = st.checkbox(
+                f"Approve Data-Gen for {model_name}",
+                value=False,
+                key=f"approve_synth_details_{model_name}",
+            )
+            row_cap = st.number_input(
+                f"Row cap ({model_name})",
+                min_value=1,
+                max_value=50,
+                value=10,
+                key=f"synth_rowcap_details_{model_name}",
+            )
+            if st.button(f"Generate Synthetic Data ({model_name})", key=f"synth_gen_details_{model_name}"):
+                rc, msg, synth_path = generate_synthetic_data_for_model(
+                    checkpoint_dir=checkpoint_dir,
+                    model_name=model_name,
+                    schema_columns=[r.english_alias for r in rows] if rows else [],
+                    approved=approve_synth,
+                    row_cap=int(row_cap),
+                )
+                if rc == 0:
+                    checkpoint_a.synthetic_dataset_paths[model_name] = synth_path
+                    st.success(msg)
+                    st.rerun()
+                st.error(msg)
+
+            if st.toggle(
+                f"View Synthetic Dataset ({model_name})",
+                value=False,
+                key=f"show_synth_details_{model_name}",
+            ):
+                synth_path = checkpoint_a.synthetic_dataset_paths.get(model_name) or ""
+                if synth_path and Path(synth_path).is_file():
+                    st.code(Path(synth_path).read_text(encoding="utf-8"), language="json")
+                else:
+                    st.caption("No synthetic dataset generated yet.")
+
+            st.markdown("**Chat with Model Agent**")
+            q = st.text_input(f"Ask model agent ({model_name})", "", key=f"chat_q_details_{model_name}")
+            if st.button(
+                f"Send Chat Prompt ({model_name})",
+                key=f"chat_send_details_{model_name}",
+            ) and q.strip():
+                chat_out = propose_sql_patch_from_chat(
+                    checkpoint_dir=checkpoint_dir,
+                    model_name=model_name,
+                    sql=edited,
+                    question=q.strip(),
+                )
+                st.info(chat_out.get("answer") or "No answer returned.")
+                st.code(chat_out.get("sql_patch_proposal") or "-- no proposal", language="sql")
+                st.caption("Patch proposal is manual-apply only.")
+
+        if selected_model_name:
+            _render_dbt_model_details(selected_model_name)
+
+    # Wave-level approve controls (no per-model UI).
+    st.markdown("### Wave Execution Controls")
+    for wid in wave_ids:
+        wave_entry = state["wave_plan"][wid]
+        if not beginner_mode:
+            wave_summary = {}
+            if isinstance(getattr(checkpoint_a, "model_insights", {}), dict):
+                wave_summary = (checkpoint_a.model_insights.get("waves") or {}).get(str(wid), {})
+            st.markdown(f"#### Wave {wid} (Executive AI Summary)")
+            st.write(wave_summary or "Run stress test to generate wave intelligence summary.")
+            if st.button(f"Run AI Stress Test (Wave {wid})", key=f"wave_stress_{wid}"):
+                summary = run_wave_stress_test(
+                    checkpoint_dir=checkpoint_dir,
+                    wave_id=str(wid),
+                    model_names=list(wave_entry["models"]),
+                    model_states=state.get("model_status", {}),
+                )
+                checkpoint_a.model_insights.setdefault("waves", {})[str(wid)] = summary
+                st.success("Wave stress test complete.")
+                st.rerun()
+
+        prev_wid = str(int(wid) - 1)
+        prev_ready = True
+        if int(wid) > 0 and prev_wid in state["wave_status"]:
+            prev_status = state["wave_status"].get(prev_wid)
+            prev_ready = prev_status in {"SUCCESS", "PARTIAL"}
+            if state.get("bypass_wave_id") is not None and int(prev_wid) == int(state["bypass_wave_id"]):
+                st.warning(
+                    f"WARNING: Wave {prev_wid} bypassed with incomplete models. Proceeding to Wave {int(prev_wid) + 1}."
+                )
+                prev_ready = True
+
+        if not state["wave_status"].get(wid) or state["wave_status"].get(wid) == "PENDING":
+            c1, c2 = st.columns(2)
+            with c1:
+                approve_key = f"approve_wave_{wid}"
+                if st.button(f"Approve Wave {wid}", key=approve_key, disabled=not prev_ready):
+                    st.session_state[f"confirm_approve_wave_{wid}"] = True
+            with c2:
+                confirm_key = f"confirm_approve_wave_{wid}"
+                if st.session_state.get(confirm_key):
+                    if st.button(f"Confirm Approve Wave {wid}", key=f"{confirm_key}_go"):
+                        # Write edited files for wave models
+                        models_dir = Path(str(state.get("output_dir") or "models/ama_generated")).expanduser().resolve()
+                        artifacts = []
+                        for model_name in wave_entry["models"]:
+                            model_art = artifacts_by_model.get(model_name)
+                            if model_art is None:
+                                continue
+                            model_art = model_art.model_copy(deep=True) if hasattr(model_art, "model_copy") else model_art
+                            model_art.sql = str(state["edited_sql"].get(model_name) or model_art.sql)
+                            artifacts.append(model_art)
+
+                        write_model_artifacts(models_dir, artifacts)
+
+                        # Execute wave in a background job and persist result for polling.
+                        import uuid
+
+                        state["wave_status"][wid] = "RUNNING"
+                        dlq_dir = Path(str(state.get("dlq_dir") or "out/dbt_dlq")).expanduser().resolve()
+                        checkpoint_dir = Path(str(state.get("checkpoint_dir") or "out/checkpoints")).expanduser().resolve()
+                        dbt_project_dir = Path(str(state.get("dbt_project_dir") or ".")).expanduser().resolve()
+
+                        job_id = str(uuid.uuid4())
+                        state["wave_exec_job_id"] = job_id
+                        state["wave_exec_job_wave_id"] = str(wid)
+                        wave_job_dir = checkpoint_dir / "jobs" / "wave_exec"
+                        wave_job_dir.mkdir(parents=True, exist_ok=True)
+                        job_file = wave_job_dir / f"{job_id}.json"
+                        result_file = wave_job_dir / f"{job_id}.result.json"
+
+                        job_payload: dict[str, Any] = {
+                            "status": "RUNNING",
+                            "created_at": datetime.now(timezone.utc).isoformat(),
+                            "wave_id": str(wid),
+                        }
+                        job_file.write_text(json.dumps(job_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+                        def _worker() -> None:
+                            nonlocal job_payload
+                            try:
+                                res = execute_models_with_fix_loop(
+                                    dbt_project_dir=dbt_project_dir,
+                                    model_names=wave_entry["models"],
+                                    max_attempts=3,
+                                    dlq_dir=dlq_dir,
+                                    checkpoint_dir=checkpoint_dir,
+                                )
+                                result_file.write_text(json.dumps(res.model_dump(mode="json"), ensure_ascii=False), encoding="utf-8")
+                                job_payload["status"] = "SUCCESS"
+                                job_payload["updated_at"] = datetime.now(timezone.utc).isoformat()
+                            except Exception as exc:
+                                job_payload["status"] = "FAILED"
+                                job_payload["updated_at"] = datetime.now(timezone.utc).isoformat()
+                                job_payload["error"] = str(exc)
+                            finally:
+                                job_file.write_text(json.dumps(job_payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+                        t = threading.Thread(target=_worker, daemon=True)
+                        t.start()
+
+                        st.success(f"Wave {wid} execution started (job={job_id}). Refresh tab to poll completion.")
+                        st.session_state[confirm_key] = False
+                        st.rerun()
+    st.divider()
+    st.markdown("### Checkpoint B (Manual Fix) - HITL Required Models")
+    if not hitl_models:
+        st.caption("No models currently require Checkpoint B.")
+    else:
+        checkpoint_dir = Path(str(state.get("checkpoint_dir") or "out/checkpoints")).expanduser().resolve()
+        dlq_dir = Path(str(state.get("dlq_dir") or "out/dbt_dlq")).expanduser().resolve()
+        for model_name in hitl_models:
+            cp_file = checkpoint_dir / f"checkpoint_b_{model_name}.json"
+            if not cp_file.is_file():
+                # runner uses model name sanitized; attempt both
+                st.warning(f"Checkpoint file not found for {model_name} in {cp_file}")
+                continue
+            mtime = cp_file.stat().st_mtime if cp_file.is_file() else 0.0
+            cp_payload = load_checkpoint_b_payload_cached(str(cp_file), float(mtime))
+            st.markdown(f"#### {model_name}")
+            if beginner_mode:
+                err_log = str(cp_payload.get("error_log") or "")
+                fix_analysis = str(cp_payload.get("fix_agent_error_analysis") or "")
+                suggested_sql = str(cp_payload.get("suggested_sql") or "")
+
+                st.caption("Fix required (Checkpoint B)")
+                if err_log.strip():
+                    st.code(err_log[:600], language="text")
+                if fix_analysis.strip():
+                    st.markdown("**Why the fix is needed**")
+                    st.write(fix_analysis)
+
+                if st.button(f"Apply AI Fix ({model_name})", key=f"beginner_apply_ai_{model_name}"):
+                    if not suggested_sql.strip():
+                        st.error("No AI suggested SQL is available in this checkpoint artifact.")
+                    else:
+                        dbt_project_dir = Path(str(state.get("dbt_project_dir") or ".")).expanduser().resolve()
+                        rc, msg = apply_ai_fix_from_checkpoint(
+                            dbt_project_dir=dbt_project_dir,
+                            checkpoint_dir=checkpoint_dir,
+                            model_name=model_name,
+                            ai_sql=suggested_sql,
+                        )
+                        if rc == 0:
+                            state["model_status"][model_name] = "SUCCESS"
+                            _recompute_wave_statuses()
+                            st.success(msg)
+                            st.rerun()
+                        st.error(msg)
+
+                dlq_confirm_key = f"beginner_dlq_confirm_{model_name}"
+                if st.button(f"Route to DLQ ({model_name})", key=f"beginner_route_dlq_{model_name}"):
+                    st.session_state[dlq_confirm_key] = True
+                if st.session_state.get(dlq_confirm_key):
+                    if st.button(f"Confirm DLQ Routing ({model_name})", key=f"{dlq_confirm_key}_go"):
+                        reject_checkpoint_b_to_dlq(
+                            model_name=model_name,
+                            checkpoint_dir=checkpoint_dir,
+                            dlq_dir=dlq_dir,
+                        )
+                        state["model_status"][model_name] = "FAILED"
+                        _recompute_wave_statuses()
+                        st.session_state[dlq_confirm_key] = False
+                        st.rerun()
+                # Skip the advanced editor/diff UI in Beginner Mode.
+                continue
+
+            st.code(str(cp_payload.get("error_log") or ""), language="text")
+            if cp_payload.get("auth_error"):
+                st.warning("OpenAIAuthError detected for Fix Agent. Fallback mode active.")
+            if cp_payload.get("rate_limit_error"):
+                st.warning("OpenAI rate-limit detected for Fix Agent. Fallback mode active.")
+            st.markdown("**Fix Agent Error Analysis**")
+            st.write(str(cp_payload.get("fix_agent_error_analysis") or "No analysis captured."))
+            left, right = st.columns(2)
+            with left:
+                st.caption("Failed SQL")
+                st.code(str(cp_payload.get("failed_sql") or cp_payload.get("current_sql") or ""), language="sql")
+            with right:
+                st.caption("AI Suggested Fix")
+                st.code(str(cp_payload.get("suggested_sql") or ""), language="sql")
+            fixed_sql = st.text_area(
+                "Current failing SQL (editable)",
+                value=str(cp_payload.get("current_sql") or ""),
+                height=160,
+                key=f"cpb_sql_{model_name}",
+            )
+            hist = cp_payload.get("attempt_history") or []
+            if hist:
+                st.caption("Attempt history")
+                st.dataframe(pd.DataFrame(hist), use_container_width=True, hide_index=True)
+
+            col1, col2 = st.columns(2)
+            with col1:
+                cpb_confirm_key = f"cpb_confirm_fix_{model_name}"
+                if st.button(f"Approve with Fix ({model_name})", key=f"cpb_ap_{model_name}"):
+                    st.session_state[cpb_confirm_key] = True
+                if st.button(f"Apply AI Fix ({model_name})", key=f"cpb_apply_ai_{model_name}"):
+                    dbt_project_dir = Path(str(state.get("dbt_project_dir") or ".")).expanduser().resolve()
+                    rc, msg = apply_ai_fix_from_checkpoint(
+                        dbt_project_dir=dbt_project_dir,
+                        checkpoint_dir=checkpoint_dir,
+                        model_name=model_name,
+                        ai_sql=str(cp_payload.get("suggested_sql") or ""),
+                    )
+                    if rc == 0:
+                        state["model_status"][model_name] = "SUCCESS"
+                        _recompute_wave_statuses()
+                        st.success(msg)
+                        st.rerun()
+                    st.error(msg)
+                if st.session_state.get(cpb_confirm_key):
+                    if st.button(f"Confirm Fix Apply ({model_name})", key=f"{cpb_confirm_key}_go"):
+                        # overwrite SQL
+                        models_dir = Path(str(state.get("output_dir") or "models/ama_generated")).expanduser().resolve()
+                        target_sql = models_dir / f"{model_name}.sql"
+                        target_sql.write_text(str(fixed_sql), encoding="utf-8")
+                        # rerun single model
+                        dbt_project_dir = Path(str(state.get("dbt_project_dir") or ".")).expanduser().resolve()
+                        with st.spinner("Re-running model with dbt..."):
+                            result = execute_models_with_fix_loop(
+                                dbt_project_dir=dbt_project_dir,
+                                model_names=[model_name],
+                                max_attempts=3,
+                                dlq_dir=dlq_dir,
+                                checkpoint_dir=checkpoint_dir,
+                            )
+                        for tr in result.model_results:
+                            state["model_status"][tr.model_name] = tr.state.value
+                        _recompute_wave_statuses()
+                        st.session_state[cpb_confirm_key] = False
+                        st.rerun()
+            with col2:
+                cpb_reject_confirm_key = f"cpb_confirm_reject_{model_name}"
+                if st.button(f"Route to DLQ ({model_name})", key=f"cpb_rj_{model_name}"):
+                    st.session_state[cpb_reject_confirm_key] = True
+                if st.session_state.get(cpb_reject_confirm_key):
+                    if st.button(f"Confirm DLQ Routing ({model_name})", key=f"{cpb_reject_confirm_key}_go"):
+                        reject_checkpoint_b_to_dlq(
+                            model_name=model_name,
+                            checkpoint_dir=checkpoint_dir,
+                            dlq_dir=dlq_dir,
+                        )
+                        state["model_status"][model_name] = "FAILED"
+                        _recompute_wave_statuses()
+                        st.session_state[cpb_reject_confirm_key] = False
+                        st.rerun()
+
+    st.divider()
+    st.markdown("### AI Telemetry & Cost Dashboard")
+    telemetry_rows: list[dict[str, Any]] = []
+    for model_art in checkpoint_a.generated_models:
+        for row in getattr(model_art, "ai_telemetry", []) or []:
+            if isinstance(row, dict):
+                telemetry_rows.append(row)
+    by_agent: dict[str, int] = {}
+    total_tokens = 0
+    for row in telemetry_rows:
+        agent = str(row.get("agent_name") or "unknown")
+        tokens = int(row.get("tokens_used") or 0)
+        by_agent[agent] = by_agent.get(agent, 0) + tokens
+        total_tokens += tokens
+    fallback_models = sum(1 for m in checkpoint_a.generated_models if str(getattr(m, "generation_mode", "legacy")) != "ai")
+    ai_models = len(checkpoint_a.generated_models) - fallback_models
+    fix_first_try_den = 0
+    fix_first_try_ok = 0
+    for status in state["model_status"].values():
+        if status in {"SUCCESS", "FAILED", "HITL_REQUIRED"}:
+            fix_first_try_den += 1
+            if status == "SUCCESS":
+                fix_first_try_ok += 1
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Total Tokens", f"{total_tokens}")
+    c2.metric("Estimated Cost", f"${_estimate_cost(total_tokens):.4f}")
+    c3.metric("AI Success Rate", f"{(ai_models / max(1, len(checkpoint_a.generated_models))):.0%}")
+    st.metric("Fallback Rate", f"{(fallback_models / max(1, len(checkpoint_a.generated_models))):.0%}")
+    st.metric("Fix-it Rate (First Try)", f"{(fix_first_try_ok / max(1, fix_first_try_den)):.0%}")
+    if by_agent:
+        st.dataframe(
+            pd.DataFrame([{"Agent": k, "Tokens": v} for k, v in sorted(by_agent.items())]),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    st.divider()
+    st.markdown("### DLQ Viewer")
+    dlq_dir = Path(str(state.get("dlq_dir") or "out/dbt_dlq")).expanduser().resolve()
+    dlq_path = dlq_dir / "dlq_records.jsonl"
+    if not dlq_path.is_file():
+        st.info("No DLQ records yet.")
+    else:
+        mtime = dlq_path.stat().st_mtime if dlq_path.is_file() else 0.0
+        dlq_rows = load_dlq_rows_cached(str(dlq_path), float(mtime))
+        if dlq_rows:
+            df = pd.DataFrame(dlq_rows)
+            search = st.text_input("Search DLQ", "", key="dlq_search")
+            if search.strip():
+                mask = df.astype(str).apply(lambda s: s.str.contains(search, case=False, na=False)).any(axis=1)
+                df = df[mask]
+            st.dataframe(df, use_container_width=True, hide_index=True)
+            if not df.empty:
+                st.download_button(
+                    "Download DLQ JSONL",
+                    data="\n".join(json.dumps(r, ensure_ascii=False) for r in dlq_rows).encode("utf-8"),
+                    file_name="dlq_records.jsonl",
+                    mime="text/plain",
+                )
+
+
 def _safe_mtime(path: Path) -> float:
     try:
         return path.stat().st_mtime
     except OSError:
         return 0.0
+
+
+@st.cache_data(show_spinner=False)
+def load_checkpoint_b_payload_cached(path_str: str, mtime: float) -> dict[str, Any]:
+    # `mtime` is part of the cache key to avoid stale reads after writes.
+    _ = mtime
+    return json.loads(Path(path_str).read_text(encoding="utf-8"))
+
+
+@st.cache_data(show_spinner=False)
+def load_dlq_rows_cached(path_str: str, mtime: float) -> list[dict[str, Any]]:
+    # `mtime` is part of the cache key to avoid stale reads after writes.
+    _ = mtime
+    out: list[dict[str, Any]] = []
+    p = Path(path_str)
+    for line in p.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return out
 
 
 @st.cache_data(show_spinner=False)
@@ -278,7 +1310,7 @@ def main() -> None:
     st.title("AMA System Migration Dashboard")
     st.caption("Environment-wide discovery, domains, and waves — same JSON contract as Excel export.")
 
-    default_path = os.environ.get("AMA_REPORT_PATH", "").strip()
+    default_path = get_env("AMA_REPORT_PATH", "").strip()
     report_path_resolved: Path | None = None
 
     with st.sidebar:
@@ -444,6 +1476,7 @@ def main() -> None:
             "Tables",
             "Data quality",
             "Review (HITL)",
+            "dbt Migration",
         ]
     )
 
@@ -459,6 +1492,37 @@ def main() -> None:
         col1.metric("% Confirmed (filtered scope)", f"{pct_filtered:.1f}%")
         col2.metric("Queries matched (inventory scope)", queries_matched_display)
         col3.metric("Confirmed columns (filtered)", len(merged_all))
+
+        st.divider()
+        st.markdown("### Orchestration")
+        if report_path_resolved is not None:
+            confirm_key = "exec_full_ingest_confirm"
+            if st.button("Run Full Ingest", key="exec_full_ingest_btn"):
+                st.session_state[confirm_key] = True
+            if st.session_state.get(confirm_key):
+                if st.button("Confirm Run Full Ingest (overwrite report.json)", key="exec_full_ingest_go"):
+                    cmd = [
+                        "ama-ingest",
+                        "run",
+                        "--format",
+                        "json",
+                        "-o",
+                        str(report_path_resolved),
+                        "--discovery-mode",
+                        "--discovery-merge-all",
+                    ]
+                    with st.spinner("Running `ama-ingest run`..."):
+                        proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+                    if proc.returncode == 0:
+                        load_report_cached.clear()
+                        st.session_state[confirm_key] = False
+                        st.success("Ingest completed and dashboard refreshed.")
+                        st.rerun()
+                    else:
+                        st.error(f"Ingest failed (rc={proc.returncode}): {proc.stderr[:800]}")
+                        st.session_state[confirm_key] = False
+        else:
+            st.caption("Run Full Ingest disabled in upload mode (no local report path).")
 
         c1, c2 = st.columns(2)
         with c1:
@@ -1271,6 +2335,31 @@ search over every raw SQL line in the logs.
                 file_name="report.hitl.json",
                 mime="application/json",
             )
+
+        st.divider()
+        if report_path_resolved is not None:
+            st.subheader("Submit to report JSON (apply decisions)")
+            confirm_key = "hitl_submit_confirm"
+            if st.button("Submit HITL decisions to disk", key="hitl_submit_btn"):
+                st.session_state[confirm_key] = True
+            if st.session_state.get(confirm_key):
+                if st.button("Confirm Submit (overwrite report.json)", key="hitl_submit_confirm_go"):
+                    merged = apply_hitl_to_report(raw_report, st.session_state.hitl)
+                    report_path_resolved.write_text(
+                        json.dumps(merged, indent=2, ensure_ascii=False),
+                        encoding="utf-8",
+                    )
+                    st.session_state[confirm_key] = False
+                    # Refresh cached report
+                    st.session_state.report_reload_bust = int(st.session_state.report_reload_bust) + 1
+                    load_report_cached.clear()
+                    st.success("Submitted: overwrote report.json and refreshed dashboard.")
+                    st.rerun()
+        else:
+            st.caption("Submit is disabled when no local `report_path_resolved` exists (upload mode).")
+
+    with tabs[8]:
+        _render_dbt_migration_tab(report)
 
     st.divider()
     st.caption(

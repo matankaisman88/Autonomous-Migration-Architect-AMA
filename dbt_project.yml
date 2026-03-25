@@ -1,0 +1,15 @@
+name: "ama_migration"
+version: "1.0.0"
+config-version: 2
+profile: "default"
+
+# Where generated models are written by `ama-ingest generate-dbt` / the dashboard.
+# The UI writes drafts + approvals into `models/ama_generated/`.
+model-paths: ["models/ama_generated"]
+target-path: "target"
+clean-targets:
+  - "target"
+
+models:
+  ama_migration:
+    +materialized: "view"

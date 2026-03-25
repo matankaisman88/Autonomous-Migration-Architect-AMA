@@ -9,8 +9,9 @@ No-ops silently if the key is absent.
 from __future__ import annotations
 
 import json
-import os
 from typing import Any
+
+from ama.env_resolver import get_openai_api_key, get_openai_model
 
 
 def translate_rtl_tokens(
@@ -28,13 +29,13 @@ def translate_rtl_tokens(
 
     Batches up to 80 tokens per call to stay within token limits.
     """
-    api_key = os.environ.get("AMA_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+    api_key = get_openai_api_key()
     if not api_key:
         return {}
     if not unresolved_tokens or not ddl_columns:
         return {}
 
-    _model = model or os.environ.get("AMA_OPENAI_MODEL", "gpt-4o-mini")
+    _model = model or get_openai_model("gpt-4o-mini")
     results: dict[str, dict[str, Any]] = {}
 
     # Batch to avoid token limit

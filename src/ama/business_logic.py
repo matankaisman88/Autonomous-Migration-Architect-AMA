@@ -14,6 +14,7 @@ import unicodedata
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
+from ama.env_resolver import get_openai_api_key, get_openai_model
 
 TABLE_METADATA_REL = Path("sample_data/ddl/table_metadata.json")
 DOMAIN_TAXONOMY_REL = Path("sample_data/ddl/domain_taxonomy.json")
@@ -201,10 +202,10 @@ def _openai_enrich(
     Returns (domain_by_full_name, description_by_full_name) for LLM-filled strings.
     Empty dicts on failure or missing key.
     """
-    api_key = os.environ.get("AMA_OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
+    api_key = get_openai_api_key()
     if not api_key:
         return {}, {}
-    model = os.environ.get("AMA_OPENAI_MODEL", "gpt-4o-mini")
+    model = get_openai_model("gpt-4o-mini")
     # Compact prompt
     lines = []
     for it in items[:120]:

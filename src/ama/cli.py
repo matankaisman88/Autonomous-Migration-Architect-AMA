@@ -50,6 +50,8 @@ from ama.export import ExportConfig, write_export
 from ama.planner import AutonomousPlanner
 from ama.planner.broken_lineage import enrich_lineage_payload, manifest_normalized_keys
 from ama.report_sinks import ExcelReportSink, JsonReportSink
+from ama.dbt_migration import render_checkpoint_a_text, run_generate_dbt, validate_target_dialect
+from ama.dbt_migration.runner import approve_checkpoint_b_sql, reject_checkpoint_b_to_dlq
 from ama.discovery import (
     aggregate_merges_for_tables,
     build_discovery_payload,
@@ -1015,6 +1017,93 @@ def cmd_generate_glossary(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_generate_dbt(args: argparse.Namespace) -> int:
+    """Generate dbt models from AMA report with mandatory Checkpoint A gating."""
+    report_path = Path(args.report).expanduser().resolve()
+    if not report_path.is_file():
+        print(f"Report not found: {report_path}", file=sys.stderr)
+        return 1
+
+    try:
+        validate_target_dialect(args.target_dialect)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    glossary_path = (
+        Path(args.glossary).expanduser().resolve()
+        if getattr(args, "glossary", None)
+        else None
+    )
+    models_dir = Path(args.models_dir).expanduser().resolve()
+    dbt_project_dir = (
+        Path(args.dbt_project_dir).expanduser().resolve()
+        if getattr(args, "dbt_project_dir", None)
+        else models_dir.parent
+    )
+    checkpoint_dir = Path(args.checkpoint_dir).expanduser().resolve()
+    dlq_dir = Path(args.dlq_dir).expanduser().resolve()
+
+    if getattr(args, "approve_checkpoint_b", None):
+        if not getattr(args, "checkpoint_b_model", None):
+            print("--checkpoint-b-model is required with --approve-checkpoint-b", file=sys.stderr)
+            return 2
+        rc, msg = approve_checkpoint_b_sql(
+            dbt_project_dir=dbt_project_dir,
+            model_name=str(args.checkpoint_b_model).strip(),
+            fixed_sql_path=Path(args.approve_checkpoint_b).expanduser().resolve(),
+            checkpoint_dir=checkpoint_dir,
+        )
+        print(msg)
+        return rc
+
+    if getattr(args, "reject_checkpoint_b", None):
+        rc, msg = reject_checkpoint_b_to_dlq(
+            model_name=str(args.reject_checkpoint_b).strip(),
+            checkpoint_dir=checkpoint_dir,
+            dlq_dir=dlq_dir,
+        )
+        print(msg)
+        return rc
+
+    state, checkpoint, written = run_generate_dbt(
+        report_path=report_path,
+        glossary_path=glossary_path,
+        target_dialect_raw=args.target_dialect,
+        dbt_models_dir=models_dir,
+        dbt_project_dir=dbt_project_dir,
+        checkpoint_dir=checkpoint_dir,
+        dlq_dir=dlq_dir,
+        bypass_wave=getattr(args, "bypass_wave", None),
+        stop_on_first_error=bool(getattr(args, "stop_on_first_error", False)),
+        approve_checkpoint_a=bool(getattr(args, "approve_checkpoint_a", False)),
+        run_execution=bool(getattr(args, "run_dbt", False)),
+    )
+    print(render_checkpoint_a_text(checkpoint))
+    print(f"\nStatus: {state.status.value}")
+    if written:
+        print(f"Wrote {len(written)} dbt files into {models_dir}")
+    if state.attempts:
+        print("\nExecution attempts:")
+        for a in state.attempts:
+            print(f"- #{a.attempt} {a.command} -> rc={a.return_code}")
+    if state.status.value == "REVIEW_REQUIRED" and not args.approve_checkpoint_a:
+        print("\nCheckpoint A approval required. Re-run with --approve-checkpoint-a")
+        return 3
+    if state.status.value == "HITL_REQUIRED":
+        print("\nModels requiring Checkpoint B manual review:")
+        for model_name in state.review_required:
+            print(f"- {model_name}")
+        if state.wave_telemetry:
+            last = state.wave_telemetry[-1]
+            print(
+                f"\nTelemetry: current_wave_id={last.get('current_wave_id')} "
+                f"wave_status={last.get('wave_status')}"
+            )
+        return 4
+    return 0 if state.status.value in {"SUCCESS", "PARTIAL"} else 1
+
+
 def main() -> None:
     p = argparse.ArgumentParser(
         prog="ama-ingest",
@@ -1403,6 +1492,98 @@ def main() -> None:
         help="Filter log rows by env field (default: prod; use '' for all)",
     )
     gg.set_defaults(func=cmd_generate_glossary)
+
+    gd = sub.add_parser(
+        "generate-dbt",
+        help="Generate dbt model files from AMA report with dialect gate + HITL checkpoint",
+    )
+    gd.add_argument(
+        "--report",
+        type=str,
+        required=True,
+        help="Path to AMA report JSON",
+    )
+    gd.add_argument(
+        "--target-dialect",
+        type=str,
+        required=True,
+        help="TARGET_DIALECT runtime value (duckdb/snowflake/bigquery/redshift)",
+    )
+    gd.add_argument(
+        "--glossary",
+        type=str,
+        default=None,
+        help="AMA glossary JSON path for Hebrew->English mappings",
+    )
+    gd.add_argument(
+        "--models-dir",
+        "--output-dir",
+        dest="models_dir",
+        type=str,
+        default="models/ama_generated",
+        help="dbt models output directory",
+    )
+    gd.add_argument(
+        "--dbt-project-dir",
+        type=str,
+        default=None,
+        help="dbt project root (default: parent of --models-dir)",
+    )
+    gd.add_argument(
+        "--approve-checkpoint-a",
+        action="store_true",
+        help="Approve Checkpoint A and allow file generation/execution",
+    )
+    gd.add_argument(
+        "--run-dbt",
+        action="store_true",
+        help="After approval, run dbt run + dbt test with max-3 retry loop",
+    )
+    gd.add_argument(
+        "--checkpoint-dir",
+        type=str,
+        default="out/checkpoints",
+        help="Directory for Checkpoint B artifacts",
+    )
+    gd.add_argument(
+        "--dlq-dir",
+        type=str,
+        default="out/dbt_dlq",
+        help="Directory for DLQ records",
+    )
+    gd.add_argument(
+        "--approve-checkpoint-b",
+        type=str,
+        default=None,
+        metavar="PATH_TO_FIXED_SQL",
+        help="Approve Checkpoint B by providing corrected SQL file path",
+    )
+    gd.add_argument(
+        "--checkpoint-b-model",
+        type=str,
+        default=None,
+        help="Target model name for Checkpoint B approval",
+    )
+    gd.add_argument(
+        "--reject-checkpoint-b",
+        type=str,
+        default=None,
+        metavar="MODEL_NAME",
+        help="Reject Checkpoint B and route model to DLQ",
+    )
+    gd.add_argument(
+        "--bypass-wave",
+        type=int,
+        default=None,
+        metavar="WAVE_ID",
+        help="Bypass wave gate checks for the specified wave id",
+    )
+    gd.add_argument(
+        "--stop-on-first-error",
+        action="store_true",
+        help="Exit orchestration immediately when a model hits HITL_REQUIRED/FAILED",
+    )
+    gd.set_defaults(func=cmd_generate_dbt)
 
     args = p.parse_args()
     if args.cmd == "run" and args.env == "":
