@@ -395,10 +395,13 @@ The Streamlit dashboard can orchestrate the dbt migration lifecycle without manu
 
 The `Migration Agent` tab is a chat-first workflow for goal-oriented dbt migration with a mandatory human gate.
 
-- First load shows a dialect selector and chat input.
-- Advanced paths/settings are available under collapsed `⚙️ Settings`.
+- First load shows only a welcome prompt and chat input (clean empty state).
+- Project settings are anchored in the sidebar under **Project Configuration**.
+- The target selector is labeled **Deployment Target Dialect**.
 - The agent uses tools (`list_waves`, `analyze_schema`, `propose_dbt_model`, `execute_dbt_test`, `apply_fix`, `request_write_permission`) and pauses on write permission.
 - `request_write_permission` is equivalent to final Checkpoint B sign-off for file creation: no SQL is written until you click **Approve**.
+- Chat output is table-focused: current-table tool output is shown inline, while unrelated prior-table details are collapsed.
+- Duplicate gate noise is removed (`request_write_permission` is shown in the approval gate, not repeated in chat bubbles).
 
 Example conversation:
 
@@ -417,7 +420,8 @@ Example conversation:
 1. Launch the dashboard: `ama-dashboard --report-path path/to/report.json`
 2. Open the `Migration Agent` tab.
 3. Choose target dialect and start with a prompt like: `Migrate Wave 1`.
-4. Review the Intelligence Feed tables, then use the human gate (`Proceed to Migration Gate` -> `Approve ✅`) per model.
+4. Review Intelligence Feed + SQL draft, then use the bottom gate actions (`Approve ✅`, `Manual Edit ✏️`, `Skip ⏭️`) per model.
+5. If using Manual Edit, click **Save Edited SQL** before approval.
 
 #### dbt prerequisites
 - `dbt_project.yml` must exist at the repo root (the app uses generated models under `models/ama_generated`).
@@ -429,8 +433,10 @@ Example conversation:
 1. **User intent**: prompt the agent (for example, `Migrate all tables in wave 1`).
 2. **Intelligence Feed**: tool outputs are rendered as structured tables (waves, schema, proposals, tests, fixes).
 3. **Human Gate**: for each model, the agent must request write permission before creating/updating SQL on disk.
+   - Gate is anchored at the bottom of the tab for consistent placement.
+   - Manual edits are persisted through an explicit **Save Edited SQL** button.
 4. **Execution loop**: after approval, dbt test runs automatically; on failure, Fix Agent proposes corrected SQL and returns to approval.
-5. **Progress tracking**: wave progress is shown as `completed/total` with a progress bar (for example `1/2`).
+5. **Progress tracking**: wave progress is shown as `completed/total` with a progress bar (for example `1/2`), and successful approval auto-prepares the next table in the wave.
 
 ### Legacy Notes
 
