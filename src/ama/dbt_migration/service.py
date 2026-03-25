@@ -500,6 +500,8 @@ def run_generate_dbt(
             source_ddl_columns=manifest_columns_by_table.get(table_key, []),
             broken=table_key in broken_tables or bool(row.get("is_broken")),
             rationale=rationale,
+            thought_callback=progress_callback,
+            max_correction_attempts=3,
         )
         artifacts.append(artifact)
         mapping_rows.extend(mapped)

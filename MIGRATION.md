@@ -4,14 +4,20 @@ This guide documents the `ama-ingest generate-dbt` workflow for transforming AMA
 
 ## Workflow Overview
 
-At a high level, `generate-dbt` performs a two-phase flow:
+At a high level, `generate-dbt` performs a gated multi-agent flow:
 
 1. Validate runtime `TARGET_DIALECT`.
 2. Read AMA report inventory/lineage and optional glossary.
-3. Build model SQL (or broken-lineage stubs) and schema artifacts.
+3. Run role-specialized generation:
+   - **Architect**: plans schema/mapping decisions (including Hebrew mapping context).
+   - **Developer**: drafts dbt SQL/YAML.
+   - **QA Lead**: validates generated SQL with `sqlglot` before exposing it for approval.
 4. Produce **Checkpoint A** payload for mandatory human review.
-5. After explicit approval, write model files and optionally execute `dbt run` + `dbt test`.
-6. On failure, enter fix loop (bounded retries); route exhausted failures to DLQ.
+5. If QA rejects syntax/logic, trigger a bounded **self-healing loop**:
+   - Developer self-correction attempts: **max 3**.
+   - On exhaustion, emit `CRITICAL_REASON` and require HITL intervention.
+6. After explicit approval, write model files and optionally execute `dbt run` + `dbt test`.
+7. On execution failure, enter execution fix loop (bounded retries); route exhausted failures to DLQ.
 
 ## CLI Reference
 
@@ -399,6 +405,10 @@ The `Migration Agent` tab is a chat-first workflow for goal-oriented dbt migrati
 - Project settings are anchored in the sidebar under **Project Configuration**.
 - The target selector is labeled **Deployment Target Dialect**.
 - The agent uses tools (`list_waves`, `analyze_schema`, `propose_dbt_model`, `execute_dbt_test`, `apply_fix`, `request_write_permission`) and pauses on write permission.
+- Tool execution is surfaced as role-labeled collaboration steps:
+  - **Architect** (`list_waves`, `analyze_schema`)
+  - **Developer** (`propose_dbt_model`, `apply_fix`)
+  - **QA Lead** (`execute_dbt_test`, `request_write_permission`)
 - `request_write_permission` is equivalent to final Checkpoint B sign-off for file creation: no SQL is written until you click **Approve**.
 - Chat output is table-focused: current-table tool output is shown inline, while unrelated prior-table details are collapsed.
 - Duplicate gate noise is removed (`request_write_permission` is shown in the approval gate, not repeated in chat bubbles).
@@ -493,10 +503,14 @@ The `Migration Agent` tab exposes agentic generation and fix-loop metadata direc
 
 The AI Cockpit validation sequence is:
 
-1. **Generation**: Schema/dbt agents produce SQL and reasoning.
-2. **Risk Analysis**: Risk Agent rates model risk and surfaces concerns.
-3. **Scenario & Synthetic Testing**: Scenario Agent generates test ideas; Data-Gen can generate `complex_mock_data.json` after explicit approval and row-cap checks.
-4. **Fix-loop & Final Approval**: wave approval + dbt execution + Checkpoint B Fix-loop (diff + apply) when needed.
+1. **Architect planning**: interpret source metadata, map Hebrew columns, and define migration intent.
+2. **Developer draft**: generate dbt SQL/YAML for the configured target dialect.
+3. **QA syntax gate**: validate SQL with `sqlglot` before model review.
+4. **Self-healing loop**: if QA rejects, call Developer self-correction (max 3).
+5. **HITL escalation**: if still invalid, emit `CRITICAL_REASON` and require manual intervention.
+6. **Risk Analysis**: Risk Agent rates model risk and surfaces concerns.
+7. **Scenario & Synthetic Testing**: Scenario Agent generates test ideas; Data-Gen can generate `complex_mock_data.json` after explicit approval and row-cap checks.
+8. **Fix-loop & Final Approval**: wave approval + dbt execution + Checkpoint B Fix-loop (diff + apply) when needed.
 
 ### Risk Score Interpretation
 

@@ -6,7 +6,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from ama.ai_query_helper import (
     OpenAIAuthError,
@@ -25,6 +25,7 @@ from ama.dbt_migration.models import (
     TargetDialect,
 )
 from ama.dbt_migration.sql_transpile import transpile_sql
+from ama.dbt_migration.sql_self_heal import run_sql_self_healing_loop
 from ama.env_resolver import has_openai_api_key
 
 logger = logging.getLogger(__name__)
@@ -263,11 +264,83 @@ def validate_incremental_unique_key(metadata: ModelMetadata) -> None:
         raise ValueError(f"incremental model '{metadata.model_name}' has empty unique_key list")
 
 
+def _infer_incremental_ordering_field_and_strategy(columns: list[str]) -> tuple[str, str]:
+    """
+    Heuristic for choosing an incremental ordering field:
+    - Prefer event-time columns (event/occurred + time/timestamp/_at).
+    - Otherwise use file/ingestion-time columns (file/ingest/source + time/timestamp/_at).
+    - Fallback to the first timestamp-like column, else the first column.
+    """
+    cols = [str(c).strip() for c in (columns or []) if str(c).strip()]
+    if not cols:
+        return "id", "file-time"
+
+    time_like = [c for c in cols if re.search(r"(time|timestamp|_at|_ts|_dt)", c.lower())]
+    if not time_like:
+        return cols[0], "file-time"
+
+    def _has_any(s: str, needles: list[str]) -> bool:
+        s_l = s.lower()
+        return any(n in s_l for n in needles)
+
+    event_time_cols = [
+        c
+        for c in time_like
+        if _has_any(c, ["event", "occur", "occurred", "processing_time", "processed_at"])
+    ]
+    if event_time_cols:
+        return event_time_cols[0], "event-time"
+
+    file_time_cols = [
+        c
+        for c in time_like
+        if _has_any(c, ["file", "ingest", "ingestion", "source", "loaded", "load_at", "received"])
+    ]
+    if file_time_cols:
+        return file_time_cols[0], "file-time"
+
+    return time_like[0], "file-time"
+
+
 def render_canonical_sql(metadata: ModelMetadata, target_dialect: TargetDialect) -> str:
     projection = ",\n  ".join(f'"{col}" AS {col.lower()}' for col in metadata.selected_columns) or "*"
     canonical_select = f'SELECT\n  {projection}\nFROM "{metadata.relation_name}"'
     transpiled = transpile_sql(canonical_select, target_dialect)
-    return "{{ config(materialized='" + metadata.materialized + "') }}\n\n" + transpiled + "\n"
+    config_materialized = "{{ config(materialized='" + metadata.materialized + "') }}\n\n"
+
+    if metadata.materialized != "incremental":
+        return config_materialized + transpiled + "\n"
+
+    # For incremental models, dbt typically requires `unique_key`.
+    uk = metadata.unique_key
+    if isinstance(uk, list):
+        # Jinja can pass lists; represent it in a stable way.
+        uk_expr = "[" + ", ".join(f"'{str(x)}'" for x in uk if str(x).strip()) + "]"
+    else:
+        uk_expr = "'" + str(uk).strip() + "'"
+
+    ordering_field, ordering_strategy = _infer_incremental_ordering_field_and_strategy(metadata.ddl_columns)
+    ordering_predicate = (
+        f'WHERE "{ordering_field}" > (\n'
+        f"  SELECT COALESCE(MAX(\"{ordering_field}\"), CAST('1900-01-01' AS TIMESTAMP))\n"
+        f"  FROM {{{{ this }}}}\n"
+        f")"
+    )
+
+    # Keep ordering metadata as plain comments for transparency.
+    ordering_comments = (
+        f"-- incremental_ordering_strategy: {ordering_strategy}\n"
+        f"-- incremental_ordering_field: {ordering_field}\n"
+    )
+    return (
+        "{{ config(materialized='incremental', unique_key=" + uk_expr + ") }}\n\n"
+        + transpiled
+        + "\n\n"
+        + ordering_comments
+        + "{% if is_incremental() %}\n"
+        + ordering_predicate
+        + "\n{% endif %}\n"
+    )
 
 
 def upsert_sql_if_changed(sql_path: Path, sql_content: str) -> bool:
@@ -339,6 +412,8 @@ def generate_model_artifact(
     *,
     broken: bool,
     rationale: str,
+    thought_callback: Callable[[str, dict[str, Any]], None] | None = None,
+    max_correction_attempts: int = 3,
 ) -> tuple[ModelArtifact, list[MappingRow]]:
     model_name = _sanitize_model_name(table_key)
     ai_telemetry: list[dict[str, Any]] = []
@@ -366,6 +441,16 @@ def generate_model_artifact(
     ddl_only_cols = set(extra_from_ddl)
     all_columns = list(dict.fromkeys(list(raw_columns or []) + extra_from_ddl))
 
+    if thought_callback is not None:
+        thought_callback(
+            "THOUGHT",
+            {
+                "agent_role": "Architect",
+                "message": f"Mapping Hebrew/DDL columns (total={len(all_columns)}).",
+                "table_key": table_key,
+            },
+        )
+
     mapped = [build_mapping_row(col, glossary, alias_registry) for col in all_columns]
 
     # Snapshot inputs for semantic-mapping rationale.
@@ -375,6 +460,16 @@ def generate_model_artifact(
         for row in mapped
         if row.source == MappingSource.TRANSLITERATION and _contains_hebrew(row.hebrew_name)
     ]
+
+    if thought_callback is not None and unresolved_hebrew_cols:
+        thought_callback(
+            "THOUGHT",
+            {
+                "agent_role": "Architect",
+                "message": f"Semantic translation for unresolved Hebrew columns (n={len(unresolved_hebrew_cols)}).",
+                "table_key": table_key,
+            },
+        )
     try:
         mapped, translation_meta = apply_semantic_translation_for_unresolved(
             mapped_rows=mapped,
@@ -386,6 +481,16 @@ def generate_model_artifact(
         auth_error = True
         raise
     ai_telemetry.append({"agent_name": "translation_agent", **translation_meta})
+    if thought_callback is not None:
+        thought_callback(
+            "THOUGHT",
+            {
+                "agent_role": "Architect",
+                "message": "Completed Hebrew-to-English mapping stage.",
+                "table_key": table_key,
+                "confidence": float(translation_meta.get("confidence") or 0.0),
+            },
+        )
     low_confidence_translation = float(translation_meta.get("confidence") or 0.0) < 0.8
     review_required = broken or low_confidence_translation or any(
         "[TRANSLITERATION_WARNING]" in (m.warning_flags or []) for m in mapped
@@ -440,6 +545,16 @@ def generate_model_artifact(
         else:
             mapping_decision_tag = "HUMAN_REQUIRED"
 
+    if thought_callback is not None:
+        thought_callback(
+            "THOUGHT",
+            {
+                "agent_role": "Developer",
+                "message": f"Draft dbt SQL for target dialect '{target_dialect.value}' (broken={broken}).",
+                "table_key": table_key,
+            },
+        )
+
     if broken:
         stub = build_stub_model(table_key, rationale, [m.english_alias for m in mapped])
         sql = stub_sql_from_broken_lineage(stub)
@@ -455,6 +570,15 @@ def generate_model_artifact(
         sql = _build_normal_model_sql(table_key, mapped, target_dialect)
         if has_openai_api_key():
             try:
+                if thought_callback is not None:
+                    thought_callback(
+                        "THOUGHT",
+                        {
+                            "agent_role": "Developer",
+                            "message": "Calling schema_agent to refine context.",
+                            "table_key": table_key,
+                        },
+                    )
                 schema_payload, schema_tokens, schema_conf = _call_schema_agent(
                     table_key=table_key,
                     source_ddl_columns=source_ddl_columns or [],
@@ -488,6 +612,15 @@ def generate_model_artifact(
                         "is_fallback_active": False,
                     }
                 )
+                if thought_callback is not None:
+                    thought_callback(
+                        "THOUGHT",
+                        {
+                            "agent_role": "Developer",
+                            "message": "Calling dbt_agent to draft SQL.",
+                            "table_key": table_key,
+                        },
+                    )
                 llm_sql, dbt_reasoning, dbt_tokens, dbt_conf = _call_dbt_agent(
                     table_key=table_key,
                     schema_agent_output=schema_payload,
@@ -579,6 +712,105 @@ def generate_model_artifact(
                         "is_fallback_active": True,
                     },
                 )
+
+    # QA Lead: validate SQL with sqlglot, then bounded self-healing if rejected.
+    fallback_sql = sql
+    if not broken:
+        # Deterministic fallback that bypasses LLM variability.
+        fallback_sql = _build_normal_model_sql(table_key, mapped, target_dialect)
+
+    def _developer_self_correct_sql(
+        failed_sql: str,
+        error_reasons: list[str],
+        correction_attempt: int,
+        _target_dialect: TargetDialect,
+    ) -> str:
+        nonlocal fallback_reason, auth_error, rate_limit_error
+        if thought_callback is not None:
+            thought_callback(
+                "THOUGHT",
+                {
+                    "agent_role": "Developer",
+                    "message": f"Self-correction call (attempt {correction_attempt}/{max_correction_attempts}).",
+                    "table_key": table_key,
+                    "correction_attempt": correction_attempt,
+                    "reasons": error_reasons[:3],
+                },
+            )
+
+        if not has_openai_api_key():
+            return fallback_sql
+
+        user_prompt = json.dumps(
+            {
+                "table_key": table_key,
+                "model_name": model_name,
+                "target_dialect": target_dialect.value,
+                "failed_sql": failed_sql,
+                "error_reasons": error_reasons,
+                "correction_attempt": correction_attempt,
+                "response_schema": {
+                    "corrected_sql": "string",
+                    "error_analysis": "string",
+                    "confidence": "float_0_to_1",
+                },
+            },
+            ensure_ascii=False,
+        )
+        try:
+            result = query_openai_json(
+                system_prompt=get_agent_prompt("developer_self_correct_agent"),
+                user_prompt=user_prompt,
+                max_tokens=2200,
+                timeout_seconds=45,
+                temperature=0.0,
+            )
+            payload = result.payload if isinstance(result.payload, dict) else {}
+            corrected_sql = str(payload.get("corrected_sql") or "").strip()
+            if corrected_sql and _looks_like_select_sql(corrected_sql):
+                return corrected_sql
+            fallback_reason = "self_correct_agent_invalid_sql"
+            logger.warning(
+                "self_correct_agent_invalid_sql",
+                extra={
+                    "agent_name": "developer_self_correct_agent",
+                    "correction_attempt": correction_attempt,
+                    "fallback_reason": fallback_reason,
+                },
+            )
+        except OpenAIAuthError:
+            auth_error = True
+        except OpenAIRateLimitError:
+            rate_limit_error = True
+            fallback_reason = "self_correct_rate_limit"
+        except (OpenAIQueryError, ValueError, TypeError):
+            fallback_reason = "self_correct_llm_error"
+        return fallback_sql
+
+    final_sql, final_reasons, attempts, hitl_required = run_sql_self_healing_loop(
+        initial_sql=sql,
+        target_dialect=target_dialect,
+        max_correction_attempts=max_correction_attempts,
+        self_correct_sql=_developer_self_correct_sql,
+        thought_callback=thought_callback,
+    )
+    sql = final_sql
+    review_required = bool(review_required) or bool(hitl_required)
+    self_heal_attempts_payload = [a.to_payload() for a in attempts]
+    qa_error_reasons = list(final_reasons or []) if hitl_required else []
+    critical_reason = ""
+    if hitl_required:
+        reasons_block = "\n".join(f"- {r}" for r in qa_error_reasons[:8])
+        critical_reason = (
+            "CRITICAL_REASON\n"
+            f"table_key={table_key}\n"
+            f"model_name={model_name}\n"
+            f"target_dialect={target_dialect.value}\n"
+            f"self_heal_max_attempts={max_correction_attempts}\n"
+            "sql_rejection_reasons=\n"
+            f"{reasons_block or '- none'}\n"
+        )
+
     artifact = ModelArtifact(
         table_key=table_key,
         model_name=model_name,
@@ -595,6 +827,9 @@ def generate_model_artifact(
         rate_limit_error=rate_limit_error,
         review_required=review_required,
         is_stub=broken,
+        critical_reason=critical_reason,
+        qa_error_reasons=qa_error_reasons,
+        self_heal_attempts=self_heal_attempts_payload,
         translation_rationale=translation_rationale,
         mapping_decision_tag=mapping_decision_tag,
     )

@@ -58,6 +58,16 @@ from ama.ui.report_helpers import (
 from ama.env_resolver import get_env, get_openai_model, has_openai_api_key
 from ama.migration_agent.engine import init_state as init_migration_agent_state, run_agent_turn
 from ama.migration_agent import agent_tools as migration_agent_tools
+from ama.dbt_migration.service import (
+    analyze_model_risk_and_scenarios,
+    apply_ai_fix_from_checkpoint,
+    generate_synthetic_data_for_model,
+    poll_generate_dbt_checkpoint_a_job,
+    propose_sql_patch_from_chat,
+    run_wave_stress_test,
+    start_generate_dbt_checkpoint_a_job,
+)
+from ama.dbt_migration.runner import approve_checkpoint_b_sql, reject_checkpoint_b_to_dlq
 
 try:
     import plotly.express as px
@@ -129,7 +139,9 @@ def _render_planner_tab(report: dict[str, Any]) -> None:
                 continue
         wave_ids_sorted = sorted(wave_ids_num)
         if wave_ids_sorted:
-            st.caption("Tip: in `Migration Agent`, type `Migrate Wave <id>` to start a wave.")
+            st.caption(
+                "Tip (Migration Agent): try `Migrate Wave <id>`, `Continue Wave <id>`, `Show Status`, or `Skip Current`."
+            )
     st.metric("Migration waves", len(waves))
     if not waves:
         st.info(
@@ -476,6 +488,23 @@ def _tool_message_model_name(message: dict[str, Any]) -> str:
     return ""
 
 
+def _agent_role_for_tool(tool_name: str) -> tuple[str, str]:
+    name = str(tool_name or "").strip()
+    if name in {"list_waves"}:
+        return "Architect", "Planning migration wave sequence."
+    if name in {"analyze_schema"}:
+        return "Architect", "Analyzing source schema and Hebrew mappings."
+    if name in {"propose_dbt_model"}:
+        return "Developer", "Drafting dbt SQL and YAML."
+    if name in {"execute_dbt_test", "test_model"}:
+        return "QA Lead", "Validating generated model with dbt tests."
+    if name in {"apply_fix"}:
+        return "Developer", "Applying self-correction based on QA findings."
+    if name in {"request_write_permission", "commit_to_disk"}:
+        return "QA Lead", "Requesting human approval gate before write."
+    return "Agent", f"Running tool: {name or 'unknown'}"
+
+
 def _render_migration_agent_tab(report: dict[str, Any]) -> None:
     st.subheader("Migration Agent")
     st.session_state.setdefault(
@@ -502,6 +531,19 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
 
     with st.sidebar:
         st.markdown("### Project Configuration")
+        st.checkbox(
+            "Show full chat history",
+            value=False,
+            key="migration_agent_show_full_history",
+            help="If off, the Agent tab shows only the latest user turn + its tool outputs for clarity.",
+        )
+        if st.button("Clear Agent Chat", key="migration_agent_clear_chat"):
+            state["messages"] = []
+            state["pending_write"] = None
+            state["model_status_by_name"] = {}
+            state["manual_edit_mode"] = False
+            st.rerun()
+
         state["dialect"] = st.selectbox(
             "Deployment Target Dialect",
             options=["duckdb", "snowflake", "bigquery", "redshift"],
@@ -556,10 +598,22 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
     glossary_path = Path(glossary_path_raw).expanduser().resolve() if glossary_path_raw else None
 
     messages = state.get("messages") or []
-    visible_messages = [
-        m for m in messages
-        if isinstance(m, dict) and str(m.get("role") or "") != "system"
-    ]
+    show_full_history = bool(st.session_state.get("migration_agent_show_full_history"))
+    if show_full_history:
+        display_messages = messages
+    else:
+        # Only show the latest user turn (+ everything after it). This prevents confusing
+        # cross-talk when operators run multiple chats in the same session.
+        last_user_idx = None
+        for i, m in enumerate(messages):
+            if isinstance(m, dict) and str(m.get("role") or "") == "user":
+                last_user_idx = i
+        if last_user_idx is None:
+            display_messages = messages[-60:]
+        else:
+            display_messages = messages[last_user_idx:]
+
+    visible_messages = [m for m in display_messages if isinstance(m, dict) and str(m.get("role") or "") != "system"]
     pending_write = state.get("pending_write")
     active_model = ""
     if isinstance(pending_write, dict):
@@ -573,9 +627,17 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                 active_model = model_guess
                 break
     if visible_messages:
-        feed = _build_intelligence_feed(messages)
-        selected_wave, wave_models = _extract_wave_scope_from_messages(messages)
+        feed = _build_intelligence_feed(display_messages)
+        selected_wave, wave_models = _extract_wave_scope_from_messages(display_messages)
         st.markdown("### Intelligence Feed")
+        # Compact collaboration trace for transparency in Agent tab.
+        recent_tool_msgs = [m for m in messages if isinstance(m, dict) and str(m.get("role") or "") == "tool"][-12:]
+        if recent_tool_msgs:
+            with st.status("Collaborations & Reasoning", expanded=False) as status:
+                for msg in recent_tool_msgs:
+                    role, line = _agent_role_for_tool(str(msg.get("tool_name") or ""))
+                    status.write(f"{role}: {line}")
+                status.update(label="Latest agent collaboration steps", state="complete")
         # Keep feed compact and decision-oriented (no raw tool-by-tool chatter).
         if feed["proposals"] or feed["tests"] or feed["fixes"] or feed["schema"]:
             model_status: dict[str, dict[str, str]] = {}
@@ -635,7 +697,9 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
             # If only waves exist, show one concise waves table.
             st.table(feed["waves"][-10:])
     else:
-        st.info("Welcome to Migration Agent. Ask a goal-oriented request, for example: `Migrate Wave 1`.")
+        st.info(
+            "Welcome to Migration Agent. Use wave-focused commands like `Migrate Wave 1`, `Continue Wave 1`, `Show Status`, or `Skip Current`."
+        )
 
     if False and isinstance(pending_write, dict) and pending_write.get("model_name"):
         st.divider()
@@ -739,6 +803,35 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                         }
                     )
                 else:
+                    # Run cockpit validation stages in Agent flow:
+                    # QA Lead risk + scenario analysis before next handoff.
+                    status.write(f"QA Lead: Running risk/scenario validation for {model_name}")
+                    agent_checkpoint_dir = (dbt_project_dir / "out" / "checkpoints" / "agent_tab").resolve()
+                    try:
+                        insights_row = analyze_model_risk_and_scenarios(
+                            checkpoint_dir=agent_checkpoint_dir,
+                            model_name=model_name,
+                            sql=sql_to_write,
+                        )
+                        risk_block = insights_row.get("risk") if isinstance(insights_row, dict) else {}
+                        risk_level = str((risk_block or {}).get("risk_level") or "Unknown")
+                        scenarios = insights_row.get("scenarios") if isinstance(insights_row, dict) else []
+                        state.setdefault("messages", []).append(
+                            {
+                                "role": "assistant",
+                                "content": (
+                                    f"QA validation for `{model_name}`: risk=`{risk_level}`, "
+                                    f"scenario_checks={len(scenarios) if isinstance(scenarios, list) else 0}."
+                                ),
+                            }
+                        )
+                    except Exception as exc:
+                        state.setdefault("messages", []).append(
+                            {
+                                "role": "assistant",
+                                "content": f"QA validation stage failed for `{model_name}`: {exc}",
+                            }
+                        )
                     run_agent_turn(
                         state=state,
                         report=report,
@@ -751,6 +844,9 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                             "result": test_result,
                         },
                         sample_row_cap=int(state.get("sample_row_cap") or 10),
+                        on_tool_start=lambda name: status.write(
+                            f"{_agent_role_for_tool(name)[0]}: {_agent_role_for_tool(name)[1]}"
+                        ),
                         default_dialect=str(state.get("dialect") or "duckdb"),
                     )
                     # Auto-continue wave migration: if this model passed and there are
@@ -842,6 +938,9 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                         "message": "User cancelled write.",
                     },
                     sample_row_cap=int(state.get("sample_row_cap") or 10),
+                    on_tool_start=lambda name: status.write(
+                        f"{_agent_role_for_tool(name)[0]}: {_agent_role_for_tool(name)[1]}"
+                    ),
                     default_dialect=str(state.get("dialect") or "duckdb"),
                 )
                 status.update(label="Done", state="complete")
@@ -852,7 +951,7 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
         # Explicit robust chat bubble rendering.
         hidden_tool_count = 0
         hidden_tools: list[dict[str, Any]] = []
-        for message in state.get("messages", []):
+        for message in display_messages:
             if not isinstance(message, dict):
                 continue
             role = str(message.get("role") or "")
@@ -930,6 +1029,24 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
             sql_to_write = edited_sql if used_manual_edit else original_sql
             manual_fix_applied = used_manual_edit and sql_to_write.strip() != original_sql.strip()
             schema_yml = str(pending_write.get("schema_yml") or "")
+
+            # QA Lead gate (syntax only): validate with sqlglot before writing and before dbt test.
+            # This makes manual SQL edits immediately visible as "wrong" when they are not parseable.
+            try:
+                from ama.dbt_migration.sql_self_heal import validate_sql_with_sqlglot
+                from ama.dbt_migration.sql_transpile import validate_target_dialect
+
+                target_dialect = validate_target_dialect(str(state.get("dialect") or "duckdb"))
+                ok, reasons = validate_sql_with_sqlglot(sql_to_write, target_dialect=target_dialect)
+                if not ok:
+                    reason_txt = "\n".join(f"- {r}" for r in reasons[:8])
+                    st.error(f"QA Lead rejected SQL (sqlglot parse failed):\n{reason_txt}")
+                    state["manual_edit_mode"] = True
+                    return
+            except Exception as exc:
+                # Don't block the user if QA validator itself errors; dbt test will still surface compilation errors.
+                st.warning(f"QA Lead sqlglot validation skipped due to internal error: {exc}")
+
             output_dir.mkdir(parents=True, exist_ok=True)
             sql_path = output_dir / f"{model_name}.sql"
             schema_path = output_dir / f"{model_name}.schema.yml"
@@ -1000,6 +1117,9 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                         glossary_path=glossary_path,
                         tool_result_message={"tool_name": "execute_dbt_test", "result": test_result},
                         sample_row_cap=int(state.get("sample_row_cap") or 10),
+                        on_tool_start=lambda name: status.write(
+                            f"{_agent_role_for_tool(name)[0]}: {_agent_role_for_tool(name)[1]}"
+                        ),
                         default_dialect=str(state.get("dialect") or "duckdb"),
                     )
                     # Auto-continue wave migration: prepare next table after success.
@@ -1084,12 +1204,15 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                     glossary_path=glossary_path,
                     tool_result_message={"tool_name": "request_write_permission", "approved": False, "message": "User cancelled write."},
                     sample_row_cap=int(state.get("sample_row_cap") or 10),
+                    on_tool_start=lambda name: status.write(
+                        f"{_agent_role_for_tool(name)[0]}: {_agent_role_for_tool(name)[1]}"
+                    ),
                     default_dialect=str(state.get("dialect") or "duckdb"),
                 )
                 status.update(label="Done", state="complete")
             st.rerun()
 
-    user_prompt = st.chat_input("Try: Migrate Wave 1")
+    user_prompt = st.chat_input("Try: Migrate Wave 1 (or: Show Status, Skip Current)")
     if user_prompt:
         with st.status("Agent is working...", expanded=True) as status:
             status.write("Planning next migration actions")
@@ -1102,9 +1225,45 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                 glossary_path=glossary_path,
                 user_message=str(user_prompt),
                 sample_row_cap=int(state.get("sample_row_cap") or 10),
-                on_tool_start=lambda name: status.write(f"Running tool: {name}"),
+                on_tool_start=lambda name: status.write(
+                    f"{_agent_role_for_tool(name)[0]}: {_agent_role_for_tool(name)[1]}"
+                ),
                 default_dialect=str(state.get("dialect") or "duckdb"),
             )
+            # Pre-approval QA visibility: run risk/scenario validation right after proposal
+            # so users can see all role stages (Architect + Developer + QA Lead) in one cycle.
+            pending_after_turn = state.get("pending_write")
+            if isinstance(pending_after_turn, dict) and pending_after_turn.get("model_name"):
+                qa_model = str(pending_after_turn.get("model_name") or "").strip()
+                qa_sql = str(pending_after_turn.get("sql") or "")
+                if qa_model and qa_sql.strip():
+                    status.write(f"QA Lead: Running risk/scenario validation for {qa_model}")
+                    agent_checkpoint_dir = (dbt_project_dir / "out" / "checkpoints" / "agent_tab").resolve()
+                    try:
+                        insights_row = analyze_model_risk_and_scenarios(
+                            checkpoint_dir=agent_checkpoint_dir,
+                            model_name=qa_model,
+                            sql=qa_sql,
+                        )
+                        risk_block = insights_row.get("risk") if isinstance(insights_row, dict) else {}
+                        risk_level = str((risk_block or {}).get("risk_level") or "Unknown")
+                        scenarios = insights_row.get("scenarios") if isinstance(insights_row, dict) else []
+                        state.setdefault("messages", []).append(
+                            {
+                                "role": "assistant",
+                                "content": (
+                                    f"QA validation for `{qa_model}` (pre-approval): risk=`{risk_level}`, "
+                                    f"scenario_checks={len(scenarios) if isinstance(scenarios, list) else 0}."
+                                ),
+                            }
+                        )
+                    except Exception as exc:
+                        state.setdefault("messages", []).append(
+                            {
+                                "role": "assistant",
+                                "content": f"QA validation stage failed for `{qa_model}` (pre-approval): {exc}",
+                            }
+                        )
             status.update(label="Done", state="complete")
         st.rerun()
 
@@ -1154,6 +1313,8 @@ def _render_dbt_migration_tab(report: dict[str, Any]) -> None:
             "dlq_dir": str(Path("out/dbt_dlq").resolve()),
             "checkpoint_a": None,
             "generate_job_id": None,
+            "events_job_id": "",
+            "events_lines_seen": 0,
             "wave_plan": {},
             "wave_status": {},
             "model_status": {},
@@ -1294,6 +1455,8 @@ def _render_dbt_migration_tab(report: dict[str, Any]) -> None:
                 run_execution=False,
             )
             state["generate_job_id"] = job_id
+            state["events_job_id"] = job_id
+            state["events_lines_seen"] = 0
             wave_hint = (
                 f" (Wave {state['selected_wave_id']} only)" if state.get("selected_wave_id") is not None else ""
             )
@@ -1358,6 +1521,8 @@ def _render_dbt_migration_tab(report: dict[str, Any]) -> None:
                                 run_execution=False,
                             )
                             state["generate_job_id"] = job_id
+                            state["events_job_id"] = job_id
+                            state["events_lines_seen"] = 0
                             state["auto_started_checkpoint_a_wave"] = queued_wave_id_int
                             st.info(
                                 f"Auto-started Selective Checkpoint A generation for Wave {queued_wave_id_int} "
@@ -1429,6 +1594,34 @@ def _render_dbt_migration_tab(report: dict[str, Any]) -> None:
                     st.caption(f"Last event: `{last_evt.get('event_type')}` at `{last_evt.get('timestamp')}`")
                 except Exception:
                     st.caption("Last event: (unavailable)")
+
+            # Live agent "Thought" stream during Checkpoint A generation.
+            thought_events: list[dict[str, Any]] = []
+            if events_path.is_file():
+                try:
+                    lines = events_path.read_text(encoding="utf-8").splitlines()
+                    start_idx = int(state.get("events_lines_seen") or 0)
+                    new_lines = lines[start_idx:]
+                    state["events_lines_seen"] = len(lines)
+                    for ln in new_lines:
+                        if not ln.strip():
+                            continue
+                        try:
+                            evt = json.loads(ln)
+                        except json.JSONDecodeError:
+                            continue
+                        if str(evt.get("event_type") or "").upper() == "THOUGHT":
+                            if isinstance(evt, dict):
+                                thought_events.append(evt)
+                except Exception:
+                    thought_events = []
+
+            if thought_events:
+                with st.status("Collaborations & Reasoning", expanded=True) as status:
+                    for evt in thought_events[-15:]:
+                        agent_role = str(evt.get("agent_role") or "Agent")
+                        msg = str(evt.get("message") or "").strip()
+                        status.write(f"{agent_role}: {msg}")
 
             if st.button("Refresh status", key="dbt_mig_refresh_generate_job"):
                 st.rerun()
@@ -1645,6 +1838,11 @@ def _render_dbt_migration_tab(report: dict[str, Any]) -> None:
                 st.write(
                     f"{label} {str(getattr(model_art, 'translation_rationale', '') or 'No translation rationale captured.')}"
                 )
+
+                critical_reason = str(getattr(model_art, "critical_reason", "") or "").strip()
+                if critical_reason:
+                    st.markdown("**CRITICAL_REASON (HITL)**")
+                    st.code(critical_reason)
 
             # Mapping table (field-level confidence preview).
             rows = model_art.mapping_rows or []

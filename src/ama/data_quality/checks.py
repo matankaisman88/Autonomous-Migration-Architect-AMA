@@ -49,3 +49,53 @@ class DQSuiteResult:
             "warn_count": self.warn_count,
             "checks": [c.to_dict() for c in self.checks],
         }
+
+
+def run_sql_syntax_checks(*, sql: str, target_dialect: str) -> DQSuiteResult:
+    """
+    Validate SQL syntax via SQLGlot and return DQ-style results.
+
+    Note: dbt SQL often contains Jinja blocks like `{{ config(...) }}`.
+    This helper strips `{{ ... }}` segments before validation so SQLGlot can parse
+    the underlying SELECT statement.
+    """
+    import re
+
+    import sqlglot
+    from sqlglot import errors
+
+    out = DQSuiteResult()
+    sql_raw = sql or ""
+    # Strip Jinja blocks for syntax validation.
+    sql_for_parse = re.sub(r"{{.*?}}", "", sql_raw, flags=re.DOTALL).strip()
+    if not sql_for_parse:
+        out.checks.append(
+            DQCheckResult(
+                name="sql_syntax",
+                severity=DQSeverity.ERROR,
+                message="SQL is empty after stripping Jinja blocks.",
+            )
+        )
+        return out
+
+    try:
+        # Validate against the target dialect surface.
+        sqlglot.parse_one(sql_for_parse, read=target_dialect)
+    except errors.SqlglotError as exc:
+        out.checks.append(
+            DQCheckResult(
+                name="sql_syntax",
+                severity=DQSeverity.ERROR,
+                message=f"SQLGlot parse failed for target '{target_dialect}': {str(exc)}",
+            )
+        )
+    else:
+        out.checks.append(
+            DQCheckResult(
+                name="sql_syntax",
+                severity=DQSeverity.OK,
+                message="SQLGlot parse succeeded.",
+            )
+        )
+
+    return out

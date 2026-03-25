@@ -78,6 +78,12 @@ class ModelArtifact(BaseModel):
     mapping_decision_tag: str = "HUMAN_REQUIRED"
     review_required: bool = False
     is_stub: bool = False
+    # Populated when bounded self-healing fails and HITL is required.
+    critical_reason: str = ""
+    # QA-reported SQL rejection reasons from sqlglot / syntax validation.
+    qa_error_reasons: list[str] = Field(default_factory=list)
+    # Telemetry for bounded correction attempts (kept for transparency/debugging).
+    self_heal_attempts: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class CheckpointAArtifact(BaseModel):

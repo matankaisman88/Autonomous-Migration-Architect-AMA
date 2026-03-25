@@ -19,7 +19,10 @@ def validate_target_dialect(dialect: str) -> TargetDialect:
 
 def transpile_sql(sql: str, target_dialect: TargetDialect) -> str:
     try:
-        parsed = sqlglot.parse_one(sql, read="duckdb")
+        # Avoid hard-coded dialect assumptions for parsing.
+        # Canonical SQL we generate is intentionally dialect-lean (ANSI-like),
+        # so let SQLGlot auto-detect the input dialect.
+        parsed = sqlglot.parse_one(sql)
         return parsed.sql(dialect=target_dialect.value, pretty=True)
     except errors.SqlglotError as exc:
         raise ValueError(f"SQL transpilation failed for {target_dialect.value}: {exc}") from exc
