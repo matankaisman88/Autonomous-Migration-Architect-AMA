@@ -1,0 +1,16 @@
+{
+  "columns": [
+    {
+      "name": "shipment_id",
+      "type": "int"
+    },
+    {
+      "name": "carrier_code",
+      "type": "char(3)"
+    },
+    {
+      "name": "created_at",
+      "type": "datetime2"
+    }
+  ]
+}

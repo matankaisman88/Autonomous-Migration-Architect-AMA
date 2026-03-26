@@ -13,6 +13,8 @@ import os
 import re
 import queue
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import uuid
 import time
 import subprocess
 from datetime import datetime, timezone
@@ -69,8 +71,303 @@ from ama.dbt_migration.service import (
     start_generate_dbt_checkpoint_a_job,
 )
 from ama.dbt_migration.runner import approve_checkpoint_b_sql, reject_checkpoint_b_to_dlq
+from ama.hitl_apply import decision_from_queue
+from ama.scale_engine import evaluate_batch, queue_emoji
+from ama.scale_engine.audit import append_decision
+
+# Tab groups — single source of truth for Analysis vs Execution (see test_tab_group_structure).
+ANALYSIS_TABS: list[str] = [
+    "Overview",
+    "Domains",
+    "Tables",
+    "Glossary",
+    "Lineage",
+    "Bulk Migration",
+    "Planner",
+    "Ask the data",
+    "Data quality",
+]
+EXECUTION_TABS: list[str] = ["Migration Agent", "HITL Review"]
+
+SCALE_ENGINE_CACHE_KEY = "scale_engine_result"
+SCALE_ENGINE_THRESHOLD_KEY = "scale_engine_thresholds"
+SCALE_ENGINE_REPORT_KEY = "scale_engine_report_identity"
+LAUNCHPAD_EXPANDED_KEY = "launchpad_expanded"
+AGENT_TAB_ACTIVE_KEY = "agent_tab_active"
+AGENT_PREFILL_KEY = "agent_prefill"
+MIGRATION_NOTICE_KEY = "migration_notice"
+_BULK_JOBS_LOCK = threading.Lock()
+_BULK_JOBS: dict[str, dict[str, Any]] = {}
 
 _DBT_JINJA_BLOCK_RE = re.compile(r"({{.*?}}|{%-?.*?-%})", flags=re.DOTALL)
+
+
+def _get_or_compute_scale_result(
+    report: dict[str, Any],
+    conf_floor: int,
+    crit_ceil: int,
+) -> Any:
+    cached_thresholds = st.session_state.get(SCALE_ENGINE_THRESHOLD_KEY)
+    cached_result = st.session_state.get(SCALE_ENGINE_CACHE_KEY)
+    if cached_result is None or cached_thresholds != (conf_floor, crit_ceil):
+        result = evaluate_batch(
+            report,
+            dry_run=True,
+            conf_floor=conf_floor,
+            crit_ceil=crit_ceil,
+        )
+        st.session_state[SCALE_ENGINE_CACHE_KEY] = result
+        st.session_state[SCALE_ENGINE_THRESHOLD_KEY] = (conf_floor, crit_ceil)
+    return st.session_state[SCALE_ENGINE_CACHE_KEY]
+
+
+def _set_agent_prefill(prompt: str) -> None:
+    st.session_state[AGENT_TAB_ACTIVE_KEY] = True
+    st.session_state[AGENT_PREFILL_KEY] = str(prompt or "").strip()
+
+
+def _pending_write_from_result(result: dict[str, Any]) -> dict[str, Any] | None:
+    if not isinstance(result, dict):
+        return None
+    pw = result.get("pending_write")
+    if isinstance(pw, dict):
+        return pw
+    wg = result.get("write_gate")
+    if isinstance(wg, dict) and isinstance(wg.get("pending_write"), dict):
+        return wg.get("pending_write")
+    return None
+
+
+def _resolve_output_dir(report_path: Path | None, dbt_project_dir: Path) -> Path:
+    mig = st.session_state.get("migration_agent") or {}
+    raw = str(mig.get("output_dir") or "").strip()
+    if raw:
+        return Path(raw).expanduser().resolve()
+    return (dbt_project_dir / "models" / "ama_generated").resolve()
+
+
+def _mark_table_migrated(table_key: str, model_name: str) -> None:
+    key = str(table_key)
+    migrated = set(st.session_state.get("migrated_tables", []))
+    migrated.add(key)
+    st.session_state["migrated_tables"] = sorted(migrated)
+    st.session_state.pop(f"pending_write_{key}", None)
+    st.session_state.pop(f"pending_write_{key}_fix", None)
+    st.session_state.pop(f"tbl_review_open_{key}", None)
+    st.session_state.pop(f"tbl_explain_result_{key}", None)
+    if str(st.session_state.get("tbl_pick_main") or "") == key:
+        st.session_state["tbl_pick_main"] = ""
+    st.session_state[MIGRATION_NOTICE_KEY] = (
+        f"Migration finished: `{key}` (`{model_name}`) marked as migrated."
+    )
+
+
+def _write_model_files(*, output_dir: Path, model_name: str, sql: str, schema_yml: str) -> tuple[Path, Path]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    sql_path = output_dir / f"{model_name}.sql"
+    schema_path = output_dir / f"{model_name}.schema.yml"
+    sql_path.write_text(str(sql or "").rstrip() + "\n", encoding="utf-8")
+    if str(schema_yml or "").strip():
+        schema_path.write_text(str(schema_yml), encoding="utf-8")
+    return sql_path, schema_path
+
+
+def _run_bulk_job(
+    *,
+    job_id: str,
+    table_keys: list[str],
+    report: dict[str, Any],
+    report_path: Path,
+    dialect: str,
+    dbt_project_dir: Path,
+    output_dir: Path,
+    contract_id: str,
+    scored_rows: dict[str, Any],
+    max_workers: int = 4,
+    dbt_target: str | None = None,
+) -> None:
+    total = len(table_keys)
+    try:
+        with _BULK_JOBS_LOCK:
+            if job_id not in _BULK_JOBS:
+                _BULK_JOBS[job_id] = {
+                    "status": "queued",
+                    "total": total,
+                    "completed": 0,
+                    "current_table": "",
+                    "success": [],
+                    "failed": [],
+                    "error": "",
+                }
+            _BULK_JOBS[job_id]["status"] = "running"
+            _BULK_JOBS[job_id]["total"] = total
+
+        def _process_one(table_key: str) -> tuple[str, bool]:
+            try:
+                prop = migration_agent_tools.propose_dbt_model(
+                    report=report,
+                    report_path=report_path,
+                    table=table_key,
+                    dialect=dialect,
+                    glossary_path=None,
+                )
+                model_name = str(prop.get("model_name") or table_key.replace(".", "_"))
+                sql = str(prop.get("sql") or "")
+                schema_yml = str(prop.get("schema_yml") or "")
+                _write_model_files(
+                    output_dir=output_dir,
+                    model_name=model_name,
+                    sql=sql,
+                    schema_yml=schema_yml,
+                )
+                test_result = migration_agent_tools.test_model(
+                    dbt_project_dir=dbt_project_dir,
+                    model_name=model_name,
+                    target=dbt_target,
+                )
+                row = scored_rows.get(table_key)
+                if row is not None:
+                    append_decision(
+                        table_key=table_key,
+                        decision=decision_from_queue(str(row.get("queue") or "green")),
+                        confidence=row["confidence_result"],
+                        criticality=row["criticality_result"],
+                        anomaly_flags=row["anomaly_flags"],
+                        contract_id=contract_id,
+                        approved_by="dashboard",
+                        approved_at=datetime.now(timezone.utc).isoformat(),
+                    )
+                return table_key, bool(test_result.get("success"))
+            except Exception:
+                return table_key, False
+
+        workers = max(1, min(int(max_workers or 4), 8))
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            futs = {ex.submit(_process_one, tk): tk for tk in table_keys}
+            done_count = 0
+            for fut in as_completed(futs):
+                table_key = futs[fut]
+                with _BULK_JOBS_LOCK:
+                    _BULK_JOBS[job_id]["current_table"] = table_key
+                tk, ok = fut.result()
+                with _BULK_JOBS_LOCK:
+                    if ok:
+                        _BULK_JOBS[job_id]["success"].append(tk)
+                    else:
+                        _BULK_JOBS[job_id]["failed"].append(tk)
+                    done_count += 1
+                    _BULK_JOBS[job_id]["completed"] = done_count
+        with _BULK_JOBS_LOCK:
+            _BULK_JOBS[job_id]["status"] = "done"
+    except Exception as exc:
+        with _BULK_JOBS_LOCK:
+            _BULK_JOBS[job_id]["status"] = "failed"
+            _BULK_JOBS[job_id]["error"] = str(exc)
+
+
+def _render_pending_write_panel(
+    table_key: str,
+    *,
+    report_path: Path | None,
+    dbt_project_dir: Path,
+    output_dir: Path,
+    dbt_target: str | None = None,
+    key_prefix: str = "pending",
+) -> None:
+    state_key = f"pending_write_{table_key}"
+    pending = st.session_state.get(state_key)
+    if not isinstance(pending, dict):
+        return
+    with st.expander(f"⏳ Awaiting Approval — {table_key}", expanded=True):
+        model_name = str(pending.get("model_name") or str(table_key).replace(".", "_"))
+        sql = str(pending.get("sql") or "")
+        schema_yml = str(pending.get("schema_yml") or "")
+        st.code(sql, language="sql")
+        st.code(str(pending.get("schema_yml") or ""), language="yaml")
+        out_dir = _resolve_output_dir(report_path, dbt_project_dir) if output_dir is None else output_dir
+        st.caption(f"Target output directory: `{out_dir}`")
+        fix_key = f"{state_key}_fix"
+        if isinstance(st.session_state.get(fix_key), dict):
+            fix = st.session_state.get(fix_key) or {}
+            st.warning("Initial dbt test failed. Review auto-fix below.")
+            st.code(str(fix.get("corrected_sql") or ""), language="sql")
+            if st.button("Approve Corrected SQL", key=f"approve_fix_{key_prefix}_{table_key}", type="primary"):
+                corrected_sql = str(fix.get("corrected_sql") or "").strip()
+                if corrected_sql:
+                    pending["sql"] = corrected_sql
+                    st.session_state[state_key] = pending
+                    try:
+                        sql_path, schema_path = _write_model_files(
+                            output_dir=out_dir,
+                            model_name=model_name,
+                            sql=corrected_sql,
+                            schema_yml=schema_yml,
+                        )
+                        st.caption(f"Wrote SQL: `{sql_path}`")
+                        if str(schema_yml).strip():
+                            st.caption(f"Wrote schema: `{schema_path}`")
+                    except OSError as exc:
+                        st.error(f"Write failed: {exc}")
+                        return
+                    with st.status(f"Running dbt test on {model_name}...", expanded=True) as status:
+                        test_result = migration_agent_tools.test_model(
+                            dbt_project_dir=dbt_project_dir,
+                            model_name=model_name,
+                            target=dbt_target,
+                        )
+                        if bool(test_result.get("success")):
+                            _mark_table_migrated(str(table_key), model_name)
+                            st.success(f"✅ {table_key} migrated and tested successfully.")
+                        else:
+                            st.warning(f"dbt test still failing for {table_key}.")
+                            logs = str(test_result.get("logs") or "").strip()
+                            if logs:
+                                st.code(logs[:4000], language="text")
+                        status.update(label="Done", state="complete")
+                    st.rerun()
+        ac1, ac2 = st.columns(2)
+        if ac1.button(
+            "✅ Approve & Write",
+            key=f"approve_{key_prefix}_{table_key}",
+            type="primary",
+        ):
+            try:
+                sql_path, schema_path = _write_model_files(
+                    output_dir=out_dir,
+                    model_name=model_name,
+                    sql=sql,
+                    schema_yml=schema_yml,
+                )
+                st.caption(f"Wrote SQL: `{sql_path}`")
+                if str(schema_yml).strip():
+                    st.caption(f"Wrote schema: `{schema_path}`")
+            except OSError as exc:
+                st.error(f"Write failed: {exc}")
+                return
+            with st.status(f"Running dbt test on {model_name}...", expanded=True) as status:
+                test_result = migration_agent_tools.test_model(
+                    dbt_project_dir=dbt_project_dir,
+                    model_name=model_name,
+                    target=dbt_target,
+                )
+                if bool(test_result.get("success")):
+                    _mark_table_migrated(str(table_key), model_name)
+                    st.success(f"✅ {table_key} migrated and tested successfully.")
+                else:
+                    status.write("Running auto-fix...")
+                    fix = migration_agent_tools.apply_fix(
+                        dbt_project_dir=dbt_project_dir,
+                        model_name=model_name,
+                        error_log=str(test_result.get("logs") or ""),
+                        attempt_history=[],
+                    )
+                    st.session_state[fix_key] = fix if isinstance(fix, dict) else {"corrected_sql": ""}
+                    st.warning(f"dbt test failed for {table_key}. Review suggested fix below.")
+                status.update(label="Done", state="complete")
+        if ac2.button("❌ Reject", key=f"reject_{key_prefix}_{table_key}"):
+            st.session_state.pop(state_key, None)
+            st.session_state.pop(fix_key, None)
+            st.warning(f"Migration of {table_key} cancelled.")
 
 
 def _format_sql_for_display(sql: str, *, dialect: str) -> str:
@@ -1669,7 +1966,14 @@ def _render_migration_agent_tab(report: dict[str, Any]) -> None:
                 status.update(label="Done", state="complete")
             st.rerun()
 
-    user_prompt = st.chat_input("Try: Migrate Wave 1 (or: Show Status, Skip Current)")
+    if AGENT_PREFILL_KEY in st.session_state and str(st.session_state.get(AGENT_PREFILL_KEY) or "").strip():
+        if not str(st.session_state.get("migration_agent_chat_input") or "").strip():
+            st.session_state["migration_agent_chat_input"] = str(st.session_state.get(AGENT_PREFILL_KEY) or "")
+            st.session_state[AGENT_PREFILL_KEY] = ""
+    user_prompt = st.chat_input(
+        "Try: Migrate Wave 1 (or: Show Status, Skip Current)",
+        key="migration_agent_chat_input",
+    )
     if user_prompt:
         with st.status("Agent is working...", expanded=True) as status:
             status.write("Planning next migration actions")
@@ -2973,6 +3277,29 @@ def main() -> None:
             "**Tables** Confirmed/Review **Confidence** columns."
         )
 
+    _report_identity = (
+        f"{report_path_resolved!s}:{st.session_state.report_reload_bust}"
+        if report_path_resolved
+        else "upload"
+    )
+    if st.session_state.get(SCALE_ENGINE_REPORT_KEY) != _report_identity:
+        st.session_state.pop(SCALE_ENGINE_CACHE_KEY, None)
+        st.session_state.pop(SCALE_ENGINE_THRESHOLD_KEY, None)
+        st.session_state[SCALE_ENGINE_REPORT_KEY] = _report_identity
+
+    if "scale_conf_floor" not in st.session_state:
+        st.session_state.scale_conf_floor = 90
+    if "scale_crit_ceil" not in st.session_state:
+        st.session_state.scale_crit_ceil = 40
+    if "migration_dialect" not in st.session_state:
+        st.session_state.migration_dialect = "duckdb"
+    if "migrated_tables" not in st.session_state:
+        st.session_state.migrated_tables = []
+    dashboard_dbt_project_dir = Path(
+        str((st.session_state.get("migration_agent") or {}).get("dbt_project_dir") or ".")
+    ).expanduser().resolve()
+    dashboard_output_dir = _resolve_output_dir(report_path_resolved, dashboard_dbt_project_dir)
+
     _sv_main = str(report.get("schema_version") or "").strip() or "— (legacy)"
     st.markdown(f"**Report schema version:** `{_sv_main}`")
     _mctx = str(report.get("migration_context") or report.get("target_table") or "").strip()
@@ -3044,21 +3371,31 @@ def main() -> None:
         exec_sum.get("risk_hotspots") or [], allowed_tables=allowed_tables
     )
 
-    tabs = st.tabs(
-        [
-            "Executive overview",
-            "Domains",
-            "Planner",
-            "Business Glossary",
-            "Ask the data",
-            "Tables",
-            "Data quality",
-            "Review (HITL)",
-            "Migration Agent",
-        ]
-    )
+    st.markdown("📊 Analysis")
+    analysis_tabs = st.tabs(ANALYSIS_TABS)
+    st.markdown("⚙️ Execution")
+    execution_tabs = st.tabs(EXECUTION_TABS)
+    if LAUNCHPAD_EXPANDED_KEY not in st.session_state:
+        st.session_state[LAUNCHPAD_EXPANDED_KEY] = True
+    with st.expander("Migration Launchpad", expanded=bool(st.session_state.get(LAUNCHPAD_EXPANDED_KEY, True))):
+        lp1, lp2 = st.columns(2)
+        with lp1:
+            st.info("🎯 Migrate individual tables\n\nSelect a table in the Tables tab and click Migrate This Table.")
+            if st.button("Go to Tables →", key="launchpad_go_tables"):
+                st.session_state["analysis_focus_tab"] = "Tables"
+        with lp2:
+            st.info("⚡ Bulk migrate by confidence\n\nApprove all GREEN tables in one click from the Bulk Migration tab.")
+            if st.button("Go to Bulk Migration →", key="launchpad_go_bulk"):
+                st.session_state["analysis_focus_tab"] = "Bulk Migration"
+        if st.button("Hide Launchpad", key="launchpad_hide"):
+            st.session_state[LAUNCHPAD_EXPANDED_KEY] = False
+            st.rerun()
 
-    with tabs[0]:
+    with analysis_tabs[0]:
+        _ov_l, _ov_r = st.columns([6, 1])
+        with _ov_r:
+            if st.button("💬 Ask Agent", key="ask_agent_overview"):
+                _set_agent_prefill("Summarize the migration readiness of this report.")
         st.caption(
             "Sidebar filters (**Business domain**, **Portfolio**) scope KPIs, charts, domain matrix, hotspots, "
             "Domains tab, search, glossary, and the **Tables** inventory list. "
@@ -3210,7 +3547,11 @@ def main() -> None:
                     "The dashboard **recomputes** hotspots when you load a report when the JSON list is empty."
                 )
 
-    with tabs[1]:
+    with analysis_tabs[1]:
+        _dom_l, _dom_r = st.columns([6, 1])
+        with _dom_r:
+            if st.button("💬 Ask Agent", key="ask_agent_domains"):
+                _set_agent_prefill("Which domain should I migrate first and why?")
         st.subheader("Domain deep dives")
         st.caption("Data health per domain — how ready the portfolio is to move (uses sidebar filters).")
         dlist = (
@@ -3265,10 +3606,14 @@ def main() -> None:
                         hide_index=True,
                     )
 
-    with tabs[2]:
+    with analysis_tabs[6]:
         _render_planner_tab(report)
 
-    with tabs[3]:
+    with analysis_tabs[3]:
+        _gl_l, _gl_r = st.columns([6, 1])
+        with _gl_r:
+            if st.button("💬 Ask Agent", key="ask_agent_glossary"):
+                _set_agent_prefill("Are there any unmapped columns I should resolve before migrating?")
         st.subheader("Business Translator — glossary")
         gs_inv = report.get("glossary_source") or {}
         gs_flat: list[dict[str, Any]] = []
@@ -3474,7 +3819,7 @@ def main() -> None:
                 if card.get("reasoning"):
                     st.caption(f"**Evidence / citations:** {card.get('reasoning')}")
 
-    with tabs[4]:
+    with analysis_tabs[7]:
         st.subheader("Ask the data")
         st.markdown(
             """
@@ -3608,12 +3953,382 @@ search over every raw SQL line in the logs.
                             "You have **table** hits but no merge-backed glossary yet for this query — often a wording mismatch in column names."
                         )
 
-    with tabs[5]:
+    with analysis_tabs[4]:
+        _ln_l, _ln_r = st.columns([6, 1])
+        with _ln_r:
+            if st.button("💬 Ask Agent", key="ask_agent_lineage"):
+                _set_agent_prefill("Which tables have the most downstream dependencies?")
+        st.subheader("Lineage")
+        st.caption("Read-only lineage edges from the report JSON.")
+        edges = (report.get("lineage") or {}).get("edges") if isinstance(report.get("lineage"), dict) else []
+        if isinstance(edges, list) and edges:
+            st.dataframe(pd.DataFrame(edges), use_container_width=True, hide_index=True)
+        else:
+            st.info("No lineage edges found in this report.")
+
+    with analysis_tabs[5]:
+        _bk_l, _bk_r = st.columns([6, 1])
+        with _bk_r:
+            if st.button("💬 Ask Agent", key="ask_agent_bulk"):
+                _set_agent_prefill("Help me decide on the right confidence threshold for bulk approval.")
+        st.subheader("Bulk Migration")
+        st.caption(
+            "Approval actions in this tab invoke the Execution layer. Dry run is on by default."
+        )
+        c1, c2, c3 = st.columns(3)
+        c1.slider("Confidence Floor", 50, 100, key="scale_conf_floor")
+        c2.slider("Criticality Ceiling", 0, 80, key="scale_crit_ceil")
+        c3.selectbox(
+            "Target Dialect",
+            ["duckdb", "snowflake", "bigquery", "redshift"],
+            key="bulk_dialect",
+        )
+        bulk_workers = st.slider(
+            "Bulk Parallel Workers",
+            min_value=1,
+            max_value=8,
+            value=int(st.session_state.get("bulk_workers") or 4),
+            step=1,
+            key="bulk_workers",
+            help="Higher values speed up bulk migration by processing multiple tables concurrently.",
+        )
+        st.session_state["migration_dialect"] = str(st.session_state.get("bulk_dialect") or "duckdb")
+        dry_run_bulk = st.toggle("Dry Run", value=True, key="bulk_dry_run")
+        bulk_eval = _get_or_compute_scale_result(
+            report,
+            int(st.session_state.scale_conf_floor),
+            int(st.session_state.scale_crit_ceil),
+        )
+        if dry_run_bulk:
+            st.warning("DRY RUN MODE — no files will be written until you disable dry run.")
+        m1, m2, m3, m4 = st.columns(4)
+        migrated_tables = set(st.session_state.get("migrated_tables", []))
+        greens = [s for s in bulk_eval.scored_tables if s.queue == "green"]
+        greens_remaining = [s for s in greens if s.table_key not in migrated_tables]
+        yellows = [s for s in bulk_eval.scored_tables if s.queue == "yellow"]
+        reds = [s for s in bulk_eval.scored_tables if s.queue == "red"]
+        m1.metric("🟢 Ready for Bulk", len(greens_remaining))
+        m2.metric("🟡 Review Required", len(yellows))
+        m3.metric("🔴 Blocked", bulk_eval.would_block)
+        m4.metric("📋 Contract Rules", len(bulk_eval.contract_preview.rules))
+
+        if greens_remaining:
+            if dry_run_bulk:
+                if st.button(
+                    "🔍 Preview Green Migration (Dry Run)",
+                    key="bulk_preview_all_green",
+                    type="primary",
+                    help=f"See what would happen if you migrated all {len(greens_remaining)} GREEN tables.",
+                ):
+                    preview = migration_agent_tools.bulk_migrate_tables(
+                        report=report,
+                        report_path=report_path_resolved or Path("report.json"),
+                        filters={"queue": "green"},
+                        dialect="duckdb",
+                        glossary_path=None,
+                        dry_run=True,
+                        approved_by="dashboard",
+                    )
+                    st.info(
+                        f"Dry-run summary: migrated={len(preview.migrated)}, skipped={len(preview.skipped)}, "
+                        f"contract_id={preview.contract.contract_id if preview.contract else '—'}"
+                    )
+                    if preview.contract:
+                        st.code("\n".join(preview.contract.rules) or "(no rules)")
+            else:
+                if st.button(
+                    "⚡ Approve All Green Tables",
+                    key="bulk_approve_all_green",
+                    type="primary",
+                    help=f"Migrate all {len(greens_remaining)} GREEN tables using the current contract.",
+                ):
+                    st.session_state["bulk_select_all_green"] = True
+                    st.session_state["bulk_run_all_green"] = True
+        else:
+            st.info(
+                "No tables are currently ready for bulk approval. Adjust the confidence threshold or review flagged tables."
+            )
+
+        st.markdown("### 🟢 Ready for Bulk")
+        gdf = pd.DataFrame(
+            [
+                {
+                    "selected": False,
+                    "table_key": s.table_key,
+                    "domain": s.business_domain,
+                    "confidence": s.confidence,
+                    "criticality": s.criticality,
+                }
+                for s in greens_remaining
+            ]
+        )
+        checked_green: list[str] = []
+        if not gdf.empty:
+            edited_green = st.data_editor(gdf, use_container_width=True, key="bulk_green_editor", hide_index=True)
+            checked_green = [
+                str(r["table_key"]) for _, r in edited_green.iterrows() if bool(r.get("selected"))
+            ]
+        if st.session_state.pop("bulk_select_all_green", False):
+            checked_green = [s.table_key for s in greens_remaining]
+        if st.button("Preview Contract", key="bulk_preview_contract"):
+            st.code("\n".join(bulk_eval.contract_preview.rules) or "(no rules)")
+            st.json(
+                {
+                    "excluded": bulk_eval.contract_preview.excluded,
+                    "contract_id": bulk_eval.contract_preview.contract_id,
+                }
+            )
+        if greens_remaining:
+            st.caption("Or migrate one GREEN table with explicit approval:")
+            for s in greens_remaining[:40]:
+                gi1, gi2 = st.columns([5, 1])
+                gi1.markdown(f"`{s.table_key}` ({s.business_domain})")
+                if gi2.button("▶ Migrate", key=f"bulk_green_migrate_{s.table_key}", type="primary"):
+                    if report_path_resolved is None:
+                        st.warning("Set a report path first to enable per-table migration.")
+                    else:
+                        prop = migration_agent_tools.propose_dbt_model(
+                            report=report,
+                            report_path=report_path_resolved,
+                            table=s.table_key,
+                            dialect=str(st.session_state.get("migration_dialect") or "duckdb"),
+                            glossary_path=None,
+                        )
+                        pending = _pending_write_from_result(prop)
+                        if not isinstance(pending, dict):
+                            pending = {
+                                "model_name": str(prop.get("model_name") or s.table_key.replace(".", "_")),
+                                "sql": str(prop.get("sql") or ""),
+                                "schema_yml": str(prop.get("schema_yml") or ""),
+                            }
+                        st.session_state[f"pending_write_{s.table_key}"] = pending
+                        st.rerun()
+                _render_pending_write_panel(
+                    s.table_key,
+                    report_path=report_path_resolved,
+                    dbt_project_dir=dashboard_dbt_project_dir,
+                    output_dir=dashboard_output_dir,
+                    dbt_target=str(st.session_state.get("migration_dialect") or "duckdb"),
+                    key_prefix="bulk",
+                )
+        confirm_bulk = ""
+        if not dry_run_bulk:
+            confirm_bulk = st.text_input("type CONFIRM to proceed", key="bulk_confirm_text")
+        btn_label = "Dry Run Selected" if dry_run_bulk else "Approve Selected"
+        run_selected = st.button(btn_label, key="bulk_approve_selected", disabled=not checked_green)
+        run_all_now = bool(st.session_state.pop("bulk_run_all_green", False))
+        bulk_job_id = str(st.session_state.get("bulk_job_id") or "")
+        bulk_job = None
+        if bulk_job_id:
+            with _BULK_JOBS_LOCK:
+                bulk_job = _BULK_JOBS.get(bulk_job_id)
+        if bulk_job_id and not isinstance(bulk_job, dict):
+            st.warning("Bulk job state not found (possibly stale after app reload).")
+            if st.button("Clear Stale Bulk Job", key="bulk_job_clear_stale"):
+                st.session_state["bulk_job_id"] = ""
+                st.rerun()
+        if isinstance(bulk_job, dict):
+            status_txt = str(bulk_job.get("status") or "")
+            completed = int(bulk_job.get("completed") or 0)
+            total = int(bulk_job.get("total") or 0)
+            current = str(bulk_job.get("current_table") or "")
+            st.info(
+                f"Bulk job running: {completed}/{total} (status={status_txt or 'running'})"
+                + (f" — current `{current}`" if current else "")
+            )
+            st.progress((completed / max(1, total)) if total > 0 else 0.0)
+            # Keep the UI live while background job advances.
+            if status_txt in {"queued", "running"}:
+                st.caption("Auto-refreshing bulk job status...")
+                time.sleep(1.2)
+                st.rerun()
+            if status_txt == "failed":
+                st.error(f"Bulk migration failed: {str(bulk_job.get('error') or 'unknown error')}")
+            if status_txt == "done":
+                success_tables = list(bulk_job.get("success") or [])
+                failed_tables = list(bulk_job.get("failed") or [])
+                if success_tables:
+                    migrated = set(st.session_state.get("migrated_tables", []))
+                    migrated.update(success_tables)
+                    st.session_state["migrated_tables"] = sorted(migrated)
+                    st.session_state[MIGRATION_NOTICE_KEY] = (
+                        f"Bulk migration finished: {len(success_tables)} table(s) marked as migrated."
+                    )
+                st.success(f"✅ {len(success_tables)} tables migrated successfully.")
+                if failed_tables:
+                    st.warning(f"⚠️ {len(failed_tables)} tables need review: {failed_tables}")
+                if st.button("Clear Bulk Job", key="bulk_job_clear"):
+                    with _BULK_JOBS_LOCK:
+                        _BULK_JOBS.pop(bulk_job_id, None)
+                    st.session_state["bulk_job_id"] = ""
+                    st.rerun()
+        if run_selected or run_all_now:
+            if dry_run_bulk:
+                st.info(f"Dry-run only: {len(checked_green)} table(s) selected.")
+            elif confirm_bulk.strip() == "CONFIRM":
+                if bulk_job and str(bulk_job.get("status") or "") == "running":
+                    st.warning("A bulk migration job is already running.")
+                else:
+                    row_by_key = {s.table_key: s for s in greens_remaining}
+                    if not checked_green:
+                        st.warning("No GREEN tables selected for bulk migration.")
+                        return
+                    scored_rows: dict[str, Any] = {}
+                    for k in checked_green:
+                        s = row_by_key.get(k)
+                        if s is None:
+                            continue
+                        scored_rows[k] = {
+                            "queue": s.queue,
+                            "confidence_result": s.confidence_result,
+                            "criticality_result": s.criticality_result,
+                            "anomaly_flags": s.anomaly_flags,
+                        }
+                    new_job_id = str(uuid.uuid4())
+                    st.session_state["bulk_job_id"] = new_job_id
+                    with _BULK_JOBS_LOCK:
+                        _BULK_JOBS[new_job_id] = {
+                            "status": "queued",
+                            "total": len(checked_green),
+                            "completed": 0,
+                            "current_table": "",
+                            "success": [],
+                            "failed": [],
+                            "error": "",
+                        }
+                    th = threading.Thread(
+                        target=_run_bulk_job,
+                        kwargs={
+                            "job_id": new_job_id,
+                            "table_keys": list(checked_green),
+                            "report": report,
+                            "report_path": report_path_resolved or Path("report.json"),
+                            "dialect": str(st.session_state.get("migration_dialect") or "duckdb"),
+                            "dbt_project_dir": dashboard_dbt_project_dir,
+                            "output_dir": dashboard_output_dir,
+                            "contract_id": bulk_eval.contract_preview.contract_id,
+                            "scored_rows": scored_rows,
+                            "max_workers": int(bulk_workers),
+                            "dbt_target": str(st.session_state.get("migration_dialect") or "duckdb"),
+                        },
+                        daemon=True,
+                    )
+                    th.start()
+                    st.success("Bulk migration started in background. You can keep reviewing other tables.")
+                    st.rerun()
+            else:
+                st.warning("Type CONFIRM first, then run bulk approval.")
+
+        st.markdown("### 🟡 Review Required")
+        for s in yellows:
+            warn_reason = next((f.reason for f in s.anomaly_flags if f.level == "WARN"), s.confidence_result.reason)
+            with st.expander(
+                f"{s.table_key} — primary: {warn_reason[:120]}",
+                expanded=False,
+            ):
+                st.write("**Confidence**", s.confidence_result)
+                st.write("**Criticality**", s.criticality_result)
+                for f in s.anomaly_flags:
+                    st.write(f"`{f.level}` **{f.name}**: {f.reason}")
+                if st.button("Approve Individually", key=f"bulk_ind_{s.table_key}"):
+                    st.info("Use **Migration Agent** or **HITL Review** for per-table approval with write gate.")
+
+        st.markdown("### 🔴 Blocked")
+        st.caption("These tables require manual architectural review.")
+        for s in reds:
+            cols_blk = st.columns([4, 1])
+            block_reason = next(
+                (f.reason for f in s.anomaly_flags if f.level == "BLOCK"),
+                s.criticality_result.reason,
+            )
+            cols_blk[0].write(f"{s.table_key} ({s.business_domain}) — {block_reason[:160]}")
+            if cols_blk[1].button("Explain", key=f"bulk_exp_{s.table_key}"):
+                st.session_state[f"bulk_explain_{s.table_key}"] = migration_agent_tools.explain_table_score(
+                    report=report,
+                    table_key=s.table_key,
+                )
+            _explain_key = f"bulk_explain_{s.table_key}"
+            if _explain_key in st.session_state:
+                ex = st.session_state[_explain_key]
+                with st.expander(f"Explanation — {s.table_key}", expanded=True):
+                    st.markdown(f"**Queue:** {ex.queue}")
+                    st.markdown(
+                        f"**Migration Confidence:** {ex.confidence.score} — {ex.confidence.reason}"
+                    )
+                    st.markdown(
+                        f"**Criticality:** {ex.criticality.score} — {ex.criticality.reason}"
+                    )
+                    if ex.anomaly_flags:
+                        st.markdown("**Anomaly Flags:**")
+                        for flag in ex.anomaly_flags:
+                            st.markdown(f"- `{flag.level}` **{flag.name}**: {flag.reason}")
+                    st.markdown(f"**Summary:** {ex.summary}")
+
+        with st.expander("Audit Log Viewer", expanded=False):
+            from ama.config import project_root
+
+            audit_path = project_root() / "audit_trail.jsonl"
+            audit_rows: list[dict[str, Any]] = []
+            if audit_path.is_file():
+                for line in audit_path.read_text(encoding="utf-8").splitlines()[-50:]:
+                    try:
+                        audit_rows.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+            if audit_rows:
+                cols_use = [
+                    c
+                    for c in (
+                        "timestamp",
+                        "table_key",
+                        "decision",
+                        "contract_id",
+                        "approved_by",
+                        "primary_reason",
+                    )
+                    if c in audit_rows[0]
+                ]
+                st.dataframe(pd.DataFrame(audit_rows)[cols_use], use_container_width=True, hide_index=True)
+                st.download_button(
+                    "Download Full Audit Trail",
+                    data=audit_path.read_text(encoding="utf-8"),
+                    file_name="audit_trail.jsonl",
+                    mime="application/json",
+                )
+            else:
+                st.caption("No audit entries yet.")
+
+    with analysis_tabs[2]:
         st.subheader("Tables")
         st.caption(
-            "Table list follows **business domain** and **portfolio** (discovery inventory). "
-            "Confirmed / Review / Trash show **merge_confidence** per row in the **Confidence** column — compare mappings at a glance."
+            "Row level → **Migration Confidence** (Scale Engine, per-table). "
+            "Field level → **Merge Confidence** (alias resolver, per-column)."
         )
+        _scale_result = _get_or_compute_scale_result(
+            report,
+            int(st.session_state.scale_conf_floor),
+            int(st.session_state.scale_crit_ceil),
+        )
+        scored_by_table = {s.table_key: s for s in _scale_result.scored_tables}
+        _tb_l, _tb_r = st.columns([6, 1])
+        with _tb_r:
+            if st.button("💬 Ask Agent", key="ask_agent_tables"):
+                _pick = str(st.session_state.get("tbl_pick_main") or "").strip()
+                if _pick and _pick in scored_by_table:
+                    _queue = scored_by_table[_pick].queue
+                    _set_agent_prefill(
+                        f"Why is {_pick} scored as {_queue}? What should I do next?"
+                    )
+                else:
+                    _set_agent_prefill("Show me all tables ready for bulk migration.")
+        green_count = sum(1 for s in _scale_result.scored_tables if s.queue == "green")
+        if green_count > 0:
+            _c_msg, _c_btn = st.columns([5, 1])
+            _c_msg.success(
+                f"🟢 {green_count} tables are ready for bulk approval. Approve them all at once in the Bulk Migration tab."
+            )
+            if _c_btn.button("Go to Bulk Migration →", key="tables_go_bulk"):
+                st.session_state["analysis_focus_tab"] = "Bulk Migration"
         tbl_max_conf = _table_max_merge_confidence(merged_all, review_all, trash_all)
         tq1, tq2 = st.columns([2, 1])
         with tq1:
@@ -3630,7 +4345,53 @@ search over every raw SQL line in the logs.
                 key="tbl_list_sort",
                 help="Order of rows in the inventory table and in **Select a table** below.",
             )
-        show = inv_view
+        show = inv_view.copy()
+        if not show.empty and "full_name" in show.columns:
+            show["Migration Confidence"] = show["full_name"].map(
+                lambda fn: int(scored_by_table[str(fn)].confidence) if str(fn) in scored_by_table else 0
+            )
+            show["Criticality"] = show["full_name"].map(
+                lambda fn: int(scored_by_table[str(fn)].criticality) if str(fn) in scored_by_table else 0
+            )
+            show["Queue"] = show["full_name"].map(
+                lambda fn: queue_emoji(scored_by_table[str(fn)].queue) if str(fn) in scored_by_table else "🔴 Blocked"
+            )
+            show["Anomaly Flags"] = show["full_name"].map(
+                lambda fn: ", ".join(f.name for f in scored_by_table[str(fn)].anomaly_flags)
+                if str(fn) in scored_by_table
+                else ""
+            )
+        qf_col1, qf_col2, qf_col3, qf_col4 = st.columns(4)
+        queue_filter = qf_col1.multiselect(
+            "Queue filter",
+            options=["🟢 Bulk", "🟡 Review", "🔴 Blocked"],
+            default=["🟢 Bulk", "🟡 Review", "🔴 Blocked"],
+            key="tbl_queue_filter",
+        )
+        min_conf_tbl = qf_col2.slider("Min Confidence", 0, 100, 0, key="tbl_min_conf")
+        max_crit_tbl = qf_col3.slider("Max Criticality", 0, 100, 100, key="tbl_max_crit")
+        anomaly_filter_tbl = qf_col4.multiselect(
+            "Anomaly flag filter",
+            options=["BLOCK", "WARN", "INFO", "None"],
+            default=["BLOCK", "WARN", "INFO", "None"],
+            key="tbl_anom_filter",
+        )
+        if not show.empty and "Queue" in show.columns:
+            show = show[show["Queue"].isin(queue_filter)]
+            show = show[show["Migration Confidence"] >= min_conf_tbl]
+            show = show[show["Criticality"] <= max_crit_tbl]
+            if set(anomaly_filter_tbl) != {"BLOCK", "WARN", "INFO", "None"}:
+                selected_lvls = set(anomaly_filter_tbl)
+                keep_rows: list[int] = []
+                for idx, row in show.reset_index(drop=True).iterrows():
+                    fn = str(row.get("full_name") or "")
+                    flags = scored_by_table[fn].anomaly_flags if fn in scored_by_table else []
+                    levels = {f.level for f in flags}
+                    if "None" in selected_lvls and not levels:
+                        keep_rows.append(idx)
+                    elif levels.intersection(selected_lvls):
+                        keep_rows.append(idx)
+                show = show.reset_index(drop=True).iloc[keep_rows] if keep_rows else show.iloc[[]]
         if q.strip() and not show.empty:
             mask = show.astype(str).apply(lambda s: s.str.contains(q, case=False, na=False)).any(axis=1)
             show = show[mask]
@@ -3699,6 +4460,96 @@ search over every raw SQL line in the logs.
                 elif not q.strip() and inv_view.empty:
                     st.caption("No inventory rows match domain/portfolio filters.")
 
+        if tables:
+            st.markdown("### Table Actions")
+            st.caption("Individual migration path: act per table based on its queue.")
+            migrated_tables = set(st.session_state.get("migrated_tables", []))
+            done_msg = str(st.session_state.get(MIGRATION_NOTICE_KEY) or "").strip()
+            if done_msg:
+                st.success(done_msg)
+            hide_migrated = st.checkbox("Hide migrated tables", value=True, key="hide_migrated_tables")
+            table_rows = [t for t in tables if not (hide_migrated and str(t) in migrated_tables)]
+            if hide_migrated and len(table_rows) < len(tables):
+                st.caption(
+                    f"Hidden migrated tables: {len(tables) - len(table_rows)}. "
+                    "Uncheck to show all."
+                )
+            for t in table_rows[:80]:
+                scored = scored_by_table.get(str(t))
+                if scored is None:
+                    continue
+                lcol, rcol = st.columns([5, 1])
+                lcol.write(f"`{t}` — {queue_emoji(scored.queue)}")
+                if str(t) in migrated_tables:
+                    rcol.success("✅ Done")
+                elif scored.queue == "green":
+                    if rcol.button("▶ Migrate", key=f"tbl_migrate_{t}", type="primary"):
+                        if report_path_resolved is None:
+                            st.warning("Set a report path first to enable per-table migration.")
+                        else:
+                            prop = migration_agent_tools.propose_dbt_model(
+                                report=report,
+                                report_path=report_path_resolved,
+                                table=str(t),
+                                dialect=str(st.session_state.get("migration_dialect") or "duckdb"),
+                                glossary_path=None,
+                            )
+                            pending = _pending_write_from_result(prop)
+                            if not isinstance(pending, dict):
+                                pending = {
+                                    "model_name": str(prop.get("model_name") or str(t).replace(".", "_")),
+                                    "sql": str(prop.get("sql") or ""),
+                                    "schema_yml": str(prop.get("schema_yml") or ""),
+                                }
+                            st.session_state[f"pending_write_{t}"] = pending
+                            st.rerun()
+                    _render_pending_write_panel(
+                        str(t),
+                        report_path=report_path_resolved,
+                        dbt_project_dir=dashboard_dbt_project_dir,
+                        output_dir=dashboard_output_dir,
+                        dbt_target=str(st.session_state.get("migration_dialect") or "duckdb"),
+                        key_prefix="tables",
+                    )
+                elif scored.queue == "yellow":
+                    if rcol.button(
+                        "👁 Review",
+                        key=f"tbl_review_{t}",
+                        help="Medium confidence — review required before migrating.",
+                    ):
+                        st.session_state[f"tbl_review_open_{t}"] = True
+                    if st.session_state.get(f"tbl_review_open_{t}"):
+                        with st.expander(f"Review Details — {t}", expanded=True):
+                            st.markdown(
+                                f"**Migration Confidence:** {scored.confidence_result.score} — {scored.confidence_result.reason}"
+                            )
+                            st.markdown(
+                                f"**Criticality:** {scored.criticality_result.score} — {scored.criticality_result.reason}"
+                            )
+                            for flag in scored.anomaly_flags:
+                                st.markdown(f"- `{flag.level}` **{flag.name}**: {flag.reason}")
+                else:
+                    if rcol.button(
+                        "🔍 Explain",
+                        key=f"tbl_explain_{t}",
+                        help="Blocked — see explanation for details.",
+                    ):
+                        st.session_state[f"tbl_explain_result_{t}"] = migration_agent_tools.explain_table_score(
+                            report=report,
+                            table_key=str(t),
+                        )
+                    if f"tbl_explain_result_{t}" in st.session_state:
+                        ex = st.session_state[f"tbl_explain_result_{t}"]
+                        with st.expander(f"Explanation — {t}", expanded=True):
+                            st.markdown(f"**Queue:** {ex.queue}")
+                            st.markdown(f"**Migration Confidence:** {ex.confidence.score} — {ex.confidence.reason}")
+                            st.markdown(f"**Criticality:** {ex.criticality.score} — {ex.criticality.reason}")
+                            if ex.anomaly_flags:
+                                st.markdown("**Anomaly Flags:**")
+                                for flag in ex.anomaly_flags:
+                                    st.markdown(f"- `{flag.level}` **{flag.name}**: {flag.reason}")
+                            st.markdown(f"**Summary:** {ex.summary}")
+
         with st.expander("Select a table", expanded=bool(tables)):
             pick = st.selectbox(
                 "Choose from list (or click a row above)",
@@ -3709,6 +4560,19 @@ search over every raw SQL line in the logs.
 
         if pick:
             st.markdown(f"#### `{pick}`")
+            scored_pick = scored_by_table.get(pick)
+            if scored_pick is not None:
+                st.write(
+                    f"**Migration Confidence:** {scored_pick.confidence} · **Criticality:** {scored_pick.criticality} · "
+                    f"**Queue:** {queue_emoji(scored_pick.queue)}"
+                )
+                st.caption(f"Conf. Reason — {scored_pick.confidence_result.reason}")
+                st.caption(f"Crit. Reason — {scored_pick.criticality_result.reason}")
+                if scored_pick.anomaly_flags:
+                    for flag in scored_pick.anomaly_flags:
+                        st.markdown(f"- `{flag.level}` **{flag.name}**: {flag.reason}")
+                else:
+                    st.caption("No anomaly flags.")
             map_sort = st.selectbox(
                 "Sort mappings by",
                 ["Confidence (high first)", "Target column (A→Z)"],
@@ -3716,6 +4580,7 @@ search over every raw SQL line in the logs.
                 key="tbl_map_sort",
                 help="Applies to Confirmed, Review, and Trash rows for the selected table.",
             )
+            st.caption("Field-level **Merge Confidence** is shown in the column mapping tables below.")
             dom = _domain_for_table(report, pick)
             if dom:
                 st.write(f"**Domain:** {dom}")
@@ -3777,7 +4642,7 @@ search over every raw SQL line in the logs.
                         [
                             {
                                 "DDL": e.get("canonical_column"),
-                                "Confidence": e.get("merge_confidence"),
+                                "Merge Confidence": e.get("merge_confidence"),
                                 "Strategy": ",".join(e.get("strategies") or []) if e.get("strategies") else "",
                                 "Legacy sources": ", ".join(e.get("source_columns") or []),
                             }
@@ -3798,7 +4663,7 @@ search over every raw SQL line in the logs.
                             {
                                 "Legacy": e.get("legacy_name"),
                                 "Suggested DDL": e.get("suggested_ddl"),
-                                "Confidence": e.get("merge_confidence"),
+                                "Merge Confidence": e.get("merge_confidence"),
                             }
                             for e in rev
                         ]
@@ -3828,10 +4693,10 @@ search over every raw SQL line in the logs.
                 else:
                     st.caption("No trash rows for this table.")
 
-    with tabs[6]:
+    with analysis_tabs[8]:
         _render_dq_tab(report)
 
-    with tabs[7]:
+    with execution_tabs[1]:
         st.subheader("Human-in-the-loop — review queue")
         st.caption("Approve or reject suggested mappings. Decisions persist next to the JSON report.")
         decisions = st.session_state.hitl.setdefault("decisions", {})
@@ -3845,7 +4710,7 @@ search over every raw SQL line in the logs.
                 f"`{row.get('legacy_name')}` → `{row.get('suggested_ddl')}` @ {row.get('source_table')}",
                 expanded=False,
             ):
-                st.write(row)
+                st.json(row)
                 c1, c2, c3 = st.columns(3)
                 if c1.button("Approve", key=f"ap_{sig}_{i}"):
                     decisions[sig] = {
@@ -3936,7 +4801,7 @@ search over every raw SQL line in the logs.
         else:
             st.caption("Submit is disabled when no local `report_path_resolved` exists (upload mode).")
 
-    with tabs[8]:
+    with execution_tabs[0]:
         _render_migration_agent_tab(report)
 
     st.divider()

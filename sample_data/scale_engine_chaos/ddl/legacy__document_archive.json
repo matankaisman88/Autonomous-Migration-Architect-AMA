@@ -1,0 +1,16 @@
+{
+  "columns": [
+    {
+      "name": "doc_id",
+      "type": "int"
+    },
+    {
+      "name": "content",
+      "type": "ntext"
+    },
+    {
+      "name": "created_at",
+      "type": "datetime"
+    }
+  ]
+}

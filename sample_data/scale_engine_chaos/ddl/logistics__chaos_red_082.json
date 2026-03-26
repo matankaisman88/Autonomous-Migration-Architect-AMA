@@ -1,0 +1,36 @@
+{
+  "columns": [
+    {
+      "name": "rx_82_a",
+      "type": "xml"
+    },
+    {
+      "name": "rx_82_b",
+      "type": "cursor"
+    },
+    {
+      "name": "rx_82_c",
+      "type": "xml"
+    },
+    {
+      "name": "rx_82_d",
+      "type": "textlike"
+    },
+    {
+      "name": "rx_82_e",
+      "type": "bytea"
+    },
+    {
+      "name": "rx_82_f",
+      "type": "variant"
+    },
+    {
+      "name": "rx_82_g",
+      "type": "varchar"
+    },
+    {
+      "name": "rx_82_h",
+      "type": "uuid"
+    }
+  ]
+}

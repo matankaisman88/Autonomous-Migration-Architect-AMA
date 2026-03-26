@@ -49,6 +49,8 @@ class MappingRow(BaseModel):
     english_alias: str
     source: MappingSource
     confidence: float | None = None
+    confidence_score: float = 0.0
+    criticality_score: float = 0.0
     warning_flags: list[str] = Field(default_factory=list)
 
 

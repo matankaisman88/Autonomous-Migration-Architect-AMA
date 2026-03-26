@@ -26,6 +26,12 @@ _DEFAULT_TOOL_SPECS: list[dict[str, Any]] = [
     {"name": "request_write_permission", "args": {"model": "string", "sql": "string", "schema_yml": "optional string"}},
     {"name": "generate_synthetic_rows", "args": {"table": "string", "row_count": "optional int"}},
     {"name": "validate_sql_on_duckdb", "args": {"sql": "string", "dialect": "optional duckdb|snowflake|bigquery|redshift"}},
+    {"name": "query_inventory", "args": {"filters": "optional dict", "sort_by": "optional string", "limit": "optional int"}},
+    {
+        "name": "bulk_migrate_tables",
+        "args": {"filters": "dict", "dialect": "duckdb|snowflake|bigquery|redshift", "dry_run": "optional bool (default true)"},
+    },
+    {"name": "explain_table_score", "args": {"table_key": "string"}},
 ]
 
 
@@ -205,6 +211,58 @@ def _dispatch_tool(
         sql = str(args.get("sql") or "")
         dialect = str(args.get("dialect") or default_dialect or "duckdb").strip().lower()
         return agent_tools.validate_sql_on_duckdb(sql=sql, dialect=dialect)
+    if tool_name == "query_inventory":
+        lim_raw = args.get("limit")
+        try:
+            lim_int = int(lim_raw) if lim_raw is not None else None
+        except (TypeError, ValueError):
+            lim_int = None
+        res = agent_tools.query_inventory(
+            report=report,
+            filters=args.get("filters") if isinstance(args.get("filters"), dict) else None,
+            sort_by=str(args.get("sort_by") or "confidence_score"),
+            sort_order=str(args.get("sort_order") or "desc"),
+            limit=lim_int,
+        )
+        return {"tables": res.tables, "total": res.total, "filters": res.filters, "sort_by": res.sort_by}
+    if tool_name == "bulk_migrate_tables":
+        res = agent_tools.bulk_migrate_tables(
+            report=report,
+            report_path=report_path,
+            filters=args.get("filters") if isinstance(args.get("filters"), dict) else {},
+            dialect=str(args.get("dialect") or default_dialect or "duckdb"),
+            glossary_path=glossary_path,
+            dry_run=bool(args.get("dry_run", True)),
+            approved_by="agent",
+        )
+        contract = None
+        if res.contract is not None:
+            contract = {
+                "rules": res.contract.rules,
+                "contract_id": res.contract.contract_id,
+                "table_count": res.contract.table_count,
+                "excluded": res.contract.excluded,
+            }
+        return {"migrated": res.migrated, "skipped": res.skipped, "dry_run": res.dry_run, "contract": contract}
+    if tool_name == "explain_table_score":
+        table_key = str(args.get("table_key") or args.get("table") or "").strip()
+        res = agent_tools.explain_table_score(report=report, table_key=table_key)
+        return {
+            "table_key": res.table_key,
+            "queue": res.queue,
+            "confidence": {
+                "score": res.confidence.score,
+                "reason": res.confidence.reason,
+                "components": res.confidence.components,
+            },
+            "criticality": {
+                "score": res.criticality.score,
+                "reason": res.criticality.reason,
+                "components": res.criticality.components,
+            },
+            "anomaly_flags": [{"level": f.level, "name": f.name, "reason": f.reason} for f in res.anomaly_flags],
+            "summary": res.summary,
+        }
     raise ValueError(f"unknown tool: {tool_name}")
 
 

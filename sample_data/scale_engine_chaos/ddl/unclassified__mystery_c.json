@@ -1,0 +1,16 @@
+{
+  "columns": [
+    {
+      "name": "mystery_id",
+      "type": "int"
+    },
+    {
+      "name": "payload",
+      "type": "nvarchar"
+    },
+    {
+      "name": "status",
+      "type": "nvarchar"
+    }
+  ]
+}

@@ -452,6 +452,17 @@ Example conversation:
 4. **Execution loop**: after approval, dbt test runs automatically; on failure, Fix Agent proposes corrected SQL and returns to approval.
 5. **Progress tracking**: wave progress is shown as `completed/total` with a progress bar (for example `1/2`), and successful approval auto-prepares the next table in the wave.
 
+### Dashboard execution hardening (new)
+
+The dashboard execution path now includes automatic safeguards for common local dbt issues so operators can execute from UI without terminal triage:
+
+- **Target mismatch fallback**: if a requested `--target` is not configured in `profiles.yml` (for example `duckdb` requested but only `dev` exists), execution retries using the profile default target.
+- **Legacy schema YAML sanitizer**: before dbt run/test, generated `*.schema.yml` files are repaired when unquoted `description` payloads would break YAML parsing.
+- **Generated SQL sanitizer**: trailing semicolons in model SQL files are removed before dbt execution to avoid parser errors in wrapped adapter DDL contexts.
+- **DuckDB lock retry**: transient `duckdb.db` lock failures are retried with bounded backoff instead of failing immediately.
+- **Missing source auto-bootstrap**: for local DuckDB execution, missing `schema.table` source relations referenced by generated SQL are created best-effort (with inferred source columns) to keep validation flow moving.
+- **Bulk migration visibility**: background bulk jobs are pre-registered (`queued`/`running`/`done`/`failed`), polled automatically in the UI, and completion state is reflected as migrated-table status.
+
 ### Legacy Notes
 
 The previous `dbt Migration` ops-console flow (Checkpoint A/B screens and async generation jobs) remains documented for CLI/backward-compatibility context, but primary dashboard operations are now chat-driven through `Migration Agent`.

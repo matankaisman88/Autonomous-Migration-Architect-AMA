@@ -18,6 +18,15 @@ from ama.business_logic import review_row_signature
 _DEFAULT_STATS = {"select": 0, "where": 0, "join_on": 0, "group_by": 0, "order_by": 0}
 
 
+def decision_from_queue(queue: str) -> str:
+    q = str(queue or "").lower().strip()
+    if q == "green":
+        return "bulk_approved"
+    if q == "yellow":
+        return "review_required"
+    return "blocked"
+
+
 def _merged_entity_from_approved(row: dict[str, Any]) -> dict[str, Any]:
     leg = str(row.get("legacy_name") or "")
     ddl = str(row.get("suggested_ddl") or "")
@@ -87,11 +96,22 @@ def apply_hitl_to_report(report: dict[str, Any], hitl: dict[str, Any]) -> dict[s
         if not isinstance(d, dict):
             keep.append(row)
             continue
-        action = str(d.get("action") or "").lower().strip()
-        if action == "approved":
+        explicit = str(d.get("action") or "").lower().strip()
+        if explicit == "approved":
             merged.append(_merged_entity_from_approved(row))
-        elif action == "rejected":
+        elif explicit == "rejected":
             trash.append(_trash_from_rejected(row))
+        elif "queue" in row and "action" not in row:
+            resolved = decision_from_queue(str(row.get("queue") or ""))
+            d = {**d, "resolved_from_queue": resolved}
+            if resolved == "bulk_approved":
+                merged.append(_merged_entity_from_approved(row))
+            elif resolved == "blocked":
+                trash.append(_trash_from_rejected(row))
+            elif resolved == "review_required":
+                keep.append(row)
+            else:
+                keep.append(row)
         else:
             keep.append(row)
 

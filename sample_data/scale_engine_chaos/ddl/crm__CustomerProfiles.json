@@ -1,0 +1,28 @@
+{
+  "columns": [
+    {
+      "name": "firstName",
+      "type": "nvarchar"
+    },
+    {
+      "name": "lastName",
+      "type": "nvarchar"
+    },
+    {
+      "name": "emailAddress",
+      "type": "nvarchar"
+    },
+    {
+      "name": "created_at",
+      "type": "datetime2"
+    },
+    {
+      "name": "updated_at",
+      "type": "datetime2"
+    },
+    {
+      "name": "source_id",
+      "type": "int"
+    }
+  ]
+}

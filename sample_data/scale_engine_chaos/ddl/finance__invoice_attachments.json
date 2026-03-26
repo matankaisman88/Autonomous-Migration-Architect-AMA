@@ -1,0 +1,16 @@
+{
+  "columns": [
+    {
+      "name": "invoice_id",
+      "type": "int"
+    },
+    {
+      "name": "attachment",
+      "type": "varbinary"
+    },
+    {
+      "name": "uploaded_at",
+      "type": "datetime2"
+    }
+  ]
+}

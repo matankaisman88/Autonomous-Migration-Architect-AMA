@@ -226,6 +226,9 @@ def test_get_tools_contains_required_migration_agent_functions() -> None:
         "request_write_permission",
         "generate_synthetic_rows",
         "validate_sql_on_duckdb",
+        "query_inventory",
+        "bulk_migrate_tables",
+        "explain_table_score",
     ]
 
 
@@ -264,3 +267,132 @@ def test_test_model_runs_tests_only_after_successful_run(monkeypatch, tmp_path: 
         ["dbt", "run", "--select", "finance_payments"],
         ["dbt", "test", "--select", "finance_payments"],
     ]
+
+
+def test_test_model_falls_back_when_target_missing(monkeypatch, tmp_path: Path) -> None:
+    calls: list[list[str]] = []
+
+    def _fake_run_command(command: list[str], _cwd: Path) -> tuple[int, str, str]:
+        calls.append(command)
+        if command == ["dbt", "run", "--select", "finance_payments", "--target", "duckdb"]:
+            return 1, "", "The profile 'default' does not have a target named 'duckdb'"
+        return 0, "ok", ""
+
+    monkeypatch.setattr("ama.migration_agent.agent_tools._run_command", _fake_run_command)
+    out = agent_tools.test_model(dbt_project_dir=tmp_path, model_name="finance_payments", target="duckdb")
+    assert out["success"] is True
+    assert out["target_fallback_used"] is True
+    assert calls == [
+        ["dbt", "run", "--select", "finance_payments", "--target", "duckdb"],
+        ["dbt", "run", "--select", "finance_payments"],
+        ["dbt", "test", "--select", "finance_payments"],
+    ]
+
+
+def test_test_model_sanitizes_legacy_schema_descriptions(monkeypatch, tmp_path: Path) -> None:
+    models_dir = tmp_path / "models" / "ama_generated"
+    models_dir.mkdir(parents=True, exist_ok=True)
+    schema = models_dir / "broken.schema.yml"
+    schema.write_text(
+        "\n".join(
+            [
+                "version: 2",
+                "models:",
+                "  - name: broken",
+                "    columns:",
+                "      - name: ds_col_1",
+                "        description: Source column `{'name': 'ds_col_1', 'type': 'nvarchar'}`",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    def _fake_run_command(command: list[str], _cwd: Path) -> tuple[int, str, str]:
+        return 0, "ok", ""
+
+    monkeypatch.setattr("ama.migration_agent.agent_tools._run_command", _fake_run_command)
+    out = agent_tools.test_model(dbt_project_dir=tmp_path, model_name="finance_payments", target="dev")
+    assert out["success"] is True
+    repaired = schema.read_text(encoding="utf-8")
+    assert "description: \"Source column `{'name': 'ds_col_1', 'type': 'nvarchar'}`\"" in repaired
+
+
+def test_test_model_sanitizes_trailing_semicolon_sql(monkeypatch, tmp_path: Path) -> None:
+    models_dir = tmp_path / "models" / "ama_generated"
+    models_dir.mkdir(parents=True, exist_ok=True)
+    model_sql = models_dir / "crm_chaos_green_068.sql"
+    model_sql.write_text("select * from crm.chaos_green_068;\n", encoding="utf-8")
+
+    calls: list[list[str]] = []
+
+    def _fake_run_command(command: list[str], _cwd: Path) -> tuple[int, str, str]:
+        calls.append(command)
+        return 0, "ok", ""
+
+    monkeypatch.setattr("ama.migration_agent.agent_tools._run_command", _fake_run_command)
+    out = agent_tools.test_model(dbt_project_dir=tmp_path, model_name="crm_chaos_green_068", target="dev")
+    assert out["success"] is True
+    assert model_sql.read_text(encoding="utf-8") == "select * from crm.chaos_green_068\n"
+    assert calls[0] == ["dbt", "run", "--select", "crm_chaos_green_068", "--target", "dev"]
+
+
+def test_test_model_retries_duckdb_lock_error(monkeypatch, tmp_path: Path) -> None:
+    call_count = {"n": 0}
+
+    def _fake_run_command(command: list[str], _cwd: Path) -> tuple[int, str, str]:
+        call_count["n"] += 1
+        if command[:2] == ["dbt", "run"] and call_count["n"] == 1:
+            return 1, "", (
+                'IO Error: Cannot open file "\\\\?\\C:\\Autonomous-Migration-Architect-AMA\\target\\duckdb.db": '
+                "The process cannot access the file because it is being used by another process."
+            )
+        return 0, "ok", ""
+
+    monkeypatch.setattr("ama.migration_agent.agent_tools._run_command", _fake_run_command)
+    monkeypatch.setattr("ama.migration_agent.agent_tools.time.sleep", lambda _s: None)
+    out = agent_tools.test_model(dbt_project_dir=tmp_path, model_name="finance_payments", target="dev")
+    assert out["success"] is True
+    # First run fails with lock, second run succeeds, then test succeeds.
+    assert call_count["n"] == 3
+
+
+def test_extract_source_helpers() -> None:
+    sql = (
+        "WITH source_data AS (SELECT ds_col_1, ds_col_2 FROM operations.chaos_green_081) "
+        "SELECT * FROM source_data"
+    )
+    rels = agent_tools._extract_source_relations(sql)
+    cols = agent_tools._extract_source_columns(sql)
+    assert ("operations", "chaos_green_081") in rels
+    assert cols == ["ds_col_1", "ds_col_2"]
+
+
+def test_ensure_duckdb_sources_for_model_creates_missing_relation(tmp_path: Path) -> None:
+    try:
+        import duckdb  # type: ignore  # noqa: F401
+    except Exception:
+        return
+    model_name = "operations_chaos_green_081"
+    model_dir = tmp_path / "models" / "ama_generated"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    (model_dir / f"{model_name}.sql").write_text(
+        "SELECT ds_col_1, ds_col_2 FROM operations.chaos_green_081\n",
+        encoding="utf-8",
+    )
+    created = agent_tools._ensure_duckdb_sources_for_model(
+        dbt_project_dir=tmp_path,
+        model_name=model_name,
+    )
+    assert created >= 1
+    import duckdb  # type: ignore
+
+    con = duckdb.connect(str(tmp_path / "target" / "duckdb.db"))
+    try:
+        rows = con.execute(
+            "select count(*) from information_schema.tables "
+            "where table_schema='operations' and table_name='chaos_green_081'"
+        ).fetchone()
+        assert rows and int(rows[0]) == 1
+    finally:
+        con.close()

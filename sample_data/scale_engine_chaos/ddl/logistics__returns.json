@@ -1,0 +1,16 @@
+{
+  "columns": [
+    {
+      "name": "return_id",
+      "type": "int"
+    },
+    {
+      "name": "carrier_code",
+      "type": "nvarchar(10)"
+    },
+    {
+      "name": "created_at",
+      "type": "datetime2"
+    }
+  ]
+}

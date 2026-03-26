@@ -40,6 +40,7 @@ class ReportModel(BaseModel):
         description="Optional inventory snapshot; often under discovery.inventory",
     )
     alias_merge: dict[str, Any] | None = None
+    scale_engine: dict[str, Any] | None = None
 
 
 def validate_report_model(report: dict[str, Any]) -> None:
@@ -121,6 +122,7 @@ class AmaReportBoundarySchema(BaseModel):
     discovery: dict[str, Any] = Field(default_factory=dict)
     alias_merge: dict[str, Any] | None = None
     importance_ddl: list[dict[str, Any]] = Field(default_factory=list)
+    scale_engine: dict[str, Any] | None = None
 
 
 def validate_report_boundary(report: dict[str, Any]) -> tuple[int, list[str]]:

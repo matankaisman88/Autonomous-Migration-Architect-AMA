@@ -1,0 +1,28 @@
+{
+  "columns": [
+    {
+      "name": "ledger_id",
+      "type": "int"
+    },
+    {
+      "name": "balance",
+      "type": "money"
+    },
+    {
+      "name": "total_amount",
+      "type": "money"
+    },
+    {
+      "name": "tax_credit",
+      "type": "money"
+    },
+    {
+      "name": "created_at",
+      "type": "datetime2"
+    },
+    {
+      "name": "updated_at",
+      "type": "datetime2"
+    }
+  ]
+}

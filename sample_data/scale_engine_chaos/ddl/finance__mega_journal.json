@@ -1,0 +1,244 @@
+{
+  "columns": [
+    {
+      "name": "journal_col_0",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_1",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_2",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_3",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_4",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_5",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_6",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_7",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_8",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_9",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_10",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_11",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_12",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_13",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_14",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_15",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_16",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_17",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_18",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_19",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_20",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_21",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_22",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_23",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_24",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_25",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_26",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_27",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_28",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_29",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_30",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_31",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_32",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_33",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_34",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_35",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_36",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_37",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_38",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_39",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_40",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_41",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_42",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_43",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_44",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_45",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_46",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_47",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_48",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_49",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_50",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_51",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_52",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_53",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_54",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_55",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_56",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_57",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_58",
+      "type": "nvarchar"
+    },
+    {
+      "name": "journal_col_59",
+      "type": "nvarchar"
+    }
+  ]
+}

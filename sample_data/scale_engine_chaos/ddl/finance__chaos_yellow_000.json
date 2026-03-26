@@ -1,0 +1,44 @@
+{
+  "columns": [
+    {
+      "name": "y_col_1",
+      "type": "nvarchar"
+    },
+    {
+      "name": "y_col_2",
+      "type": "nvarchar"
+    },
+    {
+      "name": "y_col_3",
+      "type": "json"
+    },
+    {
+      "name": "y_col_4",
+      "type": "json"
+    },
+    {
+      "name": "y_col_5",
+      "type": "json"
+    },
+    {
+      "name": "y_col_6",
+      "type": "json"
+    },
+    {
+      "name": "y_col_7",
+      "type": "json"
+    },
+    {
+      "name": "y_col_8",
+      "type": "json"
+    },
+    {
+      "name": "y_col_9",
+      "type": "json"
+    },
+    {
+      "name": "y_col_10",
+      "type": "json"
+    }
+  ]
+}

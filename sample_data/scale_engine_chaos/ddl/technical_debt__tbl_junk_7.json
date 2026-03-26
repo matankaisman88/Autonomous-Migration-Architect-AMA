@@ -1,0 +1,28 @@
+{
+  "columns": [
+    {
+      "name": "qzz_a1",
+      "type": "xml"
+    },
+    {
+      "name": "qzz_a2",
+      "type": "cursor"
+    },
+    {
+      "name": "qzz_a3",
+      "type": "xml"
+    },
+    {
+      "name": "qzz_b1",
+      "type": "cursor"
+    },
+    {
+      "name": "qzz_b2",
+      "type": "xml"
+    },
+    {
+      "name": "qzz_b3",
+      "type": "cursor"
+    }
+  ]
+}

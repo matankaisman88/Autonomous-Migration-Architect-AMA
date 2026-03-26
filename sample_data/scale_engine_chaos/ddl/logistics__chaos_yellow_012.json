@@ -1,0 +1,44 @@
+{
+  "columns": [
+    {
+      "name": "order_id",
+      "type": "int"
+    },
+    {
+      "name": "customer_id",
+      "type": "int"
+    },
+    {
+      "name": "legacy_ref",
+      "type": "nvarchar"
+    },
+    {
+      "name": "status",
+      "type": "nvarchar"
+    },
+    {
+      "name": "raw_payload",
+      "type": "varchar"
+    },
+    {
+      "name": "stage_code",
+      "type": "varchar"
+    },
+    {
+      "name": "meta_a",
+      "type": "json"
+    },
+    {
+      "name": "meta_b",
+      "type": "json"
+    },
+    {
+      "name": "meta_c",
+      "type": "json"
+    },
+    {
+      "name": "meta_d",
+      "type": "json"
+    }
+  ]
+}

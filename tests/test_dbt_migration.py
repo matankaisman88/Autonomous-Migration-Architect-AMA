@@ -115,6 +115,37 @@ def test_generate_model_artifact_sets_mapping_rows_on_artifact(monkeypatch) -> N
     assert any("[TRANSLITERATION_WARNING]" in r.warning_flags for r in artifact.mapping_rows)
     assert artifact.generation_mode in {"ai", "legacy"}
     assert isinstance(artifact.ai_telemetry, list)
+    assert "columns:" in artifact.schema_yml
+    assert "- name:" in artifact.schema_yml
+    assert "columns: []" not in artifact.schema_yml
+
+
+def test_mapping_row_ddl_dict_input(monkeypatch) -> None:
+    monkeypatch.setattr("ama.dbt_migration.generator.has_openai_api_key", lambda: False)
+    monkeypatch.setattr("ama.dbt_migration.mapping.has_openai_api_key", lambda: False)
+    ddl_cols = [
+        {"name": "ds_col_1", "type": "nvarchar"},
+        {"name": "ds_col_2", "type": "nvarchar"},
+        {"name": "ds_col_3", "type": "nvarchar"},
+    ]
+    artifact, mapped = generate_model_artifact(
+        table_key="crm.chaos_green_018",
+        raw_columns=["ds_col_1", "ds_col_2", "ds_col_3"],
+        glossary={},
+        alias_registry={},
+        target_dialect=TargetDialect.DUCKDB,
+        source_ddl_columns=ddl_cols,
+        broken=False,
+        rationale="validate ddl dict normalization",
+    )
+    assert artifact.mapping_rows
+    names = [m.hebrew_name for m in mapped]
+    assert all("{" not in n and "}" not in n for n in names)
+    assert len(names) == len(set(names))
+    assert set(names) == {"ds_col_1", "ds_col_2", "ds_col_3"}
+    for row in mapped:
+        assert "[DDL_ONLY_WARNING]" not in (row.warning_flags or [])
+    assert "description: \"Source column `ds_col_1`\"" in artifact.schema_yml
 
 
 def test_generate_model_artifact_rejects_llm_row_filters(monkeypatch) -> None:

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import json
+import re
+import time
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -9,7 +13,14 @@ from ama.dbt_migration.models import TargetDialect
 from ama.dbt_migration.sql_self_heal import validate_sql_with_sqlglot
 from ama.dbt_migration.runner import _run_command, _run_fix_agent
 from ama.dbt_migration.sql_transpile import validate_target_dialect
+from ama.hitl_apply import decision_from_queue
 from ama.planner import AutonomousPlanner
+from ama.scale_engine.anomaly import AnomalyFlag
+from ama.scale_engine.audit import append_decision
+from ama.scale_engine.contract import MigrationContract
+from ama.scale_engine.criticality import CriticalityResult
+from ama.scale_engine import evaluate_batch
+from ama.scale_engine.scorer import ConfidenceResult
 
 
 def _synthetic_value_for_column(column: str) -> str:
@@ -152,6 +163,51 @@ def get_tools() -> list[dict[str, Any]]:
                         },
                     },
                     "required": ["sql"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "query_inventory",
+                "description": "Filter and sort scored inventory tables.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "filters": {"type": "object"},
+                        "sort_by": {"type": "string"},
+                        "sort_order": {"type": "string"},
+                        "limit": {"type": "integer"},
+                    },
+                    "required": [],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "bulk_migrate_tables",
+                "description": "Bulk migrate tables through scale-engine queueing.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "filters": {"type": "object"},
+                        "dialect": {"type": "string"},
+                        "dry_run": {"type": "boolean"},
+                    },
+                    "required": ["filters", "dialect"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "explain_table_score",
+                "description": "Explain score and queue for a table.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"table_key": {"type": "string"}},
+                    "required": ["table_key"],
                 },
             },
         },
@@ -375,11 +431,42 @@ def generate_sql(
     }
 
 
-def test_model(*, dbt_project_dir: Path, model_name: str) -> dict[str, Any]:
+def test_model(*, dbt_project_dir: Path, model_name: str, target: str | None = None) -> dict[str, Any]:
     # Important: `dbt test` can return success when a model has zero tests.
     # Run `dbt run` first so invalid SQL is caught before test-only pass states.
-    run_rc, run_out, run_err = _run_command(["dbt", "run", "--select", model_name], dbt_project_dir)
+    requested_target = str(target or "").strip()
+    _sanitize_schema_descriptions(dbt_project_dir=dbt_project_dir)
+    _sanitize_generated_sql_files(dbt_project_dir=dbt_project_dir)
+    _ensure_duckdb_sources_for_model(dbt_project_dir=dbt_project_dir, model_name=model_name)
+    run_cmd = ["dbt", "run", "--select", model_name]
+    if requested_target:
+        run_cmd.extend(["--target", requested_target])
+    run_rc, run_out, run_err = _run_command(run_cmd, dbt_project_dir)
     run_logs = (run_err or run_out or "").strip()
+    run_rc, run_logs = _retry_on_duckdb_lock(
+        dbt_project_dir=dbt_project_dir,
+        command=run_cmd,
+        initial_rc=run_rc,
+        initial_logs=run_logs,
+    )
+    target_fallback_used = False
+    if (
+        run_rc != 0
+        and requested_target
+        and "does not have a target named" in run_logs.lower()
+    ):
+        # Dashboard may request a target that is valid as SQL dialect but not configured in profiles.yml.
+        # Fallback to profile default target for execution so user flow remains non-blocking.
+        target_fallback_used = True
+        run_cmd = ["dbt", "run", "--select", model_name]
+        run_rc, run_out, run_err = _run_command(run_cmd, dbt_project_dir)
+        run_logs = (run_err or run_out or "").strip()
+        run_rc, run_logs = _retry_on_duckdb_lock(
+            dbt_project_dir=dbt_project_dir,
+            command=run_cmd,
+            initial_rc=run_rc,
+            initial_logs=run_logs,
+        )
     if run_rc != 0:
         return {
             "model_name": model_name,
@@ -387,10 +474,20 @@ def test_model(*, dbt_project_dir: Path, model_name: str) -> dict[str, Any]:
             "stage": "dbt_run",
             "return_code": run_rc,
             "logs": run_logs,
+            "target_fallback_used": target_fallback_used,
         }
 
-    test_rc, test_out, test_err = _run_command(["dbt", "test", "--select", model_name], dbt_project_dir)
+    test_cmd = ["dbt", "test", "--select", model_name]
+    if requested_target and not target_fallback_used:
+        test_cmd.extend(["--target", requested_target])
+    test_rc, test_out, test_err = _run_command(test_cmd, dbt_project_dir)
     test_logs = (test_err or test_out or "").strip()
+    test_rc, test_logs = _retry_on_duckdb_lock(
+        dbt_project_dir=dbt_project_dir,
+        command=test_cmd,
+        initial_rc=test_rc,
+        initial_logs=test_logs,
+    )
     return {
         "model_name": model_name,
         "success": test_rc == 0,
@@ -399,7 +496,174 @@ def test_model(*, dbt_project_dir: Path, model_name: str) -> dict[str, Any]:
         "logs": test_logs,
         "run_return_code": run_rc,
         "run_logs": run_logs,
+        "target_fallback_used": target_fallback_used,
     }
+
+
+def _sanitize_schema_descriptions(*, dbt_project_dir: Path) -> int:
+    """
+    Repair legacy generated schema.yml description lines that can break YAML parsing.
+    """
+    models_dir = dbt_project_dir / "models"
+    if not models_dir.is_dir():
+        return 0
+    repaired = 0
+    for schema_path in models_dir.rglob("*.schema.yml"):
+        try:
+            raw = schema_path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        lines = raw.splitlines()
+        changed = False
+        for idx, line in enumerate(lines):
+            m = re.match(r"^(\s*description:\s*)Source column `(.+)`\s*$", line)
+            if not m:
+                continue
+            prefix = m.group(1)
+            source = m.group(2)
+            lines[idx] = f"{prefix}{json.dumps(f'Source column `{source}`', ensure_ascii=False)}"
+            changed = True
+        if not changed:
+            continue
+        try:
+            schema_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            repaired += 1
+        except OSError:
+            continue
+    return repaired
+
+
+def _sanitize_generated_sql_files(*, dbt_project_dir: Path) -> int:
+    """
+    Remove trailing semicolons from generated model SQL files.
+
+    dbt wraps model SQL in adapter DDL (e.g. create view ... as (...)); an inner trailing
+    semicolon can trigger parser errors in adapters like DuckDB.
+    """
+    models_dir = dbt_project_dir / "models"
+    if not models_dir.is_dir():
+        return 0
+    repaired = 0
+    for sql_path in models_dir.rglob("*.sql"):
+        try:
+            raw = sql_path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        # Keep file intact if there is no trailing statement terminator.
+        trimmed = raw.rstrip()
+        if not trimmed.endswith(";"):
+            continue
+        fixed = trimmed[:-1].rstrip() + "\n"
+        if fixed == raw:
+            continue
+        try:
+            sql_path.write_text(fixed, encoding="utf-8")
+            repaired += 1
+        except OSError:
+            continue
+    return repaired
+
+
+def _retry_on_duckdb_lock(
+    *,
+    dbt_project_dir: Path,
+    command: list[str],
+    initial_rc: int,
+    initial_logs: str,
+    retries: int = 3,
+) -> tuple[int, str]:
+    rc = int(initial_rc)
+    logs = str(initial_logs or "")
+    for attempt in range(retries):
+        if rc == 0 or not _is_duckdb_lock_error(logs):
+            return rc, logs
+        # Short bounded backoff for transient lock contention.
+        time.sleep(0.4 * (attempt + 1))
+        rc2, out2, err2 = _run_command(command, dbt_project_dir)
+        rc = int(rc2)
+        logs = str(err2 or out2 or "")
+    return rc, logs
+
+
+def _is_duckdb_lock_error(logs: str) -> bool:
+    msg = str(logs or "").lower()
+    return (
+        "cannot open file" in msg
+        and "duckdb.db" in msg
+        and "being used by another process" in msg
+    )
+
+
+def _ensure_duckdb_sources_for_model(*, dbt_project_dir: Path, model_name: str) -> int:
+    """
+    Best-effort local bootstrap for missing source schema/table relations in DuckDB.
+    """
+    sql_path = _find_model_sql_path(dbt_project_dir=dbt_project_dir, model_name=model_name)
+    if sql_path is None:
+        return 0
+    try:
+        sql_text = sql_path.read_text(encoding="utf-8")
+    except OSError:
+        return 0
+    relations = _extract_source_relations(sql_text)
+    if not relations:
+        return 0
+    columns = _extract_source_columns(sql_text) or [f"ds_col_{i}" for i in range(1, 11)]
+    target_dir = dbt_project_dir / "target"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    db_path = target_dir / "duckdb.db"
+    try:
+        import duckdb  # type: ignore
+    except Exception:
+        return 0
+    created = 0
+    try:
+        con = duckdb.connect(str(db_path))
+    except Exception:
+        return 0
+    try:
+        col_def = ", ".join(f"\"{c}\" VARCHAR" for c in columns)
+        for schema_name, table_name in relations:
+            try:
+                con.execute(f"CREATE SCHEMA IF NOT EXISTS \"{schema_name}\"")
+                con.execute(
+                    f"CREATE TABLE IF NOT EXISTS \"{schema_name}\".\"{table_name}\" ({col_def})"
+                )
+                created += 1
+            except Exception:
+                continue
+    finally:
+        con.close()
+    return created
+
+
+def _find_model_sql_path(*, dbt_project_dir: Path, model_name: str) -> Path | None:
+    models_dir = dbt_project_dir / "models"
+    if not models_dir.is_dir():
+        return None
+    for p in models_dir.rglob(f"{model_name}.sql"):
+        return p
+    return None
+
+
+def _extract_source_relations(sql: str) -> list[tuple[str, str]]:
+    pairs = re.findall(r"\bfrom\s+([a-zA-Z_]\w*)\.([a-zA-Z_]\w*)\b", str(sql or ""), flags=re.IGNORECASE)
+    out: list[tuple[str, str]] = []
+    for schema_name, table_name in pairs:
+        pair = (str(schema_name), str(table_name))
+        if pair not in out:
+            out.append(pair)
+    return out
+
+
+def _extract_source_columns(sql: str) -> list[str]:
+    cols = re.findall(r"\b(ds_col_\d+)\b", str(sql or ""), flags=re.IGNORECASE)
+    out: list[str] = []
+    for c in cols:
+        name = str(c)
+        if name not in out:
+            out.append(name)
+    return out
 
 
 def apply_fix(
@@ -626,3 +890,200 @@ def request_write_permission(
     pending["mapping_rows"] = mapping_rows or []
     payload["pending_write"] = pending
     return payload
+
+
+@dataclass
+class QueryInventoryResult:
+    tables: list[dict[str, Any]]
+    total: int
+    filters: dict[str, Any]
+    sort_by: str
+
+
+@dataclass
+class BulkMigrateResult:
+    migrated: list[str]
+    skipped: list[dict[str, str]]
+    dry_run: bool
+    contract: MigrationContract | None
+
+
+@dataclass
+class ExplainResult:
+    table_key: str
+    queue: str
+    confidence: ConfidenceResult
+    criticality: CriticalityResult
+    anomaly_flags: list[AnomalyFlag]
+    summary: str
+
+
+def query_inventory(
+    *,
+    report: dict[str, Any],
+    filters: dict[str, Any] | None = None,
+    sort_by: str = "confidence_score",
+    sort_order: str = "desc",
+    limit: int | None = None,
+) -> QueryInventoryResult:
+    filt = dict(filters or {})
+    eval_result = evaluate_batch(report=report, dry_run=True)
+    rows_out: list[dict[str, Any]] = []
+    for s in eval_result.scored_tables:
+        if filt.get("queue") and str(filt["queue"]).lower() != s.queue:
+            continue
+        if filt.get("domain") and str(filt["domain"]).lower() != s.business_domain.lower():
+            continue
+        if "confidence_min" in filt and s.confidence < int(filt["confidence_min"]):
+            continue
+        if "confidence_max" in filt and s.confidence > int(filt["confidence_max"]):
+            continue
+        if "criticality_min" in filt and s.criticality < int(filt["criticality_min"]):
+            continue
+        if "criticality_max" in filt and s.criticality > int(filt["criticality_max"]):
+            continue
+        if filt.get("anomaly_level"):
+            level = str(filt["anomaly_level"]).upper()
+            if not any(f.level == level for f in s.anomaly_flags):
+                continue
+        if filt.get("schema"):
+            parts = s.table_key.split(".")
+            schema_part = parts[0] if len(parts) >= 2 else ""
+            if str(filt["schema"]).lower() != schema_part.lower():
+                continue
+        if filt.get("status"):
+            inv_row = next(
+                (r for r in _extract_inventory(report) if str(r.get("full_name")) == s.table_key),
+                {},
+            )
+            if str(inv_row.get("status") or "") != str(filt["status"]):
+                continue
+        if filt.get("has_blob") is True:
+            if not any(f.name == "unsupported_blob_type" for f in s.anomaly_flags):
+                continue
+        rows_out.append(
+            {
+                "table_key": s.table_key,
+                "queue": s.queue,
+                "confidence": s.confidence,
+                "criticality": s.criticality,
+                "anomaly_flags": [f"{f.level}:{f.name}" for f in s.anomaly_flags],
+                "business_domain": s.business_domain,
+                "reason": s.confidence_result.reason,
+            }
+        )
+
+    reverse = str(sort_order).lower() != "asc"
+    key = "confidence"
+    if sort_by in {"criticality", "criticality_score"}:
+        key = "criticality"
+    elif sort_by in {"table_key", "business_domain"}:
+        key = sort_by
+
+    def _sort_key(r: dict[str, Any]) -> Any:
+        return r.get(key)
+
+    rows_out.sort(key=_sort_key, reverse=reverse)
+    if isinstance(limit, int) and limit > 0:
+        rows_out = rows_out[:limit]
+    return QueryInventoryResult(tables=rows_out, total=len(rows_out), filters=filt, sort_by=sort_by)
+
+
+def bulk_migrate_tables(
+    *,
+    report: dict[str, Any],
+    report_path: Path,
+    filters: dict[str, Any],
+    dialect: str,
+    glossary_path: Path | None,
+    dry_run: bool = True,
+    approved_by: str = "agent",
+) -> BulkMigrateResult:
+    if str(filters.get("queue") or "green").lower() == "red":
+        return BulkMigrateResult(
+            migrated=[],
+            skipped=[{"table_key": "*", "queue": "red", "reason": "bulk migration of RED queue is not allowed"}],
+            dry_run=dry_run,
+            contract=None,
+        )
+    q = query_inventory(report=report, filters=filters)
+    eval_result = evaluate_batch(report=report, dry_run=True)
+    score_by_table = {s.table_key: s for s in eval_result.scored_tables}
+    if dry_run:
+        for s in eval_result.scored_tables:
+            if s.queue == "green" and any(str(r.get("table_key")) == s.table_key for r in q.tables):
+                decision_from_queue(s.queue)
+        return BulkMigrateResult(migrated=[], skipped=[], dry_run=True, contract=eval_result.contract_preview)
+
+    migrated: list[str] = []
+    skipped: list[dict[str, str]] = []
+    for row in q.tables:
+        table_key = str(row.get("table_key") or "")
+        scored = score_by_table.get(table_key)
+        if scored is None:
+            continue
+        if scored.queue != "green":
+            skipped.append({"table_key": table_key, "queue": scored.queue, "reason": "not in GREEN queue"})
+            continue
+        proposal = propose_dbt_model(
+            report=report,
+            report_path=report_path,
+            table=table_key,
+            dialect=dialect,
+            glossary_path=glossary_path,
+        )
+        model_name = str(proposal.get("model_name") or table_key.replace(".", "_"))
+        sql = str(proposal.get("sql") or "")
+        request_write_permission(
+            model=model_name,
+            sql=sql,
+            schema_yml=str(proposal.get("schema_yml") or ""),
+        )
+        append_decision(
+            table_key=table_key,
+            decision=decision_from_queue(scored.queue),
+            confidence=scored.confidence_result,
+            criticality=scored.criticality_result,
+            anomaly_flags=scored.anomaly_flags,
+            contract_id=eval_result.contract_preview.contract_id,
+            approved_by=approved_by,
+            approved_at=datetime.now(timezone.utc).isoformat(),
+        )
+        migrated.append(table_key)
+    return BulkMigrateResult(
+        migrated=migrated,
+        skipped=skipped,
+        dry_run=False,
+        contract=eval_result.contract_preview,
+    )
+
+
+def explain_table_score(*, report: dict[str, Any], table_key: str) -> ExplainResult:
+    eval_result = evaluate_batch(report=report, dry_run=True)
+    scored = next((s for s in eval_result.scored_tables if s.table_key == table_key), None)
+    if scored is None:
+        empty_conf = ConfidenceResult(score=0, reason="table not found in inventory", components={})
+        empty_crit = CriticalityResult(score=0, reason="table not found in inventory", components={})
+        return ExplainResult(
+            table_key=table_key,
+            queue="red",
+            confidence=empty_conf,
+            criticality=empty_crit,
+            anomaly_flags=[
+                AnomalyFlag(level="BLOCK", name="missing_table", reason="table not found in inventory")
+            ],
+            summary=f"{table_key} is missing from inventory and cannot be scored.",
+        )
+    summary = (
+        f"{table_key} is in {scored.queue.upper()} queue with confidence {scored.confidence} and "
+        f"criticality {scored.criticality}. Confidence reason: {scored.confidence_result.reason}. "
+        f"Criticality reason: {scored.criticality_result.reason}."
+    )
+    return ExplainResult(
+        table_key=table_key,
+        queue=scored.queue,
+        confidence=scored.confidence_result,
+        criticality=scored.criticality_result,
+        anomaly_flags=scored.anomaly_flags,
+        summary=summary,
+    )

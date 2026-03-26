@@ -1,0 +1,44 @@
+{
+  "columns": [
+    {
+      "name": "ds_col_1",
+      "type": "nvarchar"
+    },
+    {
+      "name": "ds_col_2",
+      "type": "nvarchar"
+    },
+    {
+      "name": "ds_col_3",
+      "type": "nvarchar"
+    },
+    {
+      "name": "ds_col_4",
+      "type": "nvarchar"
+    },
+    {
+      "name": "ds_col_5",
+      "type": "nvarchar"
+    },
+    {
+      "name": "ds_col_6",
+      "type": "datetime2"
+    },
+    {
+      "name": "ds_col_7",
+      "type": "datetime2"
+    },
+    {
+      "name": "ds_col_8",
+      "type": "nvarchar"
+    },
+    {
+      "name": "ds_col_9",
+      "type": "datetime2"
+    },
+    {
+      "name": "ds_col_10",
+      "type": "datetime2"
+    }
+  ]
+}

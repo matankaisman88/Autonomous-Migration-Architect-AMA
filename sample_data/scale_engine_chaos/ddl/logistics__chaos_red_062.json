@@ -1,0 +1,36 @@
+{
+  "columns": [
+    {
+      "name": "x_col",
+      "type": "xml"
+    },
+    {
+      "name": "y_col",
+      "type": "cursor"
+    },
+    {
+      "name": "z_col",
+      "type": "xml"
+    },
+    {
+      "name": "free_text",
+      "type": "textlike"
+    },
+    {
+      "name": "blob_ref",
+      "type": "bytea"
+    },
+    {
+      "name": "misc",
+      "type": "variant"
+    },
+    {
+      "name": "note",
+      "type": "varchar"
+    },
+    {
+      "name": "stamp",
+      "type": "uuid"
+    }
+  ]
+}

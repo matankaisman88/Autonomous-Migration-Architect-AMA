@@ -1,0 +1,44 @@
+{
+  "columns": [
+    {
+      "name": "payment_id",
+      "type": "int"
+    },
+    {
+      "name": "customer_id",
+      "type": "int"
+    },
+    {
+      "name": "staging_status",
+      "type": "nvarchar"
+    },
+    {
+      "name": "created_at",
+      "type": "datetime2"
+    },
+    {
+      "name": "updated_at",
+      "type": "datetime2"
+    },
+    {
+      "name": "legacy_ref",
+      "type": "nvarchar"
+    },
+    {
+      "name": "raw_payload",
+      "type": "nvarchar"
+    },
+    {
+      "name": "processing_step",
+      "type": "nvarchar"
+    },
+    {
+      "name": "attempt_no",
+      "type": "int"
+    },
+    {
+      "name": "approved_by",
+      "type": "nvarchar"
+    }
+  ]
+}
