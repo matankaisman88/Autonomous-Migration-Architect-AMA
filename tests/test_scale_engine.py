@@ -287,12 +287,13 @@ def test_pending_write_panel_runs_write_and_test_source_text() -> None:
 
 def test_bulk_approve_selected_executes_pipeline_source_text() -> None:
     text = Path("src/ama/ui/dashboard.py").read_text(encoding="utf-8")
+    bulk_text = Path("src/ama/bulk_runner.py").read_text(encoding="utf-8")
     assert "bulk_approve_selected" in text
     assert "run_selected = st.button(btn_label" in text
     assert "migration_agent_tools.propose_dbt_model(" in text
     assert "_write_model_files(" in text
     assert "migration_agent_tools.test_model(" in text
-    assert "append_decision(" in text
+    assert "append_decision(" in bulk_text
     assert "type CONFIRM to proceed" in text
 
 
@@ -305,6 +306,7 @@ def test_bulk_progress_ui_source_text() -> None:
 
 def test_migrated_table_done_indicator_source_text() -> None:
     text = Path("src/ama/ui/dashboard.py").read_text(encoding="utf-8")
+    bulk_text = Path("src/ama/bulk_runner.py").read_text(encoding="utf-8")
     assert "\"migrated_tables\"" in text
     assert "rcol.success(\"✅ Done\")" in text
     assert "Hide migrated tables" in text
@@ -314,17 +316,18 @@ def test_migrated_table_done_indicator_source_text() -> None:
     assert "st.rerun()" in text
     assert "greens_remaining = [s for s in greens if s.table_key not in migrated_tables]" in text
     assert "yellows_remaining = [s for s in yellows if s.table_key not in migrated_tables]" in text
-    assert "def _bulk_job_write(" in text
-    assert "def _bulk_job_load(" in text
+    assert "from ama.bulk_runner import (" in text
+    assert "def _bulk_job_write(" in bulk_text
+    assert "def _bulk_job_load(" in bulk_text
     assert "No active bulk job state found." in text
     assert "Bulk workers: prepare/write=" in text
     assert "workers prep=" in text
     assert "\"dbt_workers\":" in text
-    assert "Batch dbt validation for prepared models to reduce process-start overhead on large bulks." in text
-    assert "Keep parity with single-table execution: one auto-fix pass per failed model." in text
+    assert "Batch dbt validation for prepared models to reduce process-start overhead on large bulks." in bulk_text
+    assert "Keep parity with single-table execution: one auto-fix pass per failed model." in bulk_text
     assert "Show failed tables and reasons" in text
     assert "Bulk dbt Validation Workers" in text
-    assert "test_models_batch(" in text
+    assert "test_models_batch(" in bulk_text
     assert "_bulk_job_id, _bulk_job_state, _bulk_applied_now = _apply_bulk_completion_once(" in text
     assert "if isinstance(_bulk_job_state, dict):" in text
     assert "if bool(_bulk_applied_now):" in text
@@ -341,6 +344,7 @@ def test_bulk_dialect_flows_to_proposals_source_text() -> None:
 
 def test_bulk_parallel_workers_control_and_executor_source_text() -> None:
     text = Path("src/ama/ui/dashboard.py").read_text(encoding="utf-8")
+    bulk_text = Path("src/ama/bulk_runner.py").read_text(encoding="utf-8")
     assert "Bulk Parallel Workers" in text
-    assert "ThreadPoolExecutor(max_workers=workers)" in text
-    assert "as_completed(" in text
+    assert "ThreadPoolExecutor(max_workers=workers)" in bulk_text
+    assert "as_completed(" in bulk_text

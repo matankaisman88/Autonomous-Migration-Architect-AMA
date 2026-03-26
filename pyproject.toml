@@ -18,6 +18,9 @@ dependencies = [
     "plotly>=5.18.0",
     "tqdm>=4.66.0",
     "psutil>=5.9.0",
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.29.0",
+    "websockets>=12.0",
 ]
 
 [project.optional-dependencies]
@@ -35,6 +38,7 @@ dev = [
 [project.scripts]
 ama-ingest = "ama.cli:main"
 ama-dashboard = "ama.cli:dashboard_main"
+ama-api = "ama.api.main:start"
 
 [build-system]
 requires = ["setuptools>=61"]
