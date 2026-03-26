@@ -172,6 +172,46 @@ def _write_model_files(*, output_dir: Path, model_name: str, sql: str, schema_ym
     return sql_path, schema_path
 
 
+def _bulk_jobs_dir(dbt_project_dir: Path) -> Path:
+    return (dbt_project_dir / "target" / "bulk_jobs").resolve()
+
+
+def _bulk_job_path(*, dbt_project_dir: Path, job_id: str) -> Path:
+    return _bulk_jobs_dir(dbt_project_dir) / f"{job_id}.json"
+
+
+def _bulk_job_write(*, dbt_project_dir: Path, job_id: str, payload: dict[str, Any]) -> None:
+    try:
+        out_dir = _bulk_jobs_dir(dbt_project_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        _bulk_job_path(dbt_project_dir=dbt_project_dir, job_id=job_id).write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
+
+
+def _bulk_job_load(*, dbt_project_dir: Path, job_id: str) -> dict[str, Any] | None:
+    p = _bulk_job_path(dbt_project_dir=dbt_project_dir, job_id=job_id)
+    if not p.is_file():
+        return None
+    try:
+        payload = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def _bulk_job_clear(*, dbt_project_dir: Path, job_id: str) -> None:
+    with _BULK_JOBS_LOCK:
+        _BULK_JOBS.pop(job_id, None)
+    try:
+        _bulk_job_path(dbt_project_dir=dbt_project_dir, job_id=job_id).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
 def _run_bulk_job(
     *,
     job_id: str,
@@ -184,6 +224,7 @@ def _run_bulk_job(
     contract_id: str,
     scored_rows: dict[str, Any],
     max_workers: int = 4,
+    dbt_workers: int = 1,
     dbt_target: str | None = None,
 ) -> None:
     total = len(table_keys)
@@ -198,11 +239,22 @@ def _run_bulk_job(
                     "success": [],
                     "failed": [],
                     "error": "",
+                    "workers": max(1, int(max_workers or 1)),
+                    "dbt_workers": max(1, int(dbt_workers or 1)),
                 }
             _BULK_JOBS[job_id]["status"] = "running"
             _BULK_JOBS[job_id]["total"] = total
+            _BULK_JOBS[job_id]["workers"] = max(1, int(max_workers or 1))
+            _BULK_JOBS[job_id]["dbt_workers"] = max(1, int(dbt_workers or 1))
+            _bulk_job_write(
+                dbt_project_dir=dbt_project_dir,
+                job_id=job_id,
+                payload=dict(_BULK_JOBS[job_id]),
+            )
 
-        def _process_one(table_key: str) -> tuple[str, bool]:
+        prepared_models: dict[str, str] = {}
+
+        def _process_one(table_key: str) -> tuple[str, bool, str, str]:
             try:
                 prop = migration_agent_tools.propose_dbt_model(
                     report=report,
@@ -220,11 +272,7 @@ def _run_bulk_job(
                     sql=sql,
                     schema_yml=schema_yml,
                 )
-                test_result = migration_agent_tools.test_model(
-                    dbt_project_dir=dbt_project_dir,
-                    model_name=model_name,
-                    target=dbt_target,
-                )
+                ok = bool(sql.strip())
                 row = scored_rows.get(table_key)
                 if row is not None:
                     append_decision(
@@ -237,9 +285,9 @@ def _run_bulk_job(
                         approved_by="dashboard",
                         approved_at=datetime.now(timezone.utc).isoformat(),
                     )
-                return table_key, bool(test_result.get("success"))
+                return table_key, ok, model_name, ""
             except Exception:
-                return table_key, False
+                return table_key, False, "", "prepare/write exception"
 
         workers = max(1, min(int(max_workers or 4), 8))
         with ThreadPoolExecutor(max_workers=workers) as ex:
@@ -249,20 +297,99 @@ def _run_bulk_job(
                 table_key = futs[fut]
                 with _BULK_JOBS_LOCK:
                     _BULK_JOBS[job_id]["current_table"] = table_key
-                tk, ok = fut.result()
+                tk, ok, model_name, reason = fut.result()
                 with _BULK_JOBS_LOCK:
-                    if ok:
-                        _BULK_JOBS[job_id]["success"].append(tk)
+                    if not ok:
+                        _BULK_JOBS[job_id]["failed"].append({"table_key": tk, "reason": reason})
                     else:
-                        _BULK_JOBS[job_id]["failed"].append(tk)
+                        prepared_models[tk] = model_name
                     done_count += 1
                     _BULK_JOBS[job_id]["completed"] = done_count
+                    _bulk_job_write(
+                        dbt_project_dir=dbt_project_dir,
+                        job_id=job_id,
+                        payload=dict(_BULK_JOBS[job_id]),
+                    )
+        # Batch dbt validation for prepared models to reduce process-start overhead on large bulks.
+        if prepared_models:
+            with _BULK_JOBS_LOCK:
+                _BULK_JOBS[job_id]["status"] = "running"
+                _BULK_JOBS[job_id]["current_table"] = "batched dbt validation"
+                _BULK_JOBS[job_id]["completed"] = 0
+                _BULK_JOBS[job_id]["total"] = len(prepared_models)
+                _bulk_job_write(
+                    dbt_project_dir=dbt_project_dir,
+                    job_id=job_id,
+                    payload=dict(_BULK_JOBS[job_id]),
+                )
+            model_results = migration_agent_tools.test_models_batch(
+                dbt_project_dir=dbt_project_dir,
+                model_names=list(prepared_models.values()),
+                target=dbt_target,
+                chunk_size=50,
+            )
+            done_count = 0
+            for table_key, model_name in prepared_models.items():
+                r = model_results.get(model_name) or {}
+                ok = bool(r.get("success"))
+                reason = str(r.get("reason") or "").strip()
+                if not ok:
+                    # Keep parity with single-table execution: one auto-fix pass per failed model.
+                    fix = migration_agent_tools.apply_fix(
+                        dbt_project_dir=dbt_project_dir,
+                        model_name=model_name,
+                        error_log=reason,
+                        attempt_history=[],
+                    )
+                    corrected_sql = str((fix or {}).get("corrected_sql") or "").strip()
+                    if corrected_sql:
+                        try:
+                            schema_path = output_dir / f"{model_name}.schema.yml"
+                            schema_yml = schema_path.read_text(encoding="utf-8") if schema_path.is_file() else ""
+                        except OSError:
+                            schema_yml = ""
+                        _write_model_files(
+                            output_dir=output_dir,
+                            model_name=model_name,
+                            sql=corrected_sql,
+                            schema_yml=schema_yml,
+                        )
+                        retry = migration_agent_tools.test_model(
+                            dbt_project_dir=dbt_project_dir,
+                            model_name=model_name,
+                            target=dbt_target,
+                        )
+                        ok = bool(retry.get("success"))
+                        reason = str(retry.get("logs") or reason).strip()
+                with _BULK_JOBS_LOCK:
+                    if ok:
+                        _BULK_JOBS[job_id]["success"].append(table_key)
+                    else:
+                        _BULK_JOBS[job_id]["failed"].append({"table_key": table_key, "reason": reason[:600]})
+                    done_count += 1
+                    _BULK_JOBS[job_id]["completed"] = done_count
+                    _BULK_JOBS[job_id]["current_table"] = table_key
+                    _bulk_job_write(
+                        dbt_project_dir=dbt_project_dir,
+                        job_id=job_id,
+                        payload=dict(_BULK_JOBS[job_id]),
+                    )
         with _BULK_JOBS_LOCK:
             _BULK_JOBS[job_id]["status"] = "done"
+            _bulk_job_write(
+                dbt_project_dir=dbt_project_dir,
+                job_id=job_id,
+                payload=dict(_BULK_JOBS[job_id]),
+            )
     except Exception as exc:
         with _BULK_JOBS_LOCK:
             _BULK_JOBS[job_id]["status"] = "failed"
             _BULK_JOBS[job_id]["error"] = str(exc)
+            _bulk_job_write(
+                dbt_project_dir=dbt_project_dir,
+                job_id=job_id,
+                payload=dict(_BULK_JOBS[job_id]),
+            )
 
 
 def _render_pending_write_panel(
@@ -3992,8 +4119,22 @@ search over every raw SQL line in the logs.
             key="bulk_workers",
             help="Higher values speed up bulk migration by processing multiple tables concurrently.",
         )
+        bulk_dbt_workers = st.slider(
+            "Bulk dbt Validation Workers",
+            min_value=1,
+            max_value=8,
+            value=int(st.session_state.get("bulk_dbt_workers") or int(st.session_state.get("bulk_workers") or 4)),
+            step=1,
+            key="bulk_dbt_workers",
+            help="Number of concurrent dbt validation slots during bulk execution.",
+        )
         st.session_state["migration_dialect"] = str(st.session_state.get("bulk_dialect") or "duckdb")
         dry_run_bulk = st.toggle("Dry Run", value=True, key="bulk_dry_run")
+        requested_workers = int(bulk_workers)
+        effective_dbt_workers = int(bulk_dbt_workers)
+        st.caption(
+            f"Bulk workers: prepare/write={requested_workers}, dbt-validate={effective_dbt_workers}"
+        )
         bulk_eval = _get_or_compute_scale_result(
             report,
             int(st.session_state.scale_conf_floor),
@@ -4122,9 +4263,14 @@ search over every raw SQL line in the logs.
         if bulk_job_id:
             with _BULK_JOBS_LOCK:
                 bulk_job = _BULK_JOBS.get(bulk_job_id)
+            if not isinstance(bulk_job, dict):
+                bulk_job = _bulk_job_load(
+                    dbt_project_dir=dashboard_dbt_project_dir,
+                    job_id=bulk_job_id,
+                )
         if bulk_job_id and not isinstance(bulk_job, dict):
-            st.warning("Bulk job state not found (possibly stale after app reload).")
-            if st.button("Clear Stale Bulk Job", key="bulk_job_clear_stale"):
+            st.info("No active bulk job state found.")
+            if st.button("Clear Bulk Status", key="bulk_job_clear_stale"):
                 st.session_state["bulk_job_id"] = ""
                 st.rerun()
         if isinstance(bulk_job, dict):
@@ -4132,9 +4278,12 @@ search over every raw SQL line in the logs.
             completed = int(bulk_job.get("completed") or 0)
             total = int(bulk_job.get("total") or 0)
             current = str(bulk_job.get("current_table") or "")
+            prep_workers = int(bulk_job.get("workers") or requested_workers)
+            dbt_w = int(bulk_job.get("dbt_workers") or effective_dbt_workers)
             st.info(
                 f"Bulk job running: {completed}/{total} (status={status_txt or 'running'})"
                 + (f" — current `{current}`" if current else "")
+                + f" — workers prep={prep_workers}, dbt={dbt_w}"
             )
             st.progress((completed / max(1, total)) if total > 0 else 0.0)
             # Keep the UI live while background job advances.
@@ -4146,7 +4295,11 @@ search over every raw SQL line in the logs.
                 st.error(f"Bulk migration failed: {str(bulk_job.get('error') or 'unknown error')}")
             if status_txt == "done":
                 success_tables = list(bulk_job.get("success") or [])
-                failed_tables = list(bulk_job.get("failed") or [])
+                failed_rows = list(bulk_job.get("failed") or [])
+                failed_tables = [
+                    str(r.get("table_key") if isinstance(r, dict) else r)
+                    for r in failed_rows
+                ]
                 if success_tables:
                     migrated = set(st.session_state.get("migrated_tables", []))
                     migrated.update(success_tables)
@@ -4155,11 +4308,18 @@ search over every raw SQL line in the logs.
                         f"Bulk migration finished: {len(success_tables)} table(s) marked as migrated."
                     )
                 st.success(f"✅ {len(success_tables)} tables migrated successfully.")
-                if failed_tables:
-                    st.warning(f"⚠️ {len(failed_tables)} tables need review: {failed_tables}")
+                if failed_rows:
+                    st.warning(f"⚠️ {len(failed_rows)} tables need review.")
+                    with st.expander("Show failed tables and reasons", expanded=False):
+                        for row in failed_rows:
+                            if isinstance(row, dict):
+                                st.markdown(
+                                    f"- `{str(row.get('table_key') or '')}`: {str(row.get('reason') or 'failed')}"
+                                )
+                            else:
+                                st.markdown(f"- `{str(row)}`")
                 if st.button("Clear Bulk Job", key="bulk_job_clear"):
-                    with _BULK_JOBS_LOCK:
-                        _BULK_JOBS.pop(bulk_job_id, None)
+                    _bulk_job_clear(dbt_project_dir=dashboard_dbt_project_dir, job_id=bulk_job_id)
                     st.session_state["bulk_job_id"] = ""
                     st.rerun()
         if run_selected or run_all_now:
@@ -4172,50 +4332,56 @@ search over every raw SQL line in the logs.
                     row_by_key = {s.table_key: s for s in greens_remaining}
                     if not checked_green:
                         st.warning("No GREEN tables selected for bulk migration.")
-                        return
-                    scored_rows: dict[str, Any] = {}
-                    for k in checked_green:
-                        s = row_by_key.get(k)
-                        if s is None:
-                            continue
-                        scored_rows[k] = {
-                            "queue": s.queue,
-                            "confidence_result": s.confidence_result,
-                            "criticality_result": s.criticality_result,
-                            "anomaly_flags": s.anomaly_flags,
-                        }
-                    new_job_id = str(uuid.uuid4())
-                    st.session_state["bulk_job_id"] = new_job_id
-                    with _BULK_JOBS_LOCK:
-                        _BULK_JOBS[new_job_id] = {
-                            "status": "queued",
-                            "total": len(checked_green),
-                            "completed": 0,
-                            "current_table": "",
-                            "success": [],
-                            "failed": [],
-                            "error": "",
-                        }
-                    th = threading.Thread(
-                        target=_run_bulk_job,
-                        kwargs={
-                            "job_id": new_job_id,
-                            "table_keys": list(checked_green),
-                            "report": report,
-                            "report_path": report_path_resolved or Path("report.json"),
-                            "dialect": str(st.session_state.get("migration_dialect") or "duckdb"),
-                            "dbt_project_dir": dashboard_dbt_project_dir,
-                            "output_dir": dashboard_output_dir,
-                            "contract_id": bulk_eval.contract_preview.contract_id,
-                            "scored_rows": scored_rows,
-                            "max_workers": int(bulk_workers),
-                            "dbt_target": str(st.session_state.get("migration_dialect") or "duckdb"),
-                        },
-                        daemon=True,
-                    )
-                    th.start()
-                    st.success("Bulk migration started in background. You can keep reviewing other tables.")
-                    st.rerun()
+                    else:
+                        scored_rows: dict[str, Any] = {}
+                        for k in checked_green:
+                            s = row_by_key.get(k)
+                            if s is None:
+                                continue
+                            scored_rows[k] = {
+                                "queue": s.queue,
+                                "confidence_result": s.confidence_result,
+                                "criticality_result": s.criticality_result,
+                                "anomaly_flags": s.anomaly_flags,
+                            }
+                        new_job_id = str(uuid.uuid4())
+                        st.session_state["bulk_job_id"] = new_job_id
+                        with _BULK_JOBS_LOCK:
+                            _BULK_JOBS[new_job_id] = {
+                                "status": "queued",
+                                "total": len(checked_green),
+                                "completed": 0,
+                                "current_table": "",
+                                "success": [],
+                                "failed": [],
+                                "error": "",
+                            }
+                            _bulk_job_write(
+                                dbt_project_dir=dashboard_dbt_project_dir,
+                                job_id=new_job_id,
+                                payload=dict(_BULK_JOBS[new_job_id]),
+                            )
+                        th = threading.Thread(
+                            target=_run_bulk_job,
+                            kwargs={
+                                "job_id": new_job_id,
+                                "table_keys": list(checked_green),
+                                "report": report,
+                                "report_path": report_path_resolved or Path("report.json"),
+                                "dialect": str(st.session_state.get("migration_dialect") or "duckdb"),
+                                "dbt_project_dir": dashboard_dbt_project_dir,
+                                "output_dir": dashboard_output_dir,
+                                "contract_id": bulk_eval.contract_preview.contract_id,
+                                "scored_rows": scored_rows,
+                                "max_workers": int(bulk_workers),
+                                "dbt_workers": int(effective_dbt_workers),
+                                "dbt_target": str(st.session_state.get("migration_dialect") or "duckdb"),
+                            },
+                            daemon=True,
+                        )
+                        th.start()
+                        st.success("Bulk migration started in background. You can keep reviewing other tables.")
+                        st.rerun()
             else:
                 st.warning("Type CONFIRM first, then run bulk approval.")
 

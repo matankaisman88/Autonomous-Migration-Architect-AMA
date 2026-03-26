@@ -594,6 +594,113 @@ def _is_duckdb_lock_error(logs: str) -> bool:
     )
 
 
+def _chunked_models(model_names: list[str], chunk_size: int) -> list[list[str]]:
+    size = max(1, int(chunk_size or 1))
+    return [model_names[i : i + size] for i in range(0, len(model_names), size)]
+
+
+def _read_run_results_map(dbt_project_dir: Path) -> dict[str, dict[str, Any]]:
+    p = dbt_project_dir / "target" / "run_results.json"
+    if not p.is_file():
+        return {}
+    try:
+        payload = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    results = payload.get("results") if isinstance(payload, dict) else None
+    if not isinstance(results, list):
+        return out
+    for row in results:
+        if not isinstance(row, dict):
+            continue
+        uid = str(row.get("unique_id") or "")
+        status = str(row.get("status") or "")
+        msg = str(row.get("message") or "")
+        # unique_id shape: model.<project>.<model_name>
+        model_name = uid.rsplit(".", 1)[-1] if "." in uid else uid
+        if model_name:
+            out[model_name] = {"status": status, "message": msg}
+    return out
+
+
+def test_models_batch(
+    *,
+    dbt_project_dir: Path,
+    model_names: list[str],
+    target: str | None = None,
+    chunk_size: int = 50,
+) -> dict[str, dict[str, Any]]:
+    """
+    Validate many models with batched dbt invocations for performance.
+    """
+    names = [str(n).strip() for n in model_names if str(n).strip()]
+    names = list(dict.fromkeys(names))
+    if not names:
+        return {}
+    requested_target = str(target or "").strip()
+    for mn in names:
+        _sanitize_schema_descriptions(dbt_project_dir=dbt_project_dir)
+        _sanitize_generated_sql_files(dbt_project_dir=dbt_project_dir)
+        _ensure_duckdb_sources_for_model(dbt_project_dir=dbt_project_dir, model_name=mn)
+
+    out: dict[str, dict[str, Any]] = {mn: {"success": False, "reason": "not executed"} for mn in names}
+    for chunk in _chunked_models(names, chunk_size):
+        target_fallback_used = False
+        run_cmd = ["dbt", "run", "--select", *chunk]
+        if requested_target:
+            run_cmd.extend(["--target", requested_target])
+        run_rc, run_out, run_err = _run_command(run_cmd, dbt_project_dir)
+        run_logs = str(run_err or run_out or "").strip()
+        if run_rc != 0 and requested_target and "does not have a target named" in run_logs.lower():
+            target_fallback_used = True
+            run_cmd = ["dbt", "run", "--select", *chunk]
+            run_rc, run_out, run_err = _run_command(run_cmd, dbt_project_dir)
+            run_logs = str(run_err or run_out or "").strip()
+        run_rc, run_logs = _retry_on_duckdb_lock(
+            dbt_project_dir=dbt_project_dir,
+            command=run_cmd,
+            initial_rc=run_rc,
+            initial_logs=run_logs,
+        )
+        run_map = _read_run_results_map(dbt_project_dir)
+        for mn in chunk:
+            r = run_map.get(mn) or {}
+            ok = str(r.get("status") or "").lower() in {"success", "pass", "ok"}
+            msg = str(r.get("message") or run_logs or "").strip()
+            out[mn] = {"success": ok, "reason": msg}
+        # If run failed, skip tests for failed models in this chunk.
+        test_chunk = [mn for mn in chunk if bool(out.get(mn, {}).get("success"))]
+        if not test_chunk:
+            continue
+        test_cmd = ["dbt", "test", "--select", *test_chunk]
+        if requested_target and not target_fallback_used:
+            test_cmd.extend(["--target", requested_target])
+        test_rc, test_out, test_err = _run_command(test_cmd, dbt_project_dir)
+        test_logs = str(test_err or test_out or "").strip()
+        test_rc, test_logs = _retry_on_duckdb_lock(
+            dbt_project_dir=dbt_project_dir,
+            command=test_cmd,
+            initial_rc=test_rc,
+            initial_logs=test_logs,
+        )
+        test_map = _read_run_results_map(dbt_project_dir)
+        # dbt test can return zero results when model has no tests.
+        if not test_map:
+            for mn in test_chunk:
+                out[mn] = {"success": True, "reason": ""}
+            continue
+        for mn in test_chunk:
+            t = test_map.get(mn)
+            if not isinstance(t, dict):
+                out[mn] = {"success": True, "reason": ""}
+                continue
+            ok = str(t.get("status") or "").lower() in {"success", "pass", "ok"}
+            msg = str(t.get("message") or test_logs or "").strip()
+            out[mn] = {"success": ok, "reason": msg}
+    return out
+
+
 def _ensure_duckdb_sources_for_model(*, dbt_project_dir: Path, model_name: str) -> int:
     """
     Best-effort local bootstrap for missing source schema/table relations in DuckDB.

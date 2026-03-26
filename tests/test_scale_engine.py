@@ -312,6 +312,17 @@ def test_migrated_table_done_indicator_source_text() -> None:
     assert "time.sleep(1.2)" in text
     assert "st.rerun()" in text
     assert "greens_remaining = [s for s in greens if s.table_key not in migrated_tables]" in text
+    assert "def _bulk_job_write(" in text
+    assert "def _bulk_job_load(" in text
+    assert "No active bulk job state found." in text
+    assert "Bulk workers: prepare/write=" in text
+    assert "workers prep=" in text
+    assert "\"dbt_workers\":" in text
+    assert "Batch dbt validation for prepared models to reduce process-start overhead on large bulks." in text
+    assert "Keep parity with single-table execution: one auto-fix pass per failed model." in text
+    assert "Show failed tables and reasons" in text
+    assert "Bulk dbt Validation Workers" in text
+    assert "test_models_batch(" in text
 
 
 def test_bulk_dialect_flows_to_proposals_source_text() -> None:
