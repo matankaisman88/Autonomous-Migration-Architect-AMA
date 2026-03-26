@@ -227,6 +227,7 @@ def test_tables_actions_buttons_for_queue_source_text() -> None:
     assert "▶ Migrate" in text
     assert "👁 Review" in text
     assert "🔍 Explain" in text
+    assert "▶ Migrate (after review)" in text
     assert "Medium confidence — review required before migrating." in text
     assert "Blocked — see explanation for details." in text
 
@@ -312,6 +313,7 @@ def test_migrated_table_done_indicator_source_text() -> None:
     assert "time.sleep(1.2)" in text
     assert "st.rerun()" in text
     assert "greens_remaining = [s for s in greens if s.table_key not in migrated_tables]" in text
+    assert "yellows_remaining = [s for s in yellows if s.table_key not in migrated_tables]" in text
     assert "def _bulk_job_write(" in text
     assert "def _bulk_job_load(" in text
     assert "No active bulk job state found." in text
@@ -323,6 +325,10 @@ def test_migrated_table_done_indicator_source_text() -> None:
     assert "Show failed tables and reasons" in text
     assert "Bulk dbt Validation Workers" in text
     assert "test_models_batch(" in text
+    assert "_bulk_job_id, _bulk_job_state, _bulk_applied_now = _apply_bulk_completion_once(" in text
+    assert "if isinstance(_bulk_job_state, dict):" in text
+    assert "if bool(_bulk_applied_now):" in text
+    assert "if s.queue == \"green\" and str(s.table_key) not in migrated_tables" in text
 
 
 def test_bulk_dialect_flows_to_proposals_source_text() -> None:

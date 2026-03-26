@@ -138,6 +138,34 @@ def _pending_write_from_result(result: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
+def _queue_table_pending_write(
+    *,
+    table_key: str,
+    report: dict[str, Any],
+    report_path: Path | None,
+    dialect: str,
+) -> bool:
+    if report_path is None:
+        st.warning("Set a report path first to enable per-table migration.")
+        return False
+    prop = migration_agent_tools.propose_dbt_model(
+        report=report,
+        report_path=report_path,
+        table=str(table_key),
+        dialect=str(dialect or "duckdb"),
+        glossary_path=None,
+    )
+    pending = _pending_write_from_result(prop)
+    if not isinstance(pending, dict):
+        pending = {
+            "model_name": str(prop.get("model_name") or str(table_key).replace(".", "_")),
+            "sql": str(prop.get("sql") or ""),
+            "schema_yml": str(prop.get("schema_yml") or ""),
+        }
+    st.session_state[f"pending_write_{table_key}"] = pending
+    return True
+
+
 def _resolve_output_dir(report_path: Path | None, dbt_project_dir: Path) -> Path:
     mig = st.session_state.get("migration_agent") or {}
     raw = str(mig.get("output_dir") or "").strip()
@@ -210,6 +238,51 @@ def _bulk_job_clear(*, dbt_project_dir: Path, job_id: str) -> None:
         _bulk_job_path(dbt_project_dir=dbt_project_dir, job_id=job_id).unlink(missing_ok=True)
     except OSError:
         pass
+
+
+def _get_bulk_job_state(*, dbt_project_dir: Path) -> tuple[str, dict[str, Any] | None]:
+    job_id = str(st.session_state.get("bulk_job_id") or "")
+    if not job_id:
+        return "", None
+    job: dict[str, Any] | None = None
+    with _BULK_JOBS_LOCK:
+        raw = _BULK_JOBS.get(job_id)
+        if isinstance(raw, dict):
+            job = dict(raw)
+    if job is None:
+        job = _bulk_job_load(dbt_project_dir=dbt_project_dir, job_id=job_id)
+    return job_id, job
+
+
+def _apply_bulk_completion_once(
+    *, dbt_project_dir: Path
+) -> tuple[str, dict[str, Any] | None, bool]:
+    job_id, job = _get_bulk_job_state(dbt_project_dir=dbt_project_dir)
+    if not job_id or not isinstance(job, dict):
+        return job_id, job, False
+    if str(job.get("status") or "") != "done":
+        return job_id, job, False
+    refresh_needed = False
+    success_tables = [str(x) for x in (job.get("success") or []) if str(x).strip()]
+    if success_tables:
+        migrated = set(st.session_state.get("migrated_tables", []))
+        before = set(migrated)
+        migrated.update(success_tables)
+        if migrated != before:
+            st.session_state["migrated_tables"] = sorted(migrated)
+            refresh_needed = True
+    if bool(job.get("completion_applied")):
+        return job_id, job, refresh_needed
+    if success_tables:
+        st.session_state[MIGRATION_NOTICE_KEY] = (
+            f"Bulk migration finished: {len(success_tables)} table(s) marked as migrated."
+        )
+        refresh_needed = True
+    job["completion_applied"] = True
+    with _BULK_JOBS_LOCK:
+        _BULK_JOBS[job_id] = dict(job)
+    _bulk_job_write(dbt_project_dir=dbt_project_dir, job_id=job_id, payload=dict(job))
+    return job_id, job, refresh_needed
 
 
 def _run_bulk_job(
@@ -3426,6 +3499,9 @@ def main() -> None:
         str((st.session_state.get("migration_agent") or {}).get("dbt_project_dir") or ".")
     ).expanduser().resolve()
     dashboard_output_dir = _resolve_output_dir(report_path_resolved, dashboard_dbt_project_dir)
+    _bulk_job_id, _bulk_job_state, _bulk_applied_now = _apply_bulk_completion_once(
+        dbt_project_dir=dashboard_dbt_project_dir
+    )
 
     _sv_main = str(report.get("schema_version") or "").strip() or "— (legacy)"
     st.markdown(f"**Report schema version:** `{_sv_main}`")
@@ -4147,9 +4223,10 @@ search over every raw SQL line in the logs.
         greens = [s for s in bulk_eval.scored_tables if s.queue == "green"]
         greens_remaining = [s for s in greens if s.table_key not in migrated_tables]
         yellows = [s for s in bulk_eval.scored_tables if s.queue == "yellow"]
+        yellows_remaining = [s for s in yellows if s.table_key not in migrated_tables]
         reds = [s for s in bulk_eval.scored_tables if s.queue == "red"]
         m1.metric("🟢 Ready for Bulk", len(greens_remaining))
-        m2.metric("🟡 Review Required", len(yellows))
+        m2.metric("🟡 Review Required", len(yellows_remaining))
         m3.metric("🔴 Blocked", bulk_eval.would_block)
         m4.metric("📋 Contract Rules", len(bulk_eval.contract_preview.rules))
 
@@ -4386,7 +4463,7 @@ search over every raw SQL line in the logs.
                 st.warning("Type CONFIRM first, then run bulk approval.")
 
         st.markdown("### 🟡 Review Required")
-        for s in yellows:
+        for s in yellows_remaining:
             warn_reason = next((f.reason for f in s.anomaly_flags if f.level == "WARN"), s.confidence_result.reason)
             with st.expander(
                 f"{s.table_key} — primary: {warn_reason[:120]}",
@@ -4466,6 +4543,22 @@ search over every raw SQL line in the logs.
 
     with analysis_tabs[2]:
         st.subheader("Tables")
+        if bool(_bulk_applied_now):
+            st.rerun()
+        if isinstance(_bulk_job_state, dict):
+            _bulk_status = str(_bulk_job_state.get("status") or "")
+            if _bulk_status in {"queued", "running"}:
+                _done = int(_bulk_job_state.get("completed") or 0)
+                _tot = int(_bulk_job_state.get("total") or 0)
+                _cur = str(_bulk_job_state.get("current_table") or "")
+                st.info(
+                    f"Bulk job running: {_done}/{_tot}"
+                    + (f" — current `{_cur}`" if _cur else "")
+                )
+                st.progress((_done / max(1, _tot)) if _tot > 0 else 0.0)
+                st.caption("Auto-refreshing bulk job status...")
+                time.sleep(1.2)
+                st.rerun()
         st.caption(
             "Row level → **Migration Confidence** (Scale Engine, per-table). "
             "Field level → **Merge Confidence** (alias resolver, per-column)."
@@ -4487,7 +4580,12 @@ search over every raw SQL line in the logs.
                     )
                 else:
                     _set_agent_prefill("Show me all tables ready for bulk migration.")
-        green_count = sum(1 for s in _scale_result.scored_tables if s.queue == "green")
+        migrated_tables = set(st.session_state.get("migrated_tables", []))
+        green_count = sum(
+            1
+            for s in _scale_result.scored_tables
+            if s.queue == "green" and str(s.table_key) not in migrated_tables
+        )
         if green_count > 0:
             _c_msg, _c_btn = st.columns([5, 1])
             _c_msg.success(
@@ -4694,6 +4792,26 @@ search over every raw SQL line in the logs.
                             )
                             for flag in scored.anomaly_flags:
                                 st.markdown(f"- `{flag.level}` **{flag.name}**: {flag.reason}")
+                            if st.button(
+                                "▶ Migrate (after review)",
+                                key=f"tbl_migrate_yellow_{t}",
+                                type="primary",
+                            ):
+                                if _queue_table_pending_write(
+                                    table_key=str(t),
+                                    report=report,
+                                    report_path=report_path_resolved,
+                                    dialect=str(st.session_state.get("migration_dialect") or "duckdb"),
+                                ):
+                                    st.rerun()
+                    _render_pending_write_panel(
+                        str(t),
+                        report_path=report_path_resolved,
+                        dbt_project_dir=dashboard_dbt_project_dir,
+                        output_dir=dashboard_output_dir,
+                        dbt_target=str(st.session_state.get("migration_dialect") or "duckdb"),
+                        key_prefix="tables",
+                    )
                 else:
                     if rcol.button(
                         "🔍 Explain",
