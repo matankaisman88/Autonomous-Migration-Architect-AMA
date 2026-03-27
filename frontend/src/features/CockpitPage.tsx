@@ -113,7 +113,7 @@ export function CockpitPage() {
             <Typography variant="body2">Completed models: {done}</Typography>
             <Typography variant="body2">Total models: {total}</Typography>
             <LinearProgress variant={total > 0 ? "determinate" : "indeterminate"} value={pct} />
-            {data?.checkpoint_a && (
+            {Boolean(data?.checkpoint_a) && (
               <Typography variant="body2" color="text.secondary">
                 Checkpoint-A artifact available.
               </Typography>

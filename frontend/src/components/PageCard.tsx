@@ -1,4 +1,5 @@
-import { Card, CardContent, Stack, Typography, type ReactNode } from "@mui/material";
+import { Card, CardContent, Stack, Typography } from "@mui/material";
+import type { ReactNode } from "react";
 
 export function PageCard({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (

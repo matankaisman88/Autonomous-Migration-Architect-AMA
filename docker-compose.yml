@@ -1,0 +1,40 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - AMA_DBT_PROJECT_DIR=/app/dbt_project
+      - AMA_OUTPUT_DIR=/app/dbt_project/models
+      - AMA_CHECKPOINT_DIR=/app/dbt_project/target/checkpoints
+    volumes:
+      - ./sample_data:/app/sample_data:ro
+      - ama_dbt:/app/dbt_project
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/web.Dockerfile
+      args:
+        - VITE_AMA_API_BASE=http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  ama_dbt:

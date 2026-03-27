@@ -20,18 +20,11 @@ import {
 import { useMemo, useState } from "react";
 import { api } from "../api";
 import { PageCard } from "../components/PageCard";
-import { useRequireReportId, useErrorSetter } from "./common";
+import { QueueChip, useRequireReportId, useErrorSetter } from "./common";
 import type { ScoredTable } from "../types";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useAppState } from "../state";
 import { useNavigate } from "react-router-dom";
-
-function queueColor(queue: string): "success" | "warning" | "error" | "default" {
-  if (queue === "green") return "success";
-  if (queue === "yellow") return "warning";
-  if (queue === "red") return "error";
-  return "default";
-}
 
 export function TablesPage() {
   const reportId = useRequireReportId();
@@ -110,9 +103,12 @@ export function TablesPage() {
             <Button variant="contained" disabled={!reportId} onClick={evaluate}>
               Evaluate
             </Button>
-            <Chip label={`GREEN ${greenCount}`} color="success" />
-            <Chip label={`YELLOW ${yellowCount}`} color="warning" />
-            <Chip label={`RED ${redCount}`} color="error" />
+            <QueueChip queue="green" />
+            <Typography variant="caption">{greenCount}</Typography>
+            <QueueChip queue="yellow" />
+            <Typography variant="caption">{yellowCount}</Typography>
+            <QueueChip queue="red" />
+            <Typography variant="caption">{redCount}</Typography>
           </Stack>
           {greenCount > 0 && (
             <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
@@ -222,7 +218,7 @@ export function TablesPage() {
             {filteredRows.map((r) => (
               <MenuItem key={r.table_key} value={r.table_key}>
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <Chip label={r.queue.toUpperCase()} size="small" color={queueColor(r.queue)} />
+                  <QueueChip queue={r.queue} />
                   <span>{r.table_key}</span>
                 </Stack>
               </MenuItem>

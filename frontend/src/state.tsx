@@ -15,7 +15,8 @@ type AppState = {
 };
 
 const DEFAULT_REPORT =
-  "C:/Autonomous-Migration-Architect-AMA/sample_data/scale_engine_chaos/chaos_report.json";
+  import.meta.env.VITE_DEFAULT_REPORT_PATH ??
+  "/app/sample_data/scale_engine_chaos/chaos_report.json";
 
 const Ctx = createContext<AppState | null>(null);
 

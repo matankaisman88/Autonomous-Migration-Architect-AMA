@@ -1,8 +1,8 @@
-import { Button, Checkbox, Chip, FormControlLabel, Grid2, LinearProgress, List, ListItem, ListItemText, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, FormControlLabel, Grid2, LinearProgress, List, ListItem, ListItemText, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { api, bulkWsUrl } from "../api";
 import { PageCard } from "../components/PageCard";
-import { useRequireReportId, useErrorSetter } from "./common";
+import { QueueChip, useRequireReportId, useErrorSetter } from "./common";
 import type { BulkJob } from "../types";
 import type { ScoredTable } from "../types";
 import { useAppState } from "../state";
@@ -118,7 +118,7 @@ export function BulkPage() {
   return (
     <Grid2 container spacing={2}>
       <Grid2 size={{ xs: 12, md: 5 }}>
-        <PageCard title="Bulk Controls (Streamlit-style)">
+        <PageCard title="Bulk Migration Controls">
           <Stack spacing={1}>
             <Stack direction={{ xs: "column", md: "row" }} spacing={1} useFlexGap flexWrap="wrap">
               <TextField
@@ -184,10 +184,13 @@ export function BulkPage() {
             <Typography variant="body2" color="text.secondary">
               Candidates: {greenCandidates.length} | Selected: {selectedKeys.length}
             </Typography>
-            <Stack direction="row" spacing={1}>
-              <Chip label={`GREEN ${greenCandidates.length}`} color="success" />
-              <Chip label={`YELLOW ${yellowCount}`} color="warning" />
-              <Chip label={`RED ${redCount}`} color="error" />
+            <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap">
+              <QueueChip queue="green" />
+              <Typography variant="caption">{greenCandidates.length}</Typography>
+              <QueueChip queue="yellow" />
+              <Typography variant="caption">{yellowCount}</Typography>
+              <QueueChip queue="red" />
+              <Typography variant="caption">{redCount}</Typography>
             </Stack>
             {contractPreview && (
               <Stack spacing={0.5} sx={{ p: 1, border: "1px solid #e2e8f0", borderRadius: 1 }}>
@@ -224,15 +227,38 @@ export function BulkPage() {
               ))}
             </List>
             {job && (
-              <>
-                <Stack direction="row" spacing={1}>
-                  <Chip label={job.status.toUpperCase()} color={job.status === "failed" ? "error" : "primary"} />
-                  <Typography variant="body2">
-                    {job.completed}/{job.total}
+              <Box
+                sx={{
+                  p: 2,
+                  border: "1px solid",
+                  borderColor:
+                    job.status === "done" ? "success.main" : job.status === "failed" ? "error.main" : "primary.main",
+                  borderRadius: 2,
+                  background: "rgba(56,189,248,0.04)"
+                }}
+              >
+                <Stack direction="row" justifyContent="space-between" mb={1}>
+                  <Typography variant="subtitle2">
+                    {job.status === "done"
+                      ? "✅ COMPLETE"
+                      : job.status === "failed"
+                        ? "❌ FAILED"
+                        : `⚙️ MIGRATING - ${job.current_table || "..."}`}
+                  </Typography>
+                  <Typography variant="caption">
+                    {job.completed} / {job.total} tables
                   </Typography>
                 </Stack>
                 <LinearProgress variant="determinate" value={progress} />
-              </>
+                <Stack direction="row" spacing={2} mt={1}>
+                  <Typography variant="caption" color="success.main">
+                    ✓ {job.success?.length ?? 0} succeeded
+                  </Typography>
+                  <Typography variant="caption" color="error.main">
+                    ✗ {job.failed?.length ?? 0} failed
+                  </Typography>
+                </Stack>
+              </Box>
             )}
           </Stack>
         </PageCard>

@@ -50,6 +50,11 @@ app.include_router(ingest.router, prefix="/ingest", tags=["Ingest"])
 app.include_router(ws_router, tags=["WebSocket"])
 
 
+@app.get("/health", tags=["Health"])
+def health() -> dict:
+    return {"status": "ok"}
+
+
 def start() -> None:
     import uvicorn
 

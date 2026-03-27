@@ -68,10 +68,11 @@ export function PlannerPage() {
               disabled={!reportId}
               onClick={async () => {
                 try {
-                  const [planned, evalRes] = await Promise.all([
+                  const [plannedRaw, evalRes] = await Promise.all([
                     api.planWaves(reportId),
                     api.evaluate(reportId)
                   ]);
+                  const planned = plannedRaw as { migration_context?: string; notes?: string[]; waves?: Wave[] };
                   setData(planned);
                   setExpandedWave(planned.waves?.[0]?.wave_id ?? false);
                   const mapping: Record<string, ScoredTable> = {};
