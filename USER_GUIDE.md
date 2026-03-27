@@ -112,6 +112,29 @@ ama-ingest log-scan sample_data/sql_logs/full_db_chaos.jsonl --max-records 5000
 | `--progress`      | Print progress to stderr every `--progress-every` rows.      |
 
 
+### 4.1) Enterprise chaos generation (Oracle / DB2 / SQL Server)
+
+Generate high-scale synthetic DDL + SQL logs for stress and migration rehearsals:
+
+```bash
+python tools/generate_extreme_chaos.py \
+  --source-dialect oracle \
+  --scale 1000 \
+  --lines 1000000
+```
+
+```powershell
+python tools/generate_extreme_chaos.py `
+  --source-dialect db2 `
+  --scale 1000 `
+  --lines 1000000
+```
+
+Outputs:
+- Dialect-specific DDL (`--ddl-out`)
+- Table distribution manifest (`--manifest-out`)
+- Streaming JSONL log file (`--out`)
+
 ### 5) Stakeholder demo (`demo_runner.py`)
 
 The **demo runner** is a scripted walkthrough for presentations: it runs the **same ingestion** as:
@@ -151,6 +174,11 @@ When calling `LogAnalysisEngine` from Python, use `**LogAnalysisConfig`**:
 | `default_sql_dialect`  | Fallback dialect name if a row omits `dialect`.    |
 | `max_records_per_file` | Cap records per file for quick scans.              |
 | `progress_every`       | How often to log progress when `progress=True`.    |
+| `chunk_size`           | Rows processed per in-memory chunk during scan.     |
+| `progress_chunk_every` | Emit chunk-level telemetry every N chunks.          |
+| `sparse_density_threshold` | Use sparse similarity path when graph density is low. |
+
+Long-running scans now emit chunk-oriented telemetry (`batch_id`, `chunk_id`) to make large jobs traceable in production.
 
 
 ---
