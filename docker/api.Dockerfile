@@ -3,6 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 COPY pyproject.toml .
+COPY dbt_project.yml /opt/ama_defaults/dbt_project.yml
 COPY src/ src/
 COPY sample_data/ sample_data/
 

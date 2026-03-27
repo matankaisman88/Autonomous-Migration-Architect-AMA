@@ -4,6 +4,7 @@ Parse backend: SQLGlot + regex fallback. Centralizes dialect handling for Snowfl
 
 from __future__ import annotations
 
+import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass
@@ -26,6 +27,8 @@ DIALECT_ALIASES: dict[str, str] = {
     "postgres": "postgres",
     "postgresql": "postgres",
     "mysql": "mysql",
+    "sqlserver": "tsql",
+    "sql_server": "tsql",
     "mssql": "tsql",
     "tsql": "tsql",
     "oracle": "oracle",
@@ -85,6 +88,11 @@ class SqlGlotParseBackend:
         text = sanitize_sql_text(sql_text)
         if not text or text.startswith("--"):
             return ParseResult(chunks=[], mode="skipped_empty")
+
+        parse_mode = str(os.environ.get("AMA_SQL_PARSE_MODE") or "").strip().lower()
+        if parse_mode == "regex":
+            chunks = _fallback_regex_extract(text)
+            return ParseResult(chunks=chunks, mode="regex" if chunks else "empty")
 
         d = normalize_dialect(dialect)
         try:

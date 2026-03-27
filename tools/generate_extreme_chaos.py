@@ -52,6 +52,8 @@ class ChaosFactory:
         *,
         scale: int = 1000,
         source_dialect: str = "sqlserver",
+        join_width: int = 10,
+        select_columns: int = 24,
         schemas: tuple[str, ...] = DEFAULT_SCHEMAS,
         databases: tuple[str, ...] = DEFAULT_DATABASES,
     ) -> None:
@@ -61,6 +63,8 @@ class ChaosFactory:
             raise ValueError(
                 f"Unsupported --source-dialect {source_dialect!r}; expected one of: {', '.join(SUPPORTED_DIALECTS)}"
             )
+        self.join_width = max(1, int(join_width))
+        self.select_columns = max(1, int(select_columns))
         self._schemas = schemas
         self._databases = databases
         self._tables = self._build_tables()
@@ -143,8 +147,8 @@ class ChaosFactory:
 
     def _complex_select(self, idx: int) -> str:
         base = self._tables[idx % len(self._tables)]
-        join_refs = [self._tables[(idx + j) % len(self._tables)] for j in range(1, 11)]
-        cols = ", ".join(f"c_{k}_{idx % 500}" for k in range(24))
+        join_refs = [self._tables[(idx + j) % len(self._tables)] for j in range(1, self.join_width + 1)]
+        cols = ", ".join(f"c_{k}_{idx % 500}" for k in range(self.select_columns))
         nested = (
             f"(SELECT MAX(cnt) FROM (SELECT COUNT(*) AS cnt FROM {base.sql_name(self.source_dialect)} ni "
             f"WHERE ni.SHARD_KEY = {idx % 997} GROUP BY ni.STATUS) agg)"
@@ -258,6 +262,18 @@ def main() -> None:
         help="Source SQL dialect for generated DDL/logs",
     )
     p.add_argument(
+        "--join-width",
+        type=int,
+        default=10,
+        help="Number of joined tables per SELECT query (default: 10)",
+    )
+    p.add_argument(
+        "--select-columns",
+        type=int,
+        default=24,
+        help="Number of selected synthetic columns per SELECT query (default: 24)",
+    )
+    p.add_argument(
         "--ddl-out",
         type=str,
         default=str(ROOT / "chaos_data" / "ddl" / "extreme_chaos_ddl.sql"),
@@ -271,7 +287,12 @@ def main() -> None:
     )
     args = p.parse_args()
 
-    factory = ChaosFactory(scale=args.scale, source_dialect=args.source_dialect)
+    factory = ChaosFactory(
+        scale=args.scale,
+        source_dialect=args.source_dialect,
+        join_width=args.join_width,
+        select_columns=args.select_columns,
+    )
     out = Path(args.out).resolve()
     ddl_out = Path(args.ddl_out).resolve()
     manifest_out = Path(args.manifest_out).resolve()

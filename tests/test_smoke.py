@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from ama.comms_ingest import aggregate_comms_for_table, mention_score
@@ -16,6 +17,24 @@ def test_parse_sql_extracts_columns() -> None:
     chunks, ok = parse_sql_query(sql, dialect="postgres")
     assert ok
     assert any("orders" in k or "sales.orders" in k for flat in chunks for k in flat)
+
+
+def test_parse_sql_accepts_sqlserver_alias() -> None:
+    sql = "SELECT o.id FROM sales.orders o"
+    chunks, ok = parse_sql_query(sql, dialect="sqlserver")
+    assert ok
+    assert any("orders" in k or "sales.orders" in k for flat in chunks for k in flat)
+
+
+def test_parse_sql_regex_mode_env_toggle() -> None:
+    sql = "SELECT o.id FROM sales.orders o"
+    os.environ["AMA_SQL_PARSE_MODE"] = "regex"
+    try:
+        chunks, ok = parse_sql_query(sql, dialect="sqlserver")
+    finally:
+        os.environ.pop("AMA_SQL_PARSE_MODE", None)
+    assert chunks
+    assert ok is False
 
 
 def test_sql_logs_sample() -> None:

@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shutil
 import subprocess
+import sys
 import time
 from collections.abc import Callable
 from datetime import datetime, timezone
@@ -30,11 +32,30 @@ from ama.env_resolver import has_openai_api_key
 logger = logging.getLogger(__name__)
 
 
+def _is_dbt_invocation(command: list[str]) -> bool:
+    if not command:
+        return False
+    if command[0] == "dbt":
+        return True
+    return len(command) >= 3 and command[1] == "-m" and command[2] == "dbt"
+
+
+def _resolve_dbt_command(command: list[str]) -> list[str]:
+    if not command or command[0] != "dbt":
+        return command
+    if shutil.which("dbt"):
+        return command
+    # Fallback for environments where console scripts are missing but dbt is installed
+    # in the active interpreter.
+    return [sys.executable, "-m", "dbt", *command[1:]]
+
+
 def _run_command(command: list[str], cwd: Path) -> tuple[int, str, str]:
+    command = _resolve_dbt_command(list(command))
     # dbt defaults `--profiles-dir` to `~/.dbt`. On fresh machines the folder might not
     # exist, which causes dbt to fail before it even reads `profiles.yml`.
     # We create the default profiles directory as a best-effort guard.
-    if command and command[0] == "dbt":
+    if _is_dbt_invocation(command):
         profiles_dir: Path | None = None
         if "--profiles-dir" in command:
             try:

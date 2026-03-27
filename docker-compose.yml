@@ -7,11 +7,13 @@ services:
       - "8000:8000"
     environment:
       - AMA_DBT_PROJECT_DIR=/app/dbt_project
-      - AMA_OUTPUT_DIR=/app/dbt_project/models
+      - AMA_OUTPUT_DIR=/app/dbt_project/models/ama_generated
       - AMA_CHECKPOINT_DIR=/app/dbt_project/target/checkpoints
+      - AMA_OPENAI_API_KEY=${AMA_OPENAI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     volumes:
       - ./sample_data:/app/sample_data:ro
-      - ama_dbt:/app/dbt_project
+      - ./dbt_project:/app/dbt_project
     healthcheck:
       test:
         [
@@ -36,5 +38,3 @@ services:
       api:
         condition: service_healthy
 
-volumes:
-  ama_dbt:
