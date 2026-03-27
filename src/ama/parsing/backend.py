@@ -29,6 +29,7 @@ DIALECT_ALIASES: dict[str, str] = {
     "mssql": "tsql",
     "tsql": "tsql",
     "oracle": "oracle",
+    "db2": "db2",
     "spark": "spark",
     "databricks": "databricks",
 }

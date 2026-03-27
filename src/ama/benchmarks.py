@@ -22,6 +22,7 @@ from ama.alias_resolver import AliasResolver, load_ddl_columns, load_glossary
 from ama.business_logic import enrich_discovery_business_context
 from ama.config import project_root
 from ama.discovery import aggregate_merges_for_tables, build_discovery_payload, run_discovery, top_n_tables
+from ama.log_analysis import LogAnalysisConfig, LogAnalysisEngine
 from ama.sql_pipeline import TableColumnStats
 from ama.reports import write_excel_report
 
@@ -178,17 +179,31 @@ def run_benchmark_suite(
                 flush=True,
             )
 
+            analysis_cfg = LogAnalysisConfig(
+                env_filter=None,
+                max_records_per_file=n,
+                chunk_size=5000,
+                progress_every=100_000,
+                progress_chunk_every=100,
+            )
+            analysis = LogAnalysisEngine(analysis_cfg).analyze_paths([log_path], progress=False)
+
             runs.append(
                 {
                     "requested_log_rows": n,
                     "tier5_generator_seconds": round(gen_sec, 4),
                     "ingestion_seconds": round(ingest_sec, 4),
                     "ingestion_rows_per_second": rps,
+                    "throughput_rows_per_second": analysis.throughput_rows_per_second,
                     "tables_discovered": n_tables,
                     "alias_merge_seconds": round(merge_sec, 4),
                     "alias_merge_tables": n_merged,
                     "memory_python_alloc_peak_mib": peak_mb,
                     "memory_rss_delta_mib": rss_delta,
+                    "peak_memory_usage_mb": analysis.peak_memory_mb,
+                    "log_analysis_chunk_count": int(analysis.telemetry.get("chunk_count") or 0),
+                    "log_analysis_last_batch_id": analysis.telemetry.get("batch_id"),
+                    "log_analysis_last_chunk_id": analysis.telemetry.get("chunk_id"),
                 }
             )
             last_discovery = discovery

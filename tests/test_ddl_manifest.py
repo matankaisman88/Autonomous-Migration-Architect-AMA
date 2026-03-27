@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ama.ddl_manifest import load_ddl_manifest, normalize_manifest_table_key, resolve_ddl_path_for_table
+from ama.ddl_manifest import (
+    load_ddl_manifest,
+    load_ddl_manifest_entries,
+    normalize_manifest_table_key,
+    resolve_ddl_path_for_table,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -47,3 +52,20 @@ def test_resolve_sales_orders_from_manifest() -> None:
     )
     assert r is not None
     assert r.name == "orders_columns.json"
+
+
+def test_load_ddl_manifest_entries_supports_rich_metadata(tmp_path: Path) -> None:
+    p = tmp_path / "manifest.json"
+    p.write_text(
+        (
+            "{"
+            '"sales.orders":{"path":"sample_data/ddl/orders_columns.json","source_dialect":"oracle","owner":"FIN","tablespace":"TS1"}'
+            "}"
+        ),
+        encoding="utf-8",
+    )
+    m = load_ddl_manifest_entries(p)
+    assert "sales.orders" in m
+    assert m["sales.orders"].ddl_path == "sample_data/ddl/orders_columns.json"
+    assert m["sales.orders"].source_dialect == "oracle"
+    assert m["sales.orders"].owner == "FIN"

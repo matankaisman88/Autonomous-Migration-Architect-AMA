@@ -49,6 +49,63 @@ ama-ingest generate-dbt `
 | `--approve-checkpoint-a` | No | flag | Approves Checkpoint A and allows artifact write/execution. |
 | `--run-dbt` | No | flag | Runs `dbt run` and `dbt test` after approval. |
 
+## Source Dialect Setup (Oracle / DB2)
+
+AMA now supports non-SQLServer source metadata/log ingestion for Oracle and DB2.
+
+### 1) Generate large synthetic source data for Oracle/DB2
+
+```bash
+# Bash / Git Bash
+python tools/generate_extreme_chaos.py \
+  --source-dialect oracle \
+  --scale 1000 \
+  --lines 1000000
+```
+
+```powershell
+# PowerShell (Windows)
+python tools/generate_extreme_chaos.py `
+  --source-dialect db2 `
+  --scale 1000 `
+  --lines 1000000
+```
+
+This writes:
+- dialect-aware DDL (`--ddl-out`)
+- partitioned multi-schema table manifest (`--manifest-out`)
+- streaming SQL JSONL log output (`--out`)
+
+### 2) Ingest Oracle/DB2 logs with chunked analysis
+
+```bash
+# Bash / Git Bash
+ama-ingest log-scan \
+  --sql-logs chaos_data/sql_logs/extreme_1m.jsonl \
+  --all-envs \
+  --progress
+```
+
+`log-scan` now processes in chunks and emits telemetry with `batch_id` and `chunk_id` for long runs.
+
+### 3) DDL manifest metadata for Oracle/DB2
+
+Use rich manifest entries to preserve source details:
+
+```json
+{
+  "finance.orders": {
+    "path": "sample_data/ddl/orders_columns.json",
+    "source_dialect": "oracle",
+    "owner": "FINANCE_APP",
+    "tablespace": "TS_FIN_01",
+    "schema": "FINANCE"
+  }
+}
+```
+
+`owner` and `tablespace` are extracted by the parser for Oracle/DB2 `CREATE TABLE` statements and are available to downstream merge/report logic.
+
 Example (generate only, hold for review):
 
 ```bash

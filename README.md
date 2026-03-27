@@ -2,7 +2,7 @@
 
 **Turn legacy SQL logs into a cloud migration plan - with deterministic safety guarantees.**
 
-AMA ingests SQL Server logs, resolves Hebrew <-> English column aliases, scores every table for migration confidence and business criticality, and generates wave-by-wave dbt migration plans with a human approval gate.
+AMA ingests SQL logs across SQL Server, Oracle, and DB2, resolves Hebrew <-> English column aliases, scores every table for migration confidence and business criticality, and generates wave-by-wave dbt migration plans with a human approval gate.
 A React dashboard and REST API surface the full pipeline end-to-end.
 In a real `scale_engine_chaos` run, AMA processed **340 tables in 4 minutes** and **auto bulk-approved 287**.
 
@@ -71,12 +71,27 @@ Ingest -> Alias Resolution -> Deterministic Scoring -> Queue Assignment
 
 - Wave-by-wave migration plan derived from co-query lineage graph
 - Hebrew <-> English column alias resolution with glossary
+- Multi-source dialect ingestion (`sqlserver`, `oracle`, `db2`) with extensible parser abstraction
 - Broken lineage detection - tables referenced in SQL but absent from DDL
 - Bulk migration with real-time WebSocket progress
 - Audit trail: every automated decision logged with reason strings
 - Dry run mode: full projection without any file writes
 - Jira CSV + Confluence HTML export
-- Multi-domain synthetic data generator for testing
+- Enterprise-scale streaming log analysis (chunked processing, incremental co-occurrence, sparse similarity path)
+- Multi-domain synthetic data generator for testing, including `ChaosFactory` scale generation (1,000+ tables)
+
+## Enterprise Scale + Multi-Source
+
+Recent refactor highlights:
+
+- `tools/generate_extreme_chaos.py` now provides a class-based `ChaosFactory` with:
+  - `--scale` table generation (default `1000`)
+  - `--source-dialect` selection (`sqlserver|oracle|db2`)
+  - dialect-specific DDL output and multi-schema/multi-database partitioning
+- `ama.log_analysis` now processes JSONL logs in **chunks** without loading all rows into memory.
+- Incremental co-occurrence updates support long-running workloads and expose telemetry (`batch_id`, `chunk_id`) for observability.
+- Similarity computation includes a sparse-matrix path for low-density workloads.
+- DDL manifest ingestion supports source metadata (`owner`, `tablespace`, `source_dialect`) for Oracle/DB2 mapping.
 
 ## Running locally (without Docker)
 

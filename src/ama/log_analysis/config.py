@@ -36,6 +36,22 @@ class LogAnalysisConfig(BaseModel):
         ge=1,
         description="Emit stderr progress every N records when progress=True in the engine.",
     )
+    progress_chunk_every: int = Field(
+        default=20,
+        ge=1,
+        description="Emit chunk-level progress every N processed chunks when progress=True.",
+    )
+    chunk_size: int = Field(
+        default=5000,
+        ge=100,
+        description="Rows processed per chunk for incremental co-occurrence updates.",
+    )
+    sparse_density_threshold: float = Field(
+        default=0.15,
+        gt=0.0,
+        le=1.0,
+        description="Use sparse similarity implementation when co-occurrence density <= threshold.",
+    )
 
     def effective_env(self) -> str | None:
         """Normalize env filter: empty string means no filter."""

@@ -8,14 +8,21 @@ from ama.parsing.backend import (
     default_parse_backend,
     normalize_dialect,
 )
-from ama.parsing.sqlglot_extract import extract_from_select, qualified_key_from_table
+from ama.parsing.sqlglot_extract import (
+    DdlTableDetails,
+    extract_ddl_table_details,
+    extract_from_select,
+    qualified_key_from_table,
+)
 
 __all__ = [
     "DIALECT_ALIASES",
     "ParseBackend",
     "ParseResult",
     "SqlGlotParseBackend",
+    "DdlTableDetails",
     "default_parse_backend",
+    "extract_ddl_table_details",
     "extract_from_select",
     "normalize_dialect",
     "qualified_key_from_table",
