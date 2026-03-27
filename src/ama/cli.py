@@ -36,7 +36,12 @@ from ama.schemas.report import (
     validate_report_boundary,
     validate_report_model,
 )
-from ama.sql_pipeline import LineageGraph, SqlIngestionTelemetry, run_sql_logs_pipeline
+from ama.sql_pipeline import (
+    LineageGraph,
+    SqlIngestionTelemetry,
+    merge_stats,
+    run_sql_logs_pipeline,
+)
 from ama.business_logic import (
     build_glossary_source_report,
     enrich_discovery_business_context,
@@ -343,6 +348,16 @@ def cmd_run(args: argparse.Namespace) -> int:
     multi_merge = False
     merge_keys: list[str] = []
     if discovery_mode:
+        def _aggregate_discovery_stats(keys: list[str]) -> TableColumnStats:
+            agg = TableColumnStats()
+            if not discovery_tables:
+                return agg
+            for k in keys:
+                st = discovery_tables.get(k)
+                if st is not None:
+                    merge_stats(agg, st)
+            return agg
+
         discovery_tables = run_discovery(
             sql_paths,
             args.env,
@@ -358,11 +373,13 @@ def cmd_run(args: argparse.Namespace) -> int:
             merge_keys = ranked[:cap] if cap > 0 else list(ranked)
             multi_merge = True
             target_key = discovery_anchor_key(discovery_tables, scope, fallback_keys=merge_keys)
-            sql_stats = TableColumnStats()
+            # In no-DDL-merge runs, still expose real SQL-log stats for the merged scope.
+            sql_stats = _aggregate_discovery_stats(merge_keys)
         elif no_target:
             merge_keys = top_n_tables(discovery_tables, n=getattr(args, "discovery_merge_n", 10))
             target_key = merge_keys[0] if merge_keys else ""
-            sql_stats = TableColumnStats()
+            # In no-DDL-merge runs, keep workload-derived columns/queries in the report.
+            sql_stats = _aggregate_discovery_stats(merge_keys)
             multi_merge = True
         else:
             target_key, sql_stats = resolve_target_stats_for_table(discovery_tables, scope)

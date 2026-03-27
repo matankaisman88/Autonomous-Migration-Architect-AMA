@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlglot
 from sqlglot import exp
 
+from ama.parsing.backend import SqlGlotParseBackend
 from ama.discovery import build_discovery_payload
 from ama.parsing.sqlglot_extract import _resolve_aliases, qualified_key_from_table
 from ama.sql_pipeline import TableColumnStats
@@ -164,3 +165,50 @@ def test_lineage_graph_real_pairs_unaffected() -> None:
     assert "finance.invoices" in endpoints
     assert "finance.payments" in endpoints
     assert "dbo.orders" in endpoints
+
+
+def test_regex_fallback_extracts_real_columns(monkeypatch) -> None:
+    monkeypatch.setenv("AMA_SQL_PARSE_MODE", "regex")
+    backend = SqlGlotParseBackend()
+    sql = (
+        "SELECT c_0_1, c_1_1, t0.status "
+        "FROM sales_core.tbl_00002 t0 "
+        "INNER JOIN finance_core.tbl_00004 t1 ON t0.id = t1.parent_id "
+        "WHERE t0.shard_key = 1"
+    )
+    pr = backend.parse(sql, dialect="oracle")
+    assert pr.mode == "regex"
+    assert pr.chunks
+    flat = pr.chunks[0]
+    assert "sales_core.tbl_00002" in flat
+    cols = set(flat["sales_core.tbl_00002"].keys())
+    assert "select:c_0_1" in cols
+    assert "select:c_1_1" in cols
+    assert "select:status" in cols
+    assert "where:shard_key" in cols
+    assert "join_on:id" in cols
+    assert "select:tbl_00002" not in cols
+    assert "select:tbl_00004" not in cols
+    assert "finance_core.tbl_00004" in flat
+    right_cols = set(flat["finance_core.tbl_00004"].keys())
+    assert "join_on:parent_id" in right_cols
+    assert "sales_core" not in flat
+
+
+def test_regex_fallback_insert_columns(monkeypatch) -> None:
+    monkeypatch.setenv("AMA_SQL_PARSE_MODE", "regex")
+    backend = SqlGlotParseBackend()
+    sql = (
+        "INSERT INTO finance_core.tbl_00001 (id, parent_id, status, shard_key) "
+        "VALUES (1, 0, 'A', 3)"
+    )
+    pr = backend.parse(sql, dialect="oracle")
+    assert pr.mode == "regex"
+    assert pr.chunks
+    flat = pr.chunks[0]
+    assert "finance_core.tbl_00001" in flat
+    cols = set(flat["finance_core.tbl_00001"].keys())
+    assert "select:id" in cols
+    assert "select:parent_id" in cols
+    assert "select:status" in cols
+    assert "select:shard_key" in cols
