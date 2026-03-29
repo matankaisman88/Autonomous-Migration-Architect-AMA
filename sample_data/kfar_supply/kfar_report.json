@@ -1,0 +1,3467 @@
+{
+  "schema_version": "1.2",
+  "migration_context": "dbo.orders",
+  "system_scope": {
+    "mode": "system_wide",
+    "migration_context": "dbo.orders"
+  },
+  "merge_scope": {
+    "mode": "all_discovered_tables",
+    "label": "All discovered tables (DDL merge)",
+    "description": "Discovery scanned all qualified tables in the logs; DDL merge ran on each table in scope (see merge_cap).",
+    "comms_git_reference": "dbo.orders",
+    "resolved_primary_table_key": "dbo.orders",
+    "tables_merged": 8,
+    "merge_cap": null,
+    "table_names_merged": [
+      "finance.invoices",
+      "dbo.orders",
+      "logistics.shipments",
+      "dbo.order_lines",
+      "finance.payments",
+      "dbo.customers",
+      "legacy_hebrew.חשבוניות",
+      "temp_junk.tmp_staging"
+    ]
+  },
+  "sql_log_files": [
+    "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\kfar_supply\\sql_logs\\kfar_prod.jsonl"
+  ],
+  "queries_matched": 15380,
+  "comms": {
+    "mention_score": 74.0,
+    "chunks_with_hits": 13
+  },
+  "git": {
+    "total_score": 26.5,
+    "files": [
+      {
+        "path": "sample_data\\kfar_supply\\git_sql\\reports\\monthly_revenue.sql",
+        "score": 9.5
+      },
+      {
+        "path": "sample_data\\kfar_supply\\git_sql\\reports\\shipment_kpi.sql",
+        "score": 9.5
+      },
+      {
+        "path": "sample_data\\kfar_supply\\git_sql\\reports\\customer_summary.sql",
+        "score": 7.5
+      }
+    ]
+  },
+  "columns": [
+    {
+      "column": "finance.invoices::invoice_id",
+      "log_weight": 1.0,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 1.0069399819801441,
+      "dead_candidate": false,
+      "logged_as": [
+        "חשבונית",
+        "invoice_id"
+      ]
+    },
+    {
+      "column": "finance.payments::payment_id",
+      "log_weight": 0.49427168576104746,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.5012116677411916,
+      "dead_candidate": false,
+      "logged_as": [
+        "payment_id",
+        "תשלום"
+      ]
+    },
+    {
+      "column": "dbo.orders::order_id",
+      "log_weight": 0.41069967266775775,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.4176396546479019,
+      "dead_candidate": false,
+      "logged_as": [
+        "order_id"
+      ]
+    },
+    {
+      "column": "dbo.customers::customer_id",
+      "log_weight": 0.34236906710310966,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.34930904908325383,
+      "dead_candidate": false,
+      "logged_as": [
+        "customer_id"
+      ]
+    },
+    {
+      "column": "dbo.order_lines::line_id",
+      "log_weight": 0.34206219312602293,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.3490021751061671,
+      "dead_candidate": false,
+      "logged_as": [
+        "line_id"
+      ]
+    },
+    {
+      "column": "finance.invoices::net_amount",
+      "log_weight": 0.3388911620294599,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.3458311440096041,
+      "dead_candidate": false,
+      "logged_as": [
+        "סכום_נטו",
+        "net_amount"
+      ]
+    },
+    {
+      "column": "finance.invoices::order_id",
+      "log_weight": 0.3377659574468085,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.34470593942695266,
+      "dead_candidate": false,
+      "logged_as": [
+        "order_id"
+      ]
+    },
+    {
+      "column": "logistics.shipments::shipment_id",
+      "log_weight": 0.3358224222585925,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.34276240423873666,
+      "dead_candidate": false,
+      "logged_as": [
+        "shipment_id"
+      ]
+    },
+    {
+      "column": "finance.invoices::vat_rate",
+      "log_weight": 0.3296849427168576,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.3366249246970018,
+      "dead_candidate": false,
+      "logged_as": [
+        "מעמ",
+        "vat_rate"
+      ]
+    },
+    {
+      "column": "dbo.orders::status",
+      "log_weight": 0.19036415711947627,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.19730413909962044,
+      "dead_candidate": false,
+      "logged_as": [
+        "סטטוס",
+        "status"
+      ]
+    },
+    {
+      "column": "dbo.orders::amount",
+      "log_weight": 0.1848404255319149,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.19178040751205908,
+      "dead_candidate": false,
+      "logged_as": [
+        "סכום",
+        "amount"
+      ]
+    },
+    {
+      "column": "dbo.orders::customer_id",
+      "log_weight": 0.18023731587561376,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18717729785575793,
+      "dead_candidate": false,
+      "logged_as": [
+        "customer_id"
+      ]
+    },
+    {
+      "column": "logistics.shipments::tracking_number",
+      "log_weight": 0.179930441898527,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18687042387867117,
+      "dead_candidate": false,
+      "logged_as": [
+        "מספר_מעקב",
+        "tracking_number"
+      ]
+    },
+    {
+      "column": "dbo.order_lines::quantity",
+      "log_weight": 0.17952127659574468,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18646125857588886,
+      "dead_candidate": false,
+      "logged_as": [
+        "כמות",
+        "quantity"
+      ]
+    },
+    {
+      "column": "dbo.order_lines::unit_price",
+      "log_weight": 0.17952127659574468,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18646125857588886,
+      "dead_candidate": false,
+      "logged_as": [
+        "מחיר",
+        "unit_price"
+      ]
+    },
+    {
+      "column": "logistics.shipments::shipment_status",
+      "log_weight": 0.17379296235679215,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18073294433693632,
+      "dead_candidate": false,
+      "logged_as": [
+        "סטטוס_משלוח",
+        "shipment_status"
+      ]
+    },
+    {
+      "column": "finance.payments::invoice_id",
+      "log_weight": 0.17307692307692307,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18001690505706724,
+      "dead_candidate": false,
+      "logged_as": [
+        "invoice_id"
+      ]
+    },
+    {
+      "column": "logistics.shipments::order_id",
+      "log_weight": 0.17287234042553193,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.1798123224056761,
+      "dead_candidate": false,
+      "logged_as": [
+        "order_id"
+      ]
+    },
+    {
+      "column": "dbo.order_lines::order_id",
+      "log_weight": 0.17246317512274958,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.17940315710289376,
+      "dead_candidate": false,
+      "logged_as": [
+        "order_id"
+      ]
+    },
+    {
+      "column": "finance.payments::paid_at",
+      "log_weight": 0.17246317512274958,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.17940315710289376,
+      "dead_candidate": false,
+      "logged_as": [
+        "תאריך_תשלום",
+        "paid_at"
+      ]
+    },
+    {
+      "column": "dbo.customers::customer_name",
+      "log_weight": 0.1675531914893617,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.17449317346950588,
+      "dead_candidate": false,
+      "logged_as": [
+        "שם_לקוח"
+      ]
+    },
+    {
+      "column": "dbo.customers::country_code",
+      "log_weight": 0.1611088379705401,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16804881995068427,
+      "dead_candidate": false,
+      "logged_as": [
+        "קוד_מדינה"
+      ]
+    },
+    {
+      "column": "dbo.customers::email",
+      "log_weight": 0.1611088379705401,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16804881995068427,
+      "dead_candidate": false,
+      "logged_as": [
+        "email"
+      ]
+    },
+    {
+      "column": "dbo.order_lines::product_id",
+      "log_weight": 0.1611088379705401,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16804881995068427,
+      "dead_candidate": false,
+      "logged_as": [
+        "product_id"
+      ]
+    },
+    {
+      "column": "legacy_hebrew.חשבוניות::amount",
+      "log_weight": 0.1610065466448445,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16794652862498868,
+      "dead_candidate": false,
+      "logged_as": [
+        "סכום"
+      ]
+    },
+    {
+      "column": "legacy_hebrew.חשבוניות::created_at",
+      "log_weight": 0.1610065466448445,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16794652862498868,
+      "dead_candidate": false,
+      "logged_as": [
+        "תאריך_יצירה"
+      ]
+    },
+    {
+      "column": "dbo.orders::created_at",
+      "log_weight": 0.018412438625204582,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.02535242060534874,
+      "dead_candidate": false,
+      "logged_as": [
+        "תאריך_יצירה",
+        "created_at"
+      ]
+    },
+    {
+      "column": "dbo.customers::city",
+      "log_weight": 0.006444353518821604,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.013384335498965763,
+      "dead_candidate": false,
+      "logged_as": [
+        "עיר"
+      ]
+    },
+    {
+      "column": "dbo.orders::discount",
+      "log_weight": 0.006444353518821604,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.013384335498965763,
+      "dead_candidate": false,
+      "logged_as": [
+        "הנחה"
+      ]
+    },
+    {
+      "column": "finance.invoices::amount",
+      "log_weight": 0.0061374795417348605,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.01307746152187902,
+      "dead_candidate": false,
+      "logged_as": [
+        "amount"
+      ]
+    },
+    {
+      "column": "finance.invoices::status",
+      "log_weight": 0.0061374795417348605,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.01307746152187902,
+      "dead_candidate": false,
+      "logged_as": [
+        "status"
+      ]
+    },
+    {
+      "column": "finance.payments::amount",
+      "log_weight": 0.0061374795417348605,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.01307746152187902,
+      "dead_candidate": false,
+      "logged_as": [
+        "amount"
+      ]
+    }
+  ],
+  "unmapped_importance": [],
+  "vector_points": "in_memory",
+  "alias_merge": {
+    "ddl_source": "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\kfar_supply\\ddl\\dbo_orders.json",
+    "ddl_manifest": "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\kfar_supply\\ddl\\kfar_manifest.json",
+    "column_names_are_ddl": true,
+    "merge_confidence_floor": 0.4,
+    "merge_confirmed_threshold": 0.8,
+    "merged_entities": [
+      {
+        "canonical_column": "invoice_id",
+        "source_columns": [
+          "חשבונית",
+          "invoice_id"
+        ],
+        "combined_stats": {
+          "select": 6480,
+          "where": 3241,
+          "join_on": 55,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "חשבונית→invoice_id: Glossary semantic link: legacy token 'חשבונית' maps to DDL column 'invoice_id' (Hebrew/English business term alignment).",
+          "invoice_id→invoice_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "finance.invoices"
+      },
+      {
+        "canonical_column": "net_amount",
+        "source_columns": [
+          "סכום_נטו",
+          "net_amount"
+        ],
+        "combined_stats": {
+          "select": 3313,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "סכום_נטו→net_amount: Glossary semantic link: legacy token 'סכום_נטו' maps to DDL column 'net_amount' (Hebrew/English business term alignment).",
+          "net_amount→net_amount: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "finance.invoices"
+      },
+      {
+        "canonical_column": "order_id",
+        "source_columns": [
+          "order_id"
+        ],
+        "combined_stats": {
+          "select": 3209,
+          "where": 0,
+          "join_on": 93,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "order_id→order_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "finance.invoices"
+      },
+      {
+        "canonical_column": "amount",
+        "source_columns": [
+          "amount"
+        ],
+        "combined_stats": {
+          "select": 60,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "amount→amount: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "finance.invoices"
+      },
+      {
+        "canonical_column": "status",
+        "source_columns": [
+          "status"
+        ],
+        "combined_stats": {
+          "select": 60,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "status→status: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "finance.invoices"
+      },
+      {
+        "canonical_column": "vat_rate",
+        "source_columns": [
+          "מעמ",
+          "vat_rate"
+        ],
+        "combined_stats": {
+          "select": 3223,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "מעמ→vat_rate: Glossary semantic link: legacy token 'מעמ' maps to DDL column 'vat_rate' (Hebrew/English business term alignment).",
+          "vat_rate→vat_rate: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "finance.invoices"
+      },
+      {
+        "canonical_column": "order_id",
+        "source_columns": [
+          "order_id"
+        ],
+        "combined_stats": {
+          "select": 1828,
+          "where": 1927,
+          "join_on": 260,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "order_id→order_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "dbo.orders"
+      },
+      {
+        "canonical_column": "amount",
+        "source_columns": [
+          "סכום",
+          "amount"
+        ],
+        "combined_stats": {
+          "select": 1807,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "סכום→amount: Glossary semantic link: legacy token 'סכום' maps to DDL column 'amount' (Hebrew/English business term alignment).",
+          "amount→amount: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "dbo.orders"
+      },
+      {
+        "canonical_column": "status",
+        "source_columns": [
+          "סטטוס",
+          "status"
+        ],
+        "combined_stats": {
+          "select": 1861,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "סטטוס→status: Glossary semantic link: legacy token 'סטטוס' maps to DDL column 'status' (Hebrew/English business term alignment).",
+          "status→status: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "dbo.orders"
+      },
+      {
+        "canonical_column": "created_at",
+        "source_columns": [
+          "תאריך_יצירה",
+          "created_at"
+        ],
+        "combined_stats": {
+          "select": 180,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "תאריך_יצירה→created_at: Glossary semantic link: legacy token 'תאריך_יצירה' maps to DDL column 'created_at' (Hebrew/English business term alignment).",
+          "created_at→created_at: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "dbo.orders"
+      },
+      {
+        "canonical_column": "customer_id",
+        "source_columns": [
+          "customer_id"
+        ],
+        "combined_stats": {
+          "select": 1697,
+          "where": 0,
+          "join_on": 65,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "customer_id→customer_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "dbo.orders"
+      },
+      {
+        "canonical_column": "discount",
+        "source_columns": [
+          "הנחה"
+        ],
+        "combined_stats": {
+          "select": 63,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citations": [
+          "הנחה→discount: Glossary semantic link: legacy token 'הנחה' maps to DDL column 'discount' (Hebrew/English business term alignment)."
+        ],
+        "strategies": [
+          "glossary"
+        ],
+        "source_table": "dbo.orders"
+      },
+      {
+        "canonical_column": "shipment_id",
+        "source_columns": [
+          "shipment_id"
+        ],
+        "combined_stats": {
+          "select": 1672,
+          "where": 1611,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "shipment_id→shipment_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "logistics.shipments"
+      },
+      {
+        "canonical_column": "tracking_number",
+        "source_columns": [
+          "מספר_מעקב",
+          "tracking_number"
+        ],
+        "combined_stats": {
+          "select": 1759,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "מספר_מעקב→tracking_number: Glossary semantic link: legacy token 'מספר_מעקב' maps to DDL column 'tracking_number' (Hebrew/English business term alignment).",
+          "tracking_number→tracking_number: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "logistics.shipments"
+      },
+      {
+        "canonical_column": "shipment_status",
+        "source_columns": [
+          "סטטוס_משלוח",
+          "shipment_status"
+        ],
+        "combined_stats": {
+          "select": 1699,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "סטטוס_משלוח→shipment_status: Glossary semantic link: legacy token 'סטטוס_משלוח' maps to DDL column 'shipment_status' (Hebrew/English business term alignment).",
+          "shipment_status→shipment_status: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "logistics.shipments"
+      },
+      {
+        "canonical_column": "order_id",
+        "source_columns": [
+          "order_id"
+        ],
+        "combined_stats": {
+          "select": 1634,
+          "where": 0,
+          "join_on": 56,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "order_id→order_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "logistics.shipments"
+      },
+      {
+        "canonical_column": "line_id",
+        "source_columns": [
+          "line_id"
+        ],
+        "combined_stats": {
+          "select": 1731,
+          "where": 1613,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "line_id→line_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "dbo.order_lines"
+      },
+      {
+        "canonical_column": "quantity",
+        "source_columns": [
+          "כמות",
+          "quantity"
+        ],
+        "combined_stats": {
+          "select": 1755,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "כמות→quantity: Glossary semantic link: legacy token 'כמות' maps to DDL column 'quantity' (Hebrew/English business term alignment).",
+          "quantity→quantity: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "dbo.order_lines"
+      },
+      {
+        "canonical_column": "unit_price",
+        "source_columns": [
+          "מחיר",
+          "unit_price"
+        ],
+        "combined_stats": {
+          "select": 1755,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "מחיר→unit_price: Glossary semantic link: legacy token 'מחיר' maps to DDL column 'unit_price' (Hebrew/English business term alignment).",
+          "unit_price→unit_price: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "dbo.order_lines"
+      },
+      {
+        "canonical_column": "order_id",
+        "source_columns": [
+          "order_id"
+        ],
+        "combined_stats": {
+          "select": 1575,
+          "where": 0,
+          "join_on": 111,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "order_id→order_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "dbo.order_lines"
+      },
+      {
+        "canonical_column": "product_id",
+        "source_columns": [
+          "product_id"
+        ],
+        "combined_stats": {
+          "select": 1575,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "product_id→product_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "dbo.order_lines"
+      },
+      {
+        "canonical_column": "payment_id",
+        "source_columns": [
+          "payment_id",
+          "תשלום"
+        ],
+        "combined_stats": {
+          "select": 3258,
+          "where": 1574,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "payment_id→payment_id: Exact normalized identifier match to a DDL column (no hash ambiguity).",
+          "תשלום→payment_id: Glossary semantic link: legacy token 'תשלום' maps to DDL column 'payment_id' (Hebrew/English business term alignment)."
+        ],
+        "strategies": [
+          "exact_ddl",
+          "glossary"
+        ],
+        "source_table": "finance.payments"
+      },
+      {
+        "canonical_column": "paid_at",
+        "source_columns": [
+          "תאריך_תשלום",
+          "paid_at"
+        ],
+        "combined_stats": {
+          "select": 1686,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "תאריך_תשלום→paid_at: Glossary semantic link: legacy token 'תאריך_תשלום' maps to DDL column 'paid_at' (Hebrew/English business term alignment).",
+          "paid_at→paid_at: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "glossary",
+          "exact_ddl"
+        ],
+        "source_table": "finance.payments"
+      },
+      {
+        "canonical_column": "invoice_id",
+        "source_columns": [
+          "invoice_id"
+        ],
+        "combined_stats": {
+          "select": 1637,
+          "where": 0,
+          "join_on": 55,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "invoice_id→invoice_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "finance.payments"
+      },
+      {
+        "canonical_column": "amount",
+        "source_columns": [
+          "amount"
+        ],
+        "combined_stats": {
+          "select": 60,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "amount→amount: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "finance.payments"
+      },
+      {
+        "canonical_column": "customer_id",
+        "source_columns": [
+          "customer_id"
+        ],
+        "combined_stats": {
+          "select": 1642,
+          "where": 1640,
+          "join_on": 65,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "customer_id→customer_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "dbo.customers"
+      },
+      {
+        "canonical_column": "customer_name",
+        "source_columns": [
+          "שם_לקוח"
+        ],
+        "combined_stats": {
+          "select": 1638,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citations": [
+          "שם_לקוח→customer_name: Glossary semantic link: legacy token 'שם_לקוח' maps to DDL column 'customer_name' (Hebrew/English business term alignment)."
+        ],
+        "strategies": [
+          "glossary"
+        ],
+        "source_table": "dbo.customers"
+      },
+      {
+        "canonical_column": "city",
+        "source_columns": [
+          "עיר"
+        ],
+        "combined_stats": {
+          "select": 63,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citations": [
+          "עיר→city: Glossary semantic link: legacy token 'עיר' maps to DDL column 'city' (Hebrew/English business term alignment)."
+        ],
+        "strategies": [
+          "glossary"
+        ],
+        "source_table": "dbo.customers"
+      },
+      {
+        "canonical_column": "email",
+        "source_columns": [
+          "email"
+        ],
+        "combined_stats": {
+          "select": 1575,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citations": [
+          "email→email: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+        ],
+        "strategies": [
+          "exact_ddl"
+        ],
+        "source_table": "dbo.customers"
+      },
+      {
+        "canonical_column": "country_code",
+        "source_columns": [
+          "קוד_מדינה"
+        ],
+        "combined_stats": {
+          "select": 1575,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citations": [
+          "קוד_מדינה→country_code: Glossary semantic link: legacy token 'קוד_מדינה' maps to DDL column 'country_code' (Hebrew/English business term alignment)."
+        ],
+        "strategies": [
+          "glossary"
+        ],
+        "source_table": "dbo.customers"
+      },
+      {
+        "canonical_column": "amount",
+        "source_columns": [
+          "סכום"
+        ],
+        "combined_stats": {
+          "select": 1574,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citations": [
+          "סכום→amount: Glossary semantic link: legacy token 'סכום' maps to DDL column 'amount' (Hebrew/English business term alignment)."
+        ],
+        "strategies": [
+          "glossary"
+        ],
+        "source_table": "legacy_hebrew.חשבוניות"
+      },
+      {
+        "canonical_column": "created_at",
+        "source_columns": [
+          "תאריך_יצירה"
+        ],
+        "combined_stats": {
+          "select": 1574,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citations": [
+          "תאריך_יצירה→created_at: Glossary semantic link: legacy token 'תאריך_יצירה' maps to DDL column 'created_at' (Hebrew/English business term alignment)."
+        ],
+        "strategies": [
+          "glossary"
+        ],
+        "source_table": "legacy_hebrew.חשבוניות"
+      }
+    ],
+    "merge_proposals": [
+      {
+        "log_column": "חשבונית",
+        "ddl_column": "invoice_id",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'חשבונית' maps to DDL column 'invoice_id' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.27376768823344766
+      },
+      {
+        "log_column": "סכום_נטו",
+        "ddl_column": "net_amount",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'סכום_נטו' maps to DDL column 'net_amount' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.2199998895502612
+      },
+      {
+        "log_column": "order_id",
+        "ddl_column": "order_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "invoice_id",
+        "ddl_column": "invoice_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "invoiceid",
+        "ddl_column": "invoice_id",
+        "merge_confidence": 0.5119109997915606,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'invoice_id' (vector_sim=0.156, lexical=0.947).",
+        "strategy": "vector_lexical",
+        "vector_similarity": 0.15562765512341167
+      },
+      {
+        "log_column": "amount",
+        "ddl_column": "amount",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "status",
+        "ddl_column": "status",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "מעמ",
+        "ddl_column": "vat_rate",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'מעמ' maps to DDL column 'vat_rate' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.05547428756294044
+      },
+      {
+        "log_column": "vat_rate",
+        "ddl_column": "vat_rate",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "net_amount",
+        "ddl_column": "net_amount",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "order_id",
+        "ddl_column": "order_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "סכום",
+        "ddl_column": "amount",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'סכום' maps to DDL column 'amount' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.22233636724968847
+      },
+      {
+        "log_column": "סטטוס",
+        "ddl_column": "status",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'סטטוס' maps to DDL column 'status' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.27010949699683456
+      },
+      {
+        "log_column": "תאריך_יצירה",
+        "ddl_column": "created_at",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'תאריך_יצירה' maps to DDL column 'created_at' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.17329050908984817
+      },
+      {
+        "log_column": "customer_id",
+        "ddl_column": "customer_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "הנחה",
+        "ddl_column": "discount",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'הנחה' maps to DDL column 'discount' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.04547836011839032
+      },
+      {
+        "log_column": "orderid",
+        "ddl_column": "order_id",
+        "merge_confidence": 0.38900560473963197,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'order_id' (vector_sim=-0.056, lexical=0.933).",
+        "strategy": "vector_lexical",
+        "vector_similarity": -0.05635344592794199
+      },
+      {
+        "log_column": "status",
+        "ddl_column": "status",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "amount",
+        "ddl_column": "amount",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "customerid",
+        "ddl_column": "customer_id",
+        "merge_confidence": 0.41615626606177414,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'customer_id' (vector_sim=-0.023, lexical=0.952).",
+        "strategy": "vector_lexical",
+        "vector_similarity": -0.022573022744826206
+      },
+      {
+        "log_column": "created_at",
+        "ddl_column": "created_at",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "shipment_id",
+        "ddl_column": "shipment_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "מספר_מעקב",
+        "ddl_column": "tracking_number",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'מספר_מעקב' maps to DDL column 'tracking_number' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.08156054544837502
+      },
+      {
+        "log_column": "סטטוס_משלוח",
+        "ddl_column": "shipment_status",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'סטטוס_משלוח' maps to DDL column 'shipment_status' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.09785755405998445
+      },
+      {
+        "log_column": "order_id",
+        "ddl_column": "order_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "customer_id",
+        "ddl_column": "order_id",
+        "merge_confidence": 0.2995482306302937,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'order_id' (vector_sim=0.028, lexical=0.632).",
+        "strategy": "vector_lexical",
+        "vector_similarity": 0.027886735117280383
+      },
+      {
+        "log_column": "shipmentid",
+        "ddl_column": "shipment_id",
+        "merge_confidence": 0.4149194243507175,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'shipment_id' (vector_sim=-0.025, lexical=0.952).",
+        "strategy": "vector_lexical",
+        "vector_similarity": -0.024821825855838295
+      },
+      {
+        "log_column": "tracking_number",
+        "ddl_column": "tracking_number",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "shipment_status",
+        "ddl_column": "shipment_status",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "line_id",
+        "ddl_column": "line_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "כמות",
+        "ddl_column": "quantity",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'כמות' maps to DDL column 'quantity' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.1365487781383249
+      },
+      {
+        "log_column": "מחיר",
+        "ddl_column": "unit_price",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'מחיר' maps to DDL column 'unit_price' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.10167504313511389
+      },
+      {
+        "log_column": "order_id",
+        "ddl_column": "order_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "quantity",
+        "ddl_column": "quantity",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "unit_price",
+        "ddl_column": "unit_price",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "product_id",
+        "ddl_column": "product_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "payment_id",
+        "ddl_column": "payment_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "תשלום",
+        "ddl_column": "payment_id",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'תשלום' maps to DDL column 'payment_id' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.09652256681590263
+      },
+      {
+        "log_column": "תאריך_תשלום",
+        "ddl_column": "paid_at",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'תאריך_תשלום' maps to DDL column 'paid_at' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.2869400769709512
+      },
+      {
+        "log_column": "invoice_id",
+        "ddl_column": "invoice_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "paymentid",
+        "ddl_column": "payment_id",
+        "merge_confidence": 0.3832288042381714,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'payment_id' (vector_sim=-0.078, lexical=0.947).",
+        "strategy": "vector_lexical",
+        "vector_similarity": -0.07833997315547776
+      },
+      {
+        "log_column": "amount",
+        "ddl_column": "amount",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "paid_at",
+        "ddl_column": "paid_at",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "customer_id",
+        "ddl_column": "customer_id",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "שם_לקוח",
+        "ddl_column": "customer_name",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'שם_לקוח' maps to DDL column 'customer_name' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.1310721548684219
+      },
+      {
+        "log_column": "עיר",
+        "ddl_column": "city",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'עיר' maps to DDL column 'city' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.1878210497728486
+      },
+      {
+        "log_column": "order_id",
+        "ddl_column": "customer_id",
+        "merge_confidence": 0.2922711562563838,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'customer_id' (vector_sim=0.015, lexical=0.632).",
+        "strategy": "vector_lexical",
+        "vector_similarity": 0.014655690801080604
+      },
+      {
+        "log_column": "email",
+        "ddl_column": "email",
+        "merge_confidence": 0.98,
+        "hitl": false,
+        "citation": "Exact normalized identifier match to a DDL column (no hash ambiguity).",
+        "strategy": "exact_ddl",
+        "vector_similarity": 1.0
+      },
+      {
+        "log_column": "custname",
+        "ddl_column": "customer_name",
+        "merge_confidence": 0.3214067665751711,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'customer_name' (vector_sim=-0.039, lexical=0.762).",
+        "strategy": "vector_lexical",
+        "vector_similarity": -0.039000684149039636
+      },
+      {
+        "log_column": "קוד_מדינה",
+        "ddl_column": "country_code",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'קוד_מדינה' maps to DDL column 'country_code' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.32018146592840174
+      },
+      {
+        "log_column": "סכום",
+        "ddl_column": "amount",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'סכום' maps to DDL column 'amount' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.22233636724968847
+      },
+      {
+        "log_column": "חשבונית",
+        "ddl_column": "order_id",
+        "merge_confidence": 0.05433210091581437,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'order_id' (vector_sim=0.099, lexical=0.000).",
+        "strategy": "vector_lexical",
+        "vector_similarity": 0.0987856380287534
+      },
+      {
+        "log_column": "תאריך_יצירה",
+        "ddl_column": "created_at",
+        "merge_confidence": 0.95,
+        "hitl": false,
+        "citation": "Glossary semantic link: legacy token 'תאריך_יצירה' maps to DDL column 'created_at' (Hebrew/English business term alignment).",
+        "strategy": "glossary",
+        "vector_similarity": 0.17329050908984817
+      },
+      {
+        "log_column": "שם_לקוח",
+        "ddl_column": "currency",
+        "merge_confidence": 0.023663470117363434,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'currency' (vector_sim=0.043, lexical=0.000).",
+        "strategy": "vector_lexical",
+        "vector_similarity": 0.04302449112247897
+      },
+      {
+        "log_column": "id",
+        "ddl_column": "sales_rep_id",
+        "merge_confidence": 0.2252805787370955,
+        "hitl": true,
+        "citation": "Retrieval+lexical: best DDL candidate 'sales_rep_id' (vector_sim=0.176, lexical=0.286).",
+        "strategy": "vector_lexical",
+        "vector_similarity": 0.17583481848303079
+      }
+    ],
+    "review_candidates": [
+      {
+        "legacy_name": "invoiceid",
+        "suggested_ddl": "invoice_id",
+        "merge_confidence": 0.5119109997915606,
+        "category": "review",
+        "citation": "Retrieval+lexical: best DDL candidate 'invoice_id' (vector_sim=0.156, lexical=0.947).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 60,
+          "where": 60,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "finance.invoices"
+      },
+      {
+        "legacy_name": "customerid",
+        "suggested_ddl": "customer_id",
+        "merge_confidence": 0.41615626606177414,
+        "category": "review",
+        "citation": "Retrieval+lexical: best DDL candidate 'customer_id' (vector_sim=-0.023, lexical=0.952).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 1629,
+          "where": 54,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "dbo.orders"
+      },
+      {
+        "legacy_name": "shipmentid",
+        "suggested_ddl": "shipment_id",
+        "merge_confidence": 0.4149194243507175,
+        "category": "review",
+        "citation": "Retrieval+lexical: best DDL candidate 'shipment_id' (vector_sim=-0.025, lexical=0.952).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 60,
+          "where": 60,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "logistics.shipments"
+      }
+    ],
+    "trash_candidates": [
+      {
+        "legacy_name": "orderid",
+        "suggested_ddl": "order_id",
+        "merge_confidence": 0.38900560473963197,
+        "category": "trash",
+        "citation": "Retrieval+lexical: best DDL candidate 'order_id' (vector_sim=-0.056, lexical=0.933).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 66,
+          "where": 66,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "dbo.orders"
+      },
+      {
+        "legacy_name": "customer_id",
+        "suggested_ddl": "order_id",
+        "merge_confidence": 0.2995482306302937,
+        "category": "trash",
+        "citation": "Retrieval+lexical: best DDL candidate 'order_id' (vector_sim=0.028, lexical=0.632).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 5,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "logistics.shipments"
+      },
+      {
+        "legacy_name": "paymentid",
+        "suggested_ddl": "payment_id",
+        "merge_confidence": 0.3832288042381714,
+        "category": "trash",
+        "citation": "Retrieval+lexical: best DDL candidate 'payment_id' (vector_sim=-0.078, lexical=0.947).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 60,
+          "where": 60,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "finance.payments"
+      },
+      {
+        "legacy_name": "order_id",
+        "suggested_ddl": "customer_id",
+        "merge_confidence": 0.2922711562563838,
+        "category": "trash",
+        "citation": "Retrieval+lexical: best DDL candidate 'customer_id' (vector_sim=0.015, lexical=0.632).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 2,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "dbo.customers"
+      },
+      {
+        "legacy_name": "custname",
+        "suggested_ddl": "customer_name",
+        "merge_confidence": 0.3214067665751711,
+        "category": "trash",
+        "citation": "Retrieval+lexical: best DDL candidate 'customer_name' (vector_sim=-0.039, lexical=0.762).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 1575,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "dbo.customers"
+      },
+      {
+        "legacy_name": "חשבונית",
+        "suggested_ddl": "order_id",
+        "merge_confidence": 0.05433210091581437,
+        "category": "trash",
+        "citation": "Retrieval+lexical: best DDL candidate 'order_id' (vector_sim=0.099, lexical=0.000).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 1574,
+          "where": 1574,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "legacy_hebrew.חשבוניות"
+      },
+      {
+        "legacy_name": "שם_לקוח",
+        "suggested_ddl": "currency",
+        "merge_confidence": 0.023663470117363434,
+        "category": "trash",
+        "citation": "Retrieval+lexical: best DDL candidate 'currency' (vector_sim=0.043, lexical=0.000).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 1574,
+          "where": 0,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "legacy_hebrew.חשבוניות"
+      },
+      {
+        "legacy_name": "id",
+        "suggested_ddl": "sales_rep_id",
+        "merge_confidence": 0.2252805787370955,
+        "category": "trash",
+        "citation": "Retrieval+lexical: best DDL candidate 'sales_rep_id' (vector_sim=0.176, lexical=0.286).",
+        "strategy": "vector_lexical",
+        "stats": {
+          "select": 0,
+          "where": 1574,
+          "join_on": 0,
+          "group_by": 0,
+          "order_by": 0
+        },
+        "source_table": "temp_junk.tmp_staging"
+      }
+    ]
+  },
+  "glossary_source": {
+    "layers": [
+      {
+        "file": "kfar_glossary.json",
+        "path_relative": "sample_data/kfar_supply/glossary/kfar_glossary.json",
+        "path_absolute": "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\kfar_supply\\glossary\\kfar_glossary.json",
+        "layer": "clean",
+        "entry_count": 87,
+        "entries": [
+          {
+            "source_term": "מזהה_חשבון",
+            "target_column": "account_id"
+          },
+          {
+            "source_term": "מספר_חשבון",
+            "target_column": "account_number"
+          },
+          {
+            "source_term": "כתובת",
+            "target_column": "address"
+          },
+          {
+            "source_term": "סכום",
+            "target_column": "amount"
+          },
+          {
+            "source_term": "סכום_הזמנה",
+            "target_column": "amount"
+          },
+          {
+            "source_term": "יתרה",
+            "target_column": "balance"
+          },
+          {
+            "source_term": "ברקוד",
+            "target_column": "barcode"
+          },
+          {
+            "source_term": "תקציב",
+            "target_column": "budget_amount"
+          },
+          {
+            "source_term": "קמפיין",
+            "target_column": "campaign_id"
+          },
+          {
+            "source_term": "תאריך_ביטול",
+            "target_column": "cancelled_at"
+          },
+          {
+            "source_term": "קטגוריה",
+            "target_column": "category"
+          },
+          {
+            "source_term": "ערוץ",
+            "target_column": "channel"
+          },
+          {
+            "source_term": "עיר",
+            "target_column": "city"
+          },
+          {
+            "source_term": "מזהה_חברה",
+            "target_column": "company_id"
+          },
+          {
+            "source_term": "איש_קשר",
+            "target_column": "contact_name"
+          },
+          {
+            "source_term": "המרה",
+            "target_column": "conversion_flag"
+          },
+          {
+            "source_term": "קוד_מדינה",
+            "target_column": "country_code"
+          },
+          {
+            "source_term": "תאריך_יצירה",
+            "target_column": "created_at"
+          },
+          {
+            "source_term": "זיכוי",
+            "target_column": "credit_amount"
+          },
+          {
+            "source_term": "מטבע",
+            "target_column": "currency"
+          },
+          {
+            "source_term": "לקוח",
+            "target_column": "customer_id"
+          },
+          {
+            "source_term": "מזהה_לקוח",
+            "target_column": "customer_id"
+          },
+          {
+            "source_term": "שם_לקוח",
+            "target_column": "customer_name"
+          },
+          {
+            "source_term": "חיוב",
+            "target_column": "debit_amount"
+          },
+          {
+            "source_term": "מחלקה",
+            "target_column": "department"
+          },
+          {
+            "source_term": "תיאור",
+            "target_column": "description"
+          },
+          {
+            "source_term": "דיסקונט",
+            "target_column": "discount"
+          },
+          {
+            "source_term": "הנחה",
+            "target_column": "discount"
+          },
+          {
+            "source_term": "מבצע",
+            "target_column": "discount"
+          },
+          {
+            "source_term": "תאריך_פירעון",
+            "target_column": "due_date"
+          },
+          {
+            "source_term": "אימייל",
+            "target_column": "email"
+          },
+          {
+            "source_term": "תאריך",
+            "target_column": "event_date"
+          },
+          {
+            "source_term": "עמלה",
+            "target_column": "fee_amount"
+          },
+          {
+            "source_term": "שם_פרטי",
+            "target_column": "first_name"
+          },
+          {
+            "source_term": "תחזית",
+            "target_column": "forecast_value"
+          },
+          {
+            "source_term": "מזהה",
+            "target_column": "id"
+          },
+          {
+            "source_term": "חשבונית",
+            "target_column": "invoice_id"
+          },
+          {
+            "source_term": "מספר_חשבונית",
+            "target_column": "invoice_number"
+          },
+          {
+            "source_term": "פעיל",
+            "target_column": "is_active"
+          },
+          {
+            "source_term": "שם_משפחה",
+            "target_column": "last_name"
+          },
+          {
+            "source_term": "מזהה_שורה",
+            "target_column": "line_id"
+          },
+          {
+            "source_term": "שם",
+            "target_column": "name"
+          },
+          {
+            "source_term": "סכום_נטו",
+            "target_column": "net_amount"
+          },
+          {
+            "source_term": "הערות",
+            "target_column": "notes"
+          },
+          {
+            "source_term": "הזמנה",
+            "target_column": "order_id"
+          },
+          {
+            "source_term": "מזהה_הזמנה",
+            "target_column": "order_id"
+          },
+          {
+            "source_term": "מספר_הזמנה",
+            "target_column": "order_number"
+          },
+          {
+            "source_term": "תאריך_תשלום",
+            "target_column": "paid_at"
+          },
+          {
+            "source_term": "תשלום",
+            "target_column": "payment_id"
+          },
+          {
+            "source_term": "סטטוס_תשלום",
+            "target_column": "payment_status"
+          },
+          {
+            "source_term": "טלפון",
+            "target_column": "phone"
+          },
+          {
+            "source_term": "מיקוד",
+            "target_column": "postal_code"
+          },
+          {
+            "source_term": "קוד_מוצר",
+            "target_column": "product_code"
+          },
+          {
+            "source_term": "מזהה_מוצר",
+            "target_column": "product_id"
+          },
+          {
+            "source_term": "שם_מוצר",
+            "target_column": "product_name"
+          },
+          {
+            "source_term": "פרויקט",
+            "target_column": "project_id"
+          },
+          {
+            "source_term": "כמות",
+            "target_column": "quantity"
+          },
+          {
+            "source_term": "כמות_פריטים",
+            "target_column": "quantity"
+          },
+          {
+            "source_term": "קוד_אזור",
+            "target_column": "region_code"
+          },
+          {
+            "source_term": "סוכן",
+            "target_column": "sales_rep_id"
+          },
+          {
+            "source_term": "אתר_משלוח",
+            "target_column": "ship_to_address"
+          },
+          {
+            "source_term": "מזהה_משלוח",
+            "target_column": "shipment_id"
+          },
+          {
+            "source_term": "סטטוס_משלוח",
+            "target_column": "shipment_status"
+          },
+          {
+            "source_term": "תאריך_משלוח",
+            "target_column": "shipped_at"
+          },
+          {
+            "source_term": "מקט",
+            "target_column": "sku"
+          },
+          {
+            "source_term": "מצב",
+            "target_column": "status"
+          },
+          {
+            "source_term": "סטטוס",
+            "target_column": "status"
+          },
+          {
+            "source_term": "מלאי",
+            "target_column": "stock_qty"
+          },
+          {
+            "source_term": "יעד",
+            "target_column": "target_value"
+          },
+          {
+            "source_term": "גובה_מס",
+            "target_column": "tax_amount"
+          },
+          {
+            "source_term": "מחיר_סופי",
+            "target_column": "total_price"
+          },
+          {
+            "source_term": "מספר_מעקב",
+            "target_column": "tracking_number"
+          },
+          {
+            "source_term": "מזהה_עסקה",
+            "target_column": "transaction_id"
+          },
+          {
+            "source_term": "מחיר",
+            "target_column": "unit_price"
+          },
+          {
+            "source_term": "מחיר_יחידה",
+            "target_column": "unit_price"
+          },
+          {
+            "source_term": "מחיר_מבצע",
+            "target_column": "unit_price"
+          },
+          {
+            "source_term": "תאריך_עדכון",
+            "target_column": "updated_at"
+          },
+          {
+            "source_term": "משתמש",
+            "target_column": "user_id"
+          },
+          {
+            "source_term": "מתאריך",
+            "target_column": "valid_from"
+          },
+          {
+            "source_term": "עד_תאריך",
+            "target_column": "valid_to"
+          },
+          {
+            "source_term": "סהכ_מעמ",
+            "target_column": "vat_amount"
+          },
+          {
+            "source_term": "סכום_מעמ",
+            "target_column": "vat_amount"
+          },
+          {
+            "source_term": "ערך_מעמ",
+            "target_column": "vat_amount"
+          },
+          {
+            "source_term": "מעמ",
+            "target_column": "vat_rate"
+          },
+          {
+            "source_term": "נפח",
+            "target_column": "volume"
+          },
+          {
+            "source_term": "מחסן",
+            "target_column": "warehouse_id"
+          },
+          {
+            "source_term": "משקל",
+            "target_column": "weight_kg"
+          }
+        ]
+      },
+      {
+        "file": "kfar_glossary_dirty.json",
+        "path_relative": "sample_data/kfar_supply/glossary/kfar_glossary_dirty.json",
+        "path_absolute": "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\kfar_supply\\glossary\\kfar_glossary_dirty.json",
+        "layer": "dirty",
+        "entry_count": 10,
+        "entries": [
+          {
+            "source_term": "סכ",
+            "target_column": "amount"
+          },
+          {
+            "source_term": "invdate",
+            "target_column": "created_at"
+          },
+          {
+            "source_term": "תאריך",
+            "target_column": "created_at"
+          },
+          {
+            "source_term": "custid",
+            "target_column": "customer_id"
+          },
+          {
+            "source_term": "invnum",
+            "target_column": "invoice_id"
+          },
+          {
+            "source_term": "payref",
+            "target_column": "payment_id"
+          },
+          {
+            "source_term": "כמ",
+            "target_column": "quantity"
+          },
+          {
+            "source_term": "ordstatus",
+            "target_column": "status"
+          },
+          {
+            "source_term": "סטט",
+            "target_column": "status"
+          },
+          {
+            "source_term": "מחיר_מכירה",
+            "target_column": "unit_price"
+          }
+        ]
+      }
+    ],
+    "total_entries": 97,
+    "glossary_paths_resolved": [
+      "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\kfar_supply\\glossary\\kfar_glossary.json",
+      "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\kfar_supply\\glossary\\kfar_glossary_dirty.json"
+    ]
+  },
+  "column_name_source": "ddl",
+  "markdown_sections": {
+    "confirmed": [
+      {
+        "ddl": "invoice_id",
+        "source_table": "finance.invoices",
+        "source_count": 2,
+        "source_trace": "invoice_id",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] →invoice_id: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'invoice_id' (Hebrew/English business term alignment). | invoice_id→invoice_id: Exact normalized identifier match to a DDL column (no h..."
+      },
+      {
+        "ddl": "payment_id",
+        "source_table": "finance.payments",
+        "source_count": 2,
+        "source_trace": "payment_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl,glossary",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). payment_id→payment_id: Exact normalized identifier match to a DDL column (no hash ambiguity). | [HE] →payment_id: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'payment_id' (Hebrew/English business t..."
+      },
+      {
+        "ddl": "order_id",
+        "source_table": "dbo.orders",
+        "source_count": 1,
+        "source_trace": "order_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. order_id→order_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "customer_id",
+        "source_table": "dbo.customers",
+        "source_count": 1,
+        "source_trace": "customer_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. customer_id→customer_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "line_id",
+        "source_table": "dbo.order_lines",
+        "source_count": 1,
+        "source_trace": "line_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. line_id→line_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "net_amount",
+        "source_table": "finance.invoices",
+        "source_count": 2,
+        "source_trace": "net_amount",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] _[HE] →net_amount: Glossary semantic link: legacy token '[HE] _[HE] ' maps to DDL column 'net_amount' (Hebrew/English business term alignment). | net_amount→net_amount: Exact normalized identifier match to a DDL ..."
+      },
+      {
+        "ddl": "order_id",
+        "source_table": "finance.invoices",
+        "source_count": 1,
+        "source_trace": "order_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. order_id→order_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "shipment_id",
+        "source_table": "logistics.shipments",
+        "source_count": 1,
+        "source_trace": "shipment_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. shipment_id→shipment_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "vat_rate",
+        "source_table": "finance.invoices",
+        "source_count": 2,
+        "source_trace": "vat_rate",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] →vat_rate: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'vat_rate' (Hebrew/English business term alignment). | vat_rate→vat_rate: Exact normalized identifier match to a DDL column (no hash ambi..."
+      },
+      {
+        "ddl": "status",
+        "source_table": "dbo.orders",
+        "source_count": 2,
+        "source_trace": "status",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] →status: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'status' (Hebrew/English business term alignment). | status→status: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "amount",
+        "source_table": "dbo.orders",
+        "source_count": 2,
+        "source_trace": "amount",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] →amount: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'amount' (Hebrew/English business term alignment). | amount→amount: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "customer_id",
+        "source_table": "dbo.orders",
+        "source_count": 1,
+        "source_trace": "customer_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. customer_id→customer_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "tracking_number",
+        "source_table": "logistics.shipments",
+        "source_count": 2,
+        "source_trace": "tracking_number",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] _[HE] →tracking_number: Glossary semantic link: legacy token '[HE] _[HE] ' maps to DDL column 'tracking_number' (Hebrew/English business term alignment). | tracking_number→tracking_number: Exact normalized identi..."
+      },
+      {
+        "ddl": "quantity",
+        "source_table": "dbo.order_lines",
+        "source_count": 2,
+        "source_trace": "quantity",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] →quantity: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'quantity' (Hebrew/English business term alignment). | quantity→quantity: Exact normalized identifier match to a DDL column (no hash ambi..."
+      },
+      {
+        "ddl": "unit_price",
+        "source_table": "dbo.order_lines",
+        "source_count": 2,
+        "source_trace": "unit_price",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] →unit_price: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'unit_price' (Hebrew/English business term alignment). | unit_price→unit_price: Exact normalized identifier match to a DDL column (no h..."
+      },
+      {
+        "ddl": "shipment_status",
+        "source_table": "logistics.shipments",
+        "source_count": 2,
+        "source_trace": "shipment_status",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] _[HE] →shipment_status: Glossary semantic link: legacy token '[HE] _[HE] ' maps to DDL column 'shipment_status' (Hebrew/English business term alignment). | shipment_status→shipment_status: Exact normalized identi..."
+      },
+      {
+        "ddl": "invoice_id",
+        "source_table": "finance.payments",
+        "source_count": 1,
+        "source_trace": "invoice_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. invoice_id→invoice_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "order_id",
+        "source_table": "logistics.shipments",
+        "source_count": 1,
+        "source_trace": "order_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. order_id→order_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "order_id",
+        "source_table": "dbo.order_lines",
+        "source_count": 1,
+        "source_trace": "order_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. order_id→order_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "paid_at",
+        "source_table": "finance.payments",
+        "source_count": 2,
+        "source_trace": "paid_at",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] _[HE] →paid_at: Glossary semantic link: legacy token '[HE] _[HE] ' maps to DDL column 'paid_at' (Hebrew/English business term alignment). | paid_at→paid_at: Exact normalized identifier match to a DDL column (no h..."
+      },
+      {
+        "ddl": "customer_name",
+        "source_table": "dbo.customers",
+        "source_count": 1,
+        "source_trace": "—",
+        "confidence": 0.95,
+        "strategy": "glossary",
+        "notes": "1 non-ASCII (Hebrew/Arabic hidden). [HE] _[HE] →customer_name: Glossary semantic link: legacy token '[HE] _[HE] ' maps to DDL column 'customer_name' (Hebrew/English business term alignment)."
+      },
+      {
+        "ddl": "country_code",
+        "source_table": "dbo.customers",
+        "source_count": 1,
+        "source_trace": "—",
+        "confidence": 0.95,
+        "strategy": "glossary",
+        "notes": "1 non-ASCII (Hebrew/Arabic hidden). [HE] _[HE] →country_code: Glossary semantic link: legacy token '[HE] _[HE] ' maps to DDL column 'country_code' (Hebrew/English business term alignment)."
+      },
+      {
+        "ddl": "email",
+        "source_table": "dbo.customers",
+        "source_count": 1,
+        "source_trace": "email",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. email→email: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "product_id",
+        "source_table": "dbo.order_lines",
+        "source_count": 1,
+        "source_trace": "product_id",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. product_id→product_id: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "amount",
+        "source_table": "legacy_hebrew.חשבוניות",
+        "source_count": 1,
+        "source_trace": "—",
+        "confidence": 0.95,
+        "strategy": "glossary",
+        "notes": "1 non-ASCII (Hebrew/Arabic hidden). [HE] →amount: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'amount' (Hebrew/English business term alignment)."
+      },
+      {
+        "ddl": "created_at",
+        "source_table": "legacy_hebrew.חשבוניות",
+        "source_count": 1,
+        "source_trace": "—",
+        "confidence": 0.95,
+        "strategy": "glossary",
+        "notes": "1 non-ASCII (Hebrew/Arabic hidden). [HE] _[HE] →created_at: Glossary semantic link: legacy token '[HE] _[HE] ' maps to DDL column 'created_at' (Hebrew/English business term alignment)."
+      },
+      {
+        "ddl": "created_at",
+        "source_table": "dbo.orders",
+        "source_count": 2,
+        "source_trace": "created_at",
+        "confidence": 0.98,
+        "strategy": "glossary,exact_ddl",
+        "notes": "2 total (1 ASCII + 1 non-ASCII hidden). [HE] _[HE] →created_at: Glossary semantic link: legacy token '[HE] _[HE] ' maps to DDL column 'created_at' (Hebrew/English business term alignment). | created_at→created_at: Exact normalized identifier match to a DDL ..."
+      },
+      {
+        "ddl": "city",
+        "source_table": "dbo.customers",
+        "source_count": 1,
+        "source_trace": "—",
+        "confidence": 0.95,
+        "strategy": "glossary",
+        "notes": "1 non-ASCII (Hebrew/Arabic hidden). [HE] →city: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'city' (Hebrew/English business term alignment)."
+      },
+      {
+        "ddl": "discount",
+        "source_table": "dbo.orders",
+        "source_count": 1,
+        "source_trace": "—",
+        "confidence": 0.95,
+        "strategy": "glossary",
+        "notes": "1 non-ASCII (Hebrew/Arabic hidden). [HE] →discount: Glossary semantic link: legacy token '[HE] ' maps to DDL column 'discount' (Hebrew/English business term alignment)."
+      },
+      {
+        "ddl": "amount",
+        "source_table": "finance.invoices",
+        "source_count": 1,
+        "source_trace": "amount",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. amount→amount: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "amount",
+        "source_table": "finance.payments",
+        "source_count": 1,
+        "source_trace": "amount",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. amount→amount: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      },
+      {
+        "ddl": "status",
+        "source_table": "finance.invoices",
+        "source_count": 1,
+        "source_trace": "status",
+        "confidence": 0.98,
+        "strategy": "exact_ddl",
+        "notes": "1 ASCII. status→status: Exact normalized identifier match to a DDL column (no hash ambiguity)."
+      }
+    ],
+    "review": [
+      {
+        "legacy": "invoiceid",
+        "suggested_ddl": "invoice_id",
+        "confidence": 0.5119,
+        "note": "Retrieval+lexical: best DDL candidate 'invoice_id' (vector_sim=0.156, lexical=0.947).",
+        "source_table": "finance.invoices"
+      },
+      {
+        "legacy": "customerid",
+        "suggested_ddl": "customer_id",
+        "confidence": 0.4162,
+        "note": "Retrieval+lexical: best DDL candidate 'customer_id' (vector_sim=-0.023, lexical=0.952).",
+        "source_table": "dbo.orders"
+      },
+      {
+        "legacy": "shipmentid",
+        "suggested_ddl": "shipment_id",
+        "confidence": 0.4149,
+        "note": "Retrieval+lexical: best DDL candidate 'shipment_id' (vector_sim=-0.025, lexical=0.952).",
+        "source_table": "logistics.shipments"
+      }
+    ],
+    "trash": [
+      {
+        "legacy": "orderid",
+        "suggested_ddl": "order_id",
+        "confidence": 0.389,
+        "note": "Retrieval+lexical: best DDL candidate 'order_id' (vector_sim=-0.056, lexical=0.933).",
+        "source_table": "dbo.orders"
+      },
+      {
+        "legacy": "customer_id",
+        "suggested_ddl": "order_id",
+        "confidence": 0.2995,
+        "note": "Retrieval+lexical: best DDL candidate 'order_id' (vector_sim=0.028, lexical=0.632).",
+        "source_table": "logistics.shipments"
+      },
+      {
+        "legacy": "paymentid",
+        "suggested_ddl": "payment_id",
+        "confidence": 0.3832,
+        "note": "Retrieval+lexical: best DDL candidate 'payment_id' (vector_sim=-0.078, lexical=0.947).",
+        "source_table": "finance.payments"
+      },
+      {
+        "legacy": "order_id",
+        "suggested_ddl": "customer_id",
+        "confidence": 0.2923,
+        "note": "Retrieval+lexical: best DDL candidate 'customer_id' (vector_sim=0.015, lexical=0.632).",
+        "source_table": "dbo.customers"
+      },
+      {
+        "legacy": "custname",
+        "suggested_ddl": "customer_name",
+        "confidence": 0.3214,
+        "note": "Retrieval+lexical: best DDL candidate 'customer_name' (vector_sim=-0.039, lexical=0.762).",
+        "source_table": "dbo.customers"
+      },
+      {
+        "legacy": "חשבונית",
+        "suggested_ddl": "order_id",
+        "confidence": 0.0543,
+        "note": "Retrieval+lexical: best DDL candidate 'order_id' (vector_sim=0.099, lexical=0.000).",
+        "source_table": "legacy_hebrew.חשבוניות"
+      },
+      {
+        "legacy": "שם_לקוח",
+        "suggested_ddl": "currency",
+        "confidence": 0.0237,
+        "note": "Retrieval+lexical: best DDL candidate 'currency' (vector_sim=0.043, lexical=0.000).",
+        "source_table": "legacy_hebrew.חשבוניות"
+      },
+      {
+        "legacy": "id",
+        "suggested_ddl": "sales_rep_id",
+        "confidence": 0.2253,
+        "note": "Retrieval+lexical: best DDL candidate 'sales_rep_id' (vector_sim=0.176, lexical=0.286).",
+        "source_table": "temp_junk.tmp_staging"
+      }
+    ]
+  },
+  "importance_ddl": [
+    {
+      "column": "invoice_id",
+      "log_weight": 1.0,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 1.0069399819801441,
+      "dead_candidate": false,
+      "source_table": "finance.invoices"
+    },
+    {
+      "column": "payment_id",
+      "log_weight": 0.49427168576104746,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.5012116677411916,
+      "dead_candidate": false,
+      "source_table": "finance.payments"
+    },
+    {
+      "column": "order_id",
+      "log_weight": 0.41069967266775775,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.4176396546479019,
+      "dead_candidate": false,
+      "source_table": "dbo.orders"
+    },
+    {
+      "column": "customer_id",
+      "log_weight": 0.34236906710310966,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.34930904908325383,
+      "dead_candidate": false,
+      "source_table": "dbo.customers"
+    },
+    {
+      "column": "line_id",
+      "log_weight": 0.34206219312602293,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.3490021751061671,
+      "dead_candidate": false,
+      "source_table": "dbo.order_lines"
+    },
+    {
+      "column": "net_amount",
+      "log_weight": 0.3388911620294599,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.3458311440096041,
+      "dead_candidate": false,
+      "source_table": "finance.invoices"
+    },
+    {
+      "column": "order_id",
+      "log_weight": 0.3377659574468085,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.34470593942695266,
+      "dead_candidate": false,
+      "source_table": "finance.invoices"
+    },
+    {
+      "column": "shipment_id",
+      "log_weight": 0.3358224222585925,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.34276240423873666,
+      "dead_candidate": false,
+      "source_table": "logistics.shipments"
+    },
+    {
+      "column": "vat_rate",
+      "log_weight": 0.3296849427168576,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.3366249246970018,
+      "dead_candidate": false,
+      "source_table": "finance.invoices"
+    },
+    {
+      "column": "status",
+      "log_weight": 0.19036415711947627,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.19730413909962044,
+      "dead_candidate": false,
+      "source_table": "dbo.orders"
+    },
+    {
+      "column": "amount",
+      "log_weight": 0.1848404255319149,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.19178040751205908,
+      "dead_candidate": false,
+      "source_table": "dbo.orders"
+    },
+    {
+      "column": "customer_id",
+      "log_weight": 0.18023731587561376,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18717729785575793,
+      "dead_candidate": false,
+      "source_table": "dbo.orders"
+    },
+    {
+      "column": "tracking_number",
+      "log_weight": 0.179930441898527,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18687042387867117,
+      "dead_candidate": false,
+      "source_table": "logistics.shipments"
+    },
+    {
+      "column": "quantity",
+      "log_weight": 0.17952127659574468,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18646125857588886,
+      "dead_candidate": false,
+      "source_table": "dbo.order_lines"
+    },
+    {
+      "column": "unit_price",
+      "log_weight": 0.17952127659574468,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18646125857588886,
+      "dead_candidate": false,
+      "source_table": "dbo.order_lines"
+    },
+    {
+      "column": "shipment_status",
+      "log_weight": 0.17379296235679215,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18073294433693632,
+      "dead_candidate": false,
+      "source_table": "logistics.shipments"
+    },
+    {
+      "column": "invoice_id",
+      "log_weight": 0.17307692307692307,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.18001690505706724,
+      "dead_candidate": false,
+      "source_table": "finance.payments"
+    },
+    {
+      "column": "order_id",
+      "log_weight": 0.17287234042553193,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.1798123224056761,
+      "dead_candidate": false,
+      "source_table": "logistics.shipments"
+    },
+    {
+      "column": "order_id",
+      "log_weight": 0.17246317512274958,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.17940315710289376,
+      "dead_candidate": false,
+      "source_table": "dbo.order_lines"
+    },
+    {
+      "column": "paid_at",
+      "log_weight": 0.17246317512274958,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.17940315710289376,
+      "dead_candidate": false,
+      "source_table": "finance.payments"
+    },
+    {
+      "column": "customer_name",
+      "log_weight": 0.1675531914893617,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.17449317346950588,
+      "dead_candidate": false,
+      "source_table": "dbo.customers"
+    },
+    {
+      "column": "country_code",
+      "log_weight": 0.1611088379705401,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16804881995068427,
+      "dead_candidate": false,
+      "source_table": "dbo.customers"
+    },
+    {
+      "column": "email",
+      "log_weight": 0.1611088379705401,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16804881995068427,
+      "dead_candidate": false,
+      "source_table": "dbo.customers"
+    },
+    {
+      "column": "product_id",
+      "log_weight": 0.1611088379705401,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16804881995068427,
+      "dead_candidate": false,
+      "source_table": "dbo.order_lines"
+    },
+    {
+      "column": "amount",
+      "log_weight": 0.1610065466448445,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16794652862498868,
+      "dead_candidate": false,
+      "source_table": "legacy_hebrew.חשבוניות"
+    },
+    {
+      "column": "created_at",
+      "log_weight": 0.1610065466448445,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.16794652862498868,
+      "dead_candidate": false,
+      "source_table": "legacy_hebrew.חשבוניות"
+    },
+    {
+      "column": "created_at",
+      "log_weight": 0.018412438625204582,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.02535242060534874,
+      "dead_candidate": false,
+      "source_table": "dbo.orders"
+    },
+    {
+      "column": "city",
+      "log_weight": 0.006444353518821604,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.013384335498965763,
+      "dead_candidate": false,
+      "source_table": "dbo.customers"
+    },
+    {
+      "column": "discount",
+      "log_weight": 0.006444353518821604,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.013384335498965763,
+      "dead_candidate": false,
+      "source_table": "dbo.orders"
+    },
+    {
+      "column": "amount",
+      "log_weight": 0.0061374795417348605,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.01307746152187902,
+      "dead_candidate": false,
+      "source_table": "finance.invoices"
+    },
+    {
+      "column": "status",
+      "log_weight": 0.0061374795417348605,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.01307746152187902,
+      "dead_candidate": false,
+      "source_table": "finance.invoices"
+    },
+    {
+      "column": "amount",
+      "log_weight": 0.0061374795417348605,
+      "comms_weight": 0.03125,
+      "git_weight": 0.022524819801441588,
+      "importance_score": 0.01307746152187902,
+      "dead_candidate": false,
+      "source_table": "finance.payments"
+    }
+  ],
+  "discovery": {
+    "enabled": true,
+    "scope_reference": "dbo.orders",
+    "primary_table_key": "dbo.orders",
+    "multi_table_merge": true,
+    "merge_table_keys": [
+      "temp_junk.tmp_staging",
+      "finance.invoices",
+      "dbo.customers",
+      "dbo.order_lines",
+      "dbo.orders",
+      "legacy_hebrew.חשבוניות",
+      "finance.payments",
+      "logistics.shipments"
+    ],
+    "inventory": [
+      {
+        "database": "Autonomous-Migration-Architect-AMA",
+        "schema": "dbo",
+        "table": "customers",
+        "full_name": "dbo.customers",
+        "query_count": 1640,
+        "column_count": 7,
+        "priority_score": 48.32,
+        "status": "Merged (Top N scope)",
+        "business_domain": "CRM",
+        "portfolio_section": "Core Business",
+        "business_description": "`dbo.customers` sits in the CRM portfolio; log activity (~1640 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Recommend prioritizing it in the CRM wave with explicit regression tests on consuming dashboards and batch jobs that reference this table.",
+        "table_comment": "",
+        "dynamic_cluster_id": "semantic_cluster_5",
+        "dynamic_domain_rollup": "Legacy Core"
+      },
+      {
+        "database": "Autonomous-Migration-Architect-AMA",
+        "schema": "finance",
+        "table": "invoices",
+        "full_name": "finance.invoices",
+        "query_count": 3394,
+        "column_count": 10,
+        "priority_score": 100.0,
+        "status": "Merged (Top N scope)",
+        "business_domain": "Finance",
+        "portfolio_section": "Core Business",
+        "business_description": "`finance.invoices` sits in the Finance portfolio; log activity (~3394 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Documented context: Posted AR invoices; downstream to GL subledger and collections. — validate against source-of-truth owners before locking cutover scope.",
+        "table_comment": "Posted AR invoices; downstream to GL subledger and collections.",
+        "dynamic_cluster_id": "semantic_cluster_0",
+        "dynamic_domain_rollup": "Finance"
+      },
+      {
+        "database": "Autonomous-Migration-Architect-AMA",
+        "schema": "finance",
+        "table": "payments",
+        "full_name": "finance.payments",
+        "query_count": 1689,
+        "column_count": 7,
+        "priority_score": 49.76,
+        "status": "Merged (Top N scope)",
+        "business_domain": "Finance",
+        "portfolio_section": "Core Business",
+        "business_description": "`finance.payments` sits in the Finance portfolio; log activity (~1689 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Documented context: Cash application against invoices; treasury reconciliation. — validate against source-of-truth owners before locking cutover scope.",
+        "table_comment": "Cash application against invoices; treasury reconciliation.",
+        "dynamic_cluster_id": "semantic_cluster_4",
+        "dynamic_domain_rollup": "Analytics"
+      },
+      {
+        "database": "Autonomous-Migration-Architect-AMA",
+        "schema": "legacy_hebrew",
+        "table": "חשבוניות",
+        "full_name": "legacy_hebrew.חשבוניות",
+        "query_count": 1574,
+        "column_count": 4,
+        "priority_score": 46.38,
+        "status": "Merged (Top N scope)",
+        "business_domain": "Legacy Core",
+        "portfolio_section": "Core Business",
+        "business_description": "`legacy_hebrew.חשבוניות` sits in the Legacy Core portfolio; log activity (~1574 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Documented context: Legacy Hebrew billing system; invoices mirrored into finance.invoices. — validate against source-of-truth owners before locking cutover scope.",
+        "table_comment": "Legacy Hebrew billing system; invoices mirrored into finance.invoices.",
+        "dynamic_cluster_id": "semantic_cluster_6",
+        "dynamic_domain_rollup": "Technical Debt"
+      },
+      {
+        "database": "Autonomous-Migration-Architect-AMA",
+        "schema": "logistics",
+        "table": "shipments",
+        "full_name": "logistics.shipments",
+        "query_count": 1727,
+        "column_count": 8,
+        "priority_score": 50.88,
+        "status": "Merged (Top N scope)",
+        "business_domain": "Logistics",
+        "portfolio_section": "Core Business",
+        "business_description": "`logistics.shipments` sits in the Logistics portfolio; log activity (~1727 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Documented context: Fulfillment and carrier tracking; WMS integration. — validate against source-of-truth owners before locking cutover scope.",
+        "table_comment": "Fulfillment and carrier tracking; WMS integration.",
+        "dynamic_cluster_id": "semantic_cluster_2",
+        "dynamic_domain_rollup": "Logistics"
+      },
+      {
+        "database": "Autonomous-Migration-Architect-AMA",
+        "schema": "dbo",
+        "table": "orders",
+        "full_name": "dbo.orders",
+        "query_count": 2058,
+        "column_count": 11,
+        "priority_score": 60.64,
+        "status": "Merged (Top N scope)",
+        "business_domain": "Operations",
+        "portfolio_section": "Core Business",
+        "business_description": "`dbo.orders` sits in the Operations portfolio; log activity (~2058 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Recommend prioritizing it in the Operations wave with explicit regression tests on consuming dashboards and batch jobs that reference this table.",
+        "table_comment": "",
+        "dynamic_cluster_id": "semantic_cluster_1",
+        "dynamic_domain_rollup": "CRM"
+      },
+      {
+        "database": "Autonomous-Migration-Architect-AMA",
+        "schema": "dbo",
+        "table": "order_lines",
+        "full_name": "dbo.order_lines",
+        "query_count": 1724,
+        "column_count": 7,
+        "priority_score": 50.8,
+        "status": "Merged (Top N scope)",
+        "business_domain": "Operations",
+        "portfolio_section": "Core Business",
+        "business_description": "`dbo.order_lines` sits in the Operations portfolio; log activity (~1724 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Recommend prioritizing it in the Operations wave with explicit regression tests on consuming dashboards and batch jobs that reference this table.",
+        "table_comment": "",
+        "dynamic_cluster_id": "semantic_cluster_3",
+        "dynamic_domain_rollup": "Marketing"
+      },
+      {
+        "database": "Autonomous-Migration-Architect-AMA",
+        "schema": "temp_junk",
+        "table": "tmp_staging",
+        "full_name": "temp_junk.tmp_staging",
+        "query_count": 1574,
+        "column_count": 1,
+        "priority_score": 46.38,
+        "status": "Merged (Top N scope)",
+        "business_domain": "Technical Debt",
+        "portfolio_section": "Technical Debt",
+        "business_description": "`temp_junk.tmp_staging` sits in the Technical Debt portfolio; log activity (~1574 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Recommend prioritizing it in the Technical Debt wave with explicit regression tests on consuming dashboards and batch jobs that reference this table.",
+        "table_comment": "",
+        "dynamic_cluster_id": "semantic_cluster_7",
+        "dynamic_domain_rollup": "Operations"
+      }
+    ],
+    "schema_breakdown": [
+      {
+        "schema": "dbo",
+        "table_count": 3,
+        "total_queries": 5422,
+        "schema_in_merge_scope": true,
+        "approx_pct_confirmed": 74.42,
+        "approx_pct_review": 6.98
+      },
+      {
+        "schema": "finance",
+        "table_count": 2,
+        "total_queries": 5083,
+        "schema_in_merge_scope": true,
+        "approx_pct_confirmed": 74.42,
+        "approx_pct_review": 6.98
+      },
+      {
+        "schema": "logistics",
+        "table_count": 1,
+        "total_queries": 1727,
+        "schema_in_merge_scope": true,
+        "approx_pct_confirmed": 74.42,
+        "approx_pct_review": 6.98
+      },
+      {
+        "schema": "legacy_hebrew",
+        "table_count": 1,
+        "total_queries": 1574,
+        "schema_in_merge_scope": true,
+        "approx_pct_confirmed": 74.42,
+        "approx_pct_review": 6.98
+      },
+      {
+        "schema": "temp_junk",
+        "table_count": 1,
+        "total_queries": 1574,
+        "schema_in_merge_scope": true,
+        "approx_pct_confirmed": 74.42,
+        "approx_pct_review": 6.98
+      }
+    ],
+    "default_database": "Autonomous-Migration-Architect-AMA",
+    "executive_summary": {
+      "domain_matrix": [
+        {
+          "business_domain": "Finance",
+          "business_importance": 100.0,
+          "migration_complexity": 26.0,
+          "table_count": 2,
+          "narrative": "Finance spans 2 tables across 1 schema(s). Relative business weight (from log activity) is high when importance is high; complexity reflects legacy Hebrew identifiers, cross-schema joins, and ephemeral objects."
+        },
+        {
+          "business_domain": "Operations",
+          "business_importance": 74.4,
+          "migration_complexity": 26.0,
+          "table_count": 2,
+          "narrative": "Operations spans 2 tables across 1 schema(s). Relative business weight (from log activity) is high when importance is high; complexity reflects legacy Hebrew identifiers, cross-schema joins, and ephemeral objects."
+        },
+        {
+          "business_domain": "Logistics",
+          "business_importance": 34.0,
+          "migration_complexity": 26.0,
+          "table_count": 1,
+          "narrative": "Logistics spans 1 tables across 1 schema(s). Relative business weight (from log activity) is high when importance is high; complexity reflects legacy Hebrew identifiers, cross-schema joins, and ephemeral objects."
+        },
+        {
+          "business_domain": "CRM",
+          "business_importance": 32.3,
+          "migration_complexity": 26.0,
+          "table_count": 1,
+          "narrative": "CRM spans 1 tables across 1 schema(s). Relative business weight (from log activity) is high when importance is high; complexity reflects legacy Hebrew identifiers, cross-schema joins, and ephemeral objects."
+        },
+        {
+          "business_domain": "Legacy Core",
+          "business_importance": 31.0,
+          "migration_complexity": 40.0,
+          "table_count": 1,
+          "narrative": "Legacy Core spans 1 tables across 1 schema(s). Relative business weight (from log activity) is high when importance is high; complexity reflects legacy Hebrew identifiers, cross-schema joins, and ephemeral objects."
+        },
+        {
+          "business_domain": "Technical Debt",
+          "business_importance": 31.0,
+          "migration_complexity": 52.0,
+          "table_count": 1,
+          "narrative": "Technical Debt groups 1 low-trust or ephemeral tables. Collapse or defer these until core domains are stable."
+        }
+      ],
+      "table_fact_sheets": [
+        {
+          "full_qualified_name": "finance.invoices",
+          "business_domain": "Finance",
+          "query_count": 3394,
+          "business_description": "`finance.invoices` sits in the Finance portfolio; log activity (~3394 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Documented context: Posted AR invoices; downstream to GL subledger and collections. — validate against source-of-truth owners before locking cutover scope."
+        },
+        {
+          "full_qualified_name": "dbo.orders",
+          "business_domain": "Operations",
+          "query_count": 2058,
+          "business_description": "`dbo.orders` sits in the Operations portfolio; log activity (~2058 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Recommend prioritizing it in the Operations wave with explicit regression tests on consuming dashboards and batch jobs that reference this table."
+        },
+        {
+          "full_qualified_name": "logistics.shipments",
+          "business_domain": "Logistics",
+          "query_count": 1727,
+          "business_description": "`logistics.shipments` sits in the Logistics portfolio; log activity (~1727 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Documented context: Fulfillment and carrier tracking; WMS integration. — validate against source-of-truth owners before locking cutover scope."
+        },
+        {
+          "full_qualified_name": "dbo.order_lines",
+          "business_domain": "Operations",
+          "query_count": 1724,
+          "business_description": "`dbo.order_lines` sits in the Operations portfolio; log activity (~1724 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Recommend prioritizing it in the Operations wave with explicit regression tests on consuming dashboards and batch jobs that reference this table."
+        },
+        {
+          "full_qualified_name": "finance.payments",
+          "business_domain": "Finance",
+          "query_count": 1689,
+          "business_description": "`finance.payments` sits in the Finance portfolio; log activity (~1689 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Documented context: Cash application against invoices; treasury reconciliation. — validate against source-of-truth owners before locking cutover scope."
+        },
+        {
+          "full_qualified_name": "dbo.customers",
+          "business_domain": "CRM",
+          "query_count": 1640,
+          "business_description": "`dbo.customers` sits in the CRM portfolio; log activity (~1640 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Recommend prioritizing it in the CRM wave with explicit regression tests on consuming dashboards and batch jobs that reference this table."
+        },
+        {
+          "full_qualified_name": "legacy_hebrew.חשבוניות",
+          "business_domain": "Legacy Core",
+          "query_count": 1574,
+          "business_description": "`legacy_hebrew.חשבוניות` sits in the Legacy Core portfolio; log activity (~1574 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Documented context: Legacy Hebrew billing system; invoices mirrored into finance.invoices. — validate against source-of-truth owners before locking cutover scope."
+        },
+        {
+          "full_qualified_name": "temp_junk.tmp_staging",
+          "business_domain": "Technical Debt",
+          "query_count": 1574,
+          "business_description": "`temp_junk.tmp_staging` sits in the Technical Debt portfolio; log activity (~1574 qualifying queries) indicates how tightly coupled downstream reporting and operations are to this object. Recommend prioritizing it in the Technical Debt wave with explicit regression tests on consuming dashboards and batch jobs that reference this table."
+        }
+      ],
+      "risk_hotspots": [
+        {
+          "table": "dbo.customers",
+          "blast_radius_score": 100.0,
+          "domains_touched": [
+            "CRM",
+            "Finance",
+            "Logistics",
+            "Operations"
+          ],
+          "downstream_tables_reached": 6
+        },
+        {
+          "table": "dbo.order_lines",
+          "blast_radius_score": 100.0,
+          "domains_touched": [
+            "CRM",
+            "Finance",
+            "Logistics",
+            "Operations"
+          ],
+          "downstream_tables_reached": 6
+        },
+        {
+          "table": "dbo.orders",
+          "blast_radius_score": 100.0,
+          "domains_touched": [
+            "CRM",
+            "Finance",
+            "Logistics",
+            "Operations"
+          ],
+          "downstream_tables_reached": 6
+        },
+        {
+          "table": "finance.invoices",
+          "blast_radius_score": 100.0,
+          "domains_touched": [
+            "CRM",
+            "Finance",
+            "Logistics",
+            "Operations"
+          ],
+          "downstream_tables_reached": 6
+        },
+        {
+          "table": "finance.payments",
+          "blast_radius_score": 100.0,
+          "domains_touched": [
+            "CRM",
+            "Finance",
+            "Logistics",
+            "Operations"
+          ],
+          "downstream_tables_reached": 6
+        },
+        {
+          "table": "logistics.shipments",
+          "blast_radius_score": 100.0,
+          "domains_touched": [
+            "CRM",
+            "Finance",
+            "Logistics",
+            "Operations"
+          ],
+          "downstream_tables_reached": 6
+        }
+      ]
+    },
+    "migration_state": {
+      "mode": "system_wide",
+      "lineage_order_applied": true,
+      "domains_detected": [
+        "CRM",
+        "Finance",
+        "Legacy Core",
+        "Logistics",
+        "Operations",
+        "Technical Debt"
+      ],
+      "domain_processing_order": [
+        "Finance",
+        "Operations",
+        "Logistics",
+        "CRM",
+        "Legacy Core",
+        "Technical Debt"
+      ],
+      "coquery_clusters": [
+        {
+          "cluster_id": "coquery_0",
+          "tables": [
+            "dbo.customers",
+            "dbo.order_lines",
+            "dbo.orders",
+            "finance.invoices",
+            "finance.payments",
+            "logistics.shipments"
+          ],
+          "table_count": 6,
+          "internal_edge_weight": 760
+        },
+        {
+          "cluster_id": "coquery_1",
+          "tables": [
+            "legacy_hebrew.חשבוניות"
+          ],
+          "table_count": 1,
+          "internal_edge_weight": 0
+        },
+        {
+          "cluster_id": "coquery_2",
+          "tables": [
+            "temp_junk.tmp_staging"
+          ],
+          "table_count": 1,
+          "internal_edge_weight": 0
+        }
+      ],
+      "table_names_merged": [
+        "finance.invoices",
+        "dbo.orders",
+        "logistics.shipments",
+        "dbo.order_lines",
+        "finance.payments",
+        "dbo.customers",
+        "legacy_hebrew.חשבוניות",
+        "temp_junk.tmp_staging"
+      ],
+      "table_names_discovered": [
+        "dbo.customers",
+        "dbo.order_lines",
+        "dbo.orders",
+        "finance.invoices",
+        "finance.payments",
+        "legacy_hebrew.חשבוניות",
+        "logistics.shipments",
+        "temp_junk.tmp_staging"
+      ]
+    }
+  },
+  "lineage": {
+    "edge_count_undirected": 5,
+    "edges": [
+      {
+        "from": "dbo.order_lines",
+        "to": "dbo.orders",
+        "weight": 111,
+        "kind": "coquery"
+      },
+      {
+        "from": "dbo.orders",
+        "to": "dbo.order_lines",
+        "weight": 111,
+        "kind": "coquery"
+      },
+      {
+        "from": "dbo.orders",
+        "to": "finance.invoices",
+        "weight": 93,
+        "kind": "coquery"
+      },
+      {
+        "from": "finance.invoices",
+        "to": "dbo.orders",
+        "weight": 93,
+        "kind": "coquery"
+      },
+      {
+        "from": "dbo.customers",
+        "to": "dbo.orders",
+        "weight": 65,
+        "kind": "coquery"
+      },
+      {
+        "from": "dbo.orders",
+        "to": "dbo.customers",
+        "weight": 65,
+        "kind": "coquery"
+      },
+      {
+        "from": "dbo.orders",
+        "to": "logistics.shipments",
+        "weight": 56,
+        "kind": "coquery"
+      },
+      {
+        "from": "logistics.shipments",
+        "to": "dbo.orders",
+        "weight": 56,
+        "kind": "coquery"
+      },
+      {
+        "from": "finance.invoices",
+        "to": "finance.payments",
+        "weight": 55,
+        "kind": "coquery"
+      },
+      {
+        "from": "finance.payments",
+        "to": "finance.invoices",
+        "weight": 55,
+        "kind": "coquery"
+      }
+    ],
+    "broken_table_keys": [],
+    "broken_lineage_count": 0
+  },
+  "ddl_manifest_table_keys": [
+    "dbo.customers",
+    "dbo.order_lines",
+    "dbo.orders",
+    "finance.invoices",
+    "finance.payments",
+    "logistics.shipments"
+  ],
+  "ingestion_stats": {
+    "total_rows": 15000,
+    "parse_ok": 14980,
+    "regex_fallback": 20,
+    "skipped_empty": 0,
+    "skipped_empty_sql": 0,
+    "skipped_env_mismatch": 0,
+    "unparsed_no_chunks": 0,
+    "report_validation_error_count": 0
+  },
+  "generated_at": "2026-03-29T08:29:07.866647+00:00",
+  "vector_search_demo": [
+    {
+      "score": 0.23286882890322866,
+      "payload": {
+        "text": "Six mapped DDL tables + legacy_hebrew.חשבוניות + temp_junk.Tmp_staging in scope.",
+        "source": "sample_data\\kfar_supply\\comms\\kfar_slack.jsonl",
+        "kind": "comms",
+        "channel": "migration-planning",
+        "ts": "1704067200.000120"
+      }
+    },
+    {
+      "score": 0.2147359285526348,
+      "payload": {
+        "text": "Cutover plan: dbo.orders must land before finance.invoices — finance depends on order_id.",
+        "source": "sample_data\\kfar_supply\\comms\\kfar_slack.jsonl",
+        "kind": "comms",
+        "channel": "migration-planning",
+        "ts": "1704067200.000101"
+      }
+    },
+    {
+      "score": 0.17623285427890775,
+      "payload": {
+        "text": "Hebrew invoice bridge SQL references legacy_hebrew.חשבוניות LEFT JOIN finance.invoices.",
+        "source": "sample_data\\kfar_supply\\comms\\kfar_slack.jsonl",
+        "kind": "comms",
+        "channel": "migration-planning",
+        "ts": "1704067200.000122"
+      }
+    }
+  ]
+}
