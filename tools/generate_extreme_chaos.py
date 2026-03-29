@@ -1,9 +1,3 @@
-"""
-Generate high-scale, multi-dialect chaos assets (DDL + JSONL SQL logs).
-
-The generator streams log rows to disk and does not keep all rows in memory.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -16,7 +10,6 @@ DEFAULT_OUT = ROOT / "chaos_data" / "sql_logs" / "extreme_1m.jsonl"
 SUPPORTED_DIALECTS = ("sqlserver", "oracle", "db2")
 DEFAULT_SCHEMAS = ("FINANCE_CORE", "SALES_CORE", "LEGACY_EDGE")
 DEFAULT_DATABASES = ("CORE_DB", "EDGE_DB", "SHARED_DB")
-
 
 @dataclass(frozen=True)
 class TableRef:
@@ -38,15 +31,7 @@ class TableRef:
     def sequence_name(self) -> str:
         return f"{self.schema}.{self.table}_SEQ"
 
-
 class ChaosFactory:
-    """
-    High-scale synthetic chaos asset generator.
-
-    - `scale`: number of logical tables.
-    - `source_dialect`: sqlserver, oracle, db2
-    """
-
     def __init__(
         self,
         *,
@@ -80,32 +65,26 @@ class ChaosFactory:
 
     def _ddl_column_block(self, idx: int) -> list[str]:
         d = self.source_dialect
+        chaos = idx % 3
+        
         if d == "oracle":
-            return [
-                "  ID NUMBER(19) PRIMARY KEY",
-                "  PARENT_ID NUMBER(19)",
-                "  STATUS VARCHAR2(20)",
-                "  PAYLOAD CLOB",
-                "  CREATED_AT TIMESTAMP",
-                f"  SHARD_KEY NUMBER(6) DEFAULT {idx % 997}",
-            ]
-        if d == "db2":
-            return [
-                "  ID BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY",
-                "  PARENT_ID BIGINT",
-                "  STATUS VARCHAR(20)",
-                "  PAYLOAD CLOB(2M)",
-                "  CREATED_AT TIMESTAMP",
-                f"  SHARD_KEY INTEGER DEFAULT {idx % 997}",
-            ]
-        return [
-            "  ID BIGINT IDENTITY(1,1) PRIMARY KEY",
-            "  PARENT_ID BIGINT",
-            "  STATUS NVARCHAR(20)",
-            "  PAYLOAD NVARCHAR(MAX)",
-            "  CREATED_AT DATETIME2",
-            f"  SHARD_KEY INT DEFAULT {idx % 997}",
-        ]
+            cols = ["  ID NUMBER(19) PRIMARY KEY", "  PARENT_ID NUMBER(19)", "  STATUS VARCHAR2(20)", f"  SHARD_KEY NUMBER(6) DEFAULT {idx % 997}"]
+            pay, cre = "  PAYLOAD CLOB", "  CREATED_AT TIMESTAMP"
+        elif d == "db2":
+            cols = ["  ID BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY", "  PARENT_ID BIGINT", "  STATUS VARCHAR(20)", f"  SHARD_KEY INTEGER DEFAULT {idx % 997}"]
+            pay, cre = "  PAYLOAD CLOB(2M)", "  CREATED_AT TIMESTAMP"
+        else:
+            cols = ["  ID BIGINT IDENTITY(1,1) PRIMARY KEY", "  PARENT_ID BIGINT", "  STATUS NVARCHAR(20)", f"  SHARD_KEY INT DEFAULT {idx % 997}"]
+            pay, cre = "  PAYLOAD NVARCHAR(MAX)", "  CREATED_AT DATETIME2"
+
+        if chaos == 0:
+            cols.extend([pay, cre])
+        elif chaos == 1:
+            cols.extend([pay, cre, "  OBSOLETE_COL INT"])
+        else:
+            cols = ["  RANDOM_COL_" + str(i) + " INT" for i in range(5)]
+            
+        return cols
 
     def ddl_statements(self) -> list[str]:
         stmts: list[str] = []
@@ -148,40 +127,48 @@ class ChaosFactory:
     def _complex_select(self, idx: int) -> str:
         base = self._tables[idx % len(self._tables)]
         join_refs = [self._tables[(idx + j) % len(self._tables)] for j in range(1, self.join_width + 1)]
-        cols = ", ".join(f"c_{k}_{idx % 500}" for k in range(self.select_columns))
-        nested = (
-            f"(SELECT MAX(cnt) FROM (SELECT COUNT(*) AS cnt FROM {base.sql_name(self.source_dialect)} ni "
-            f"WHERE ni.SHARD_KEY = {idx % 997} GROUP BY ni.STATUS) agg)"
-        )
-        joins = " ".join(
-            f"INNER JOIN {jr.sql_name(self.source_dialect)} t{j} "
-            f"ON t0.ID = t{j}.PARENT_ID AND t{j}.SHARD_KEY = {idx % 997}"
-            for j, jr in enumerate(join_refs, 1)
-        )
-        return (
-            f"SELECT {cols}, {nested} AS nested_metric "
-            f"FROM {base.sql_name(self.source_dialect)} t0 {joins} "
-            f"WHERE t0.STATUS IN ('A','B','C') AND t0.SHARD_KEY = {idx % 997}"
-        )
+        
+        cols_list = [f"c_{k}_{idx % 500}" for k in range(self.select_columns)]
+        chaos = idx % 3
+        
+        if chaos == 1: 
+            cols_list.append("UNKNOWN_YELLOW_COL")
+        elif chaos == 2: 
+            cols_list = ["USER_ID", "SESSION_TOKEN", "ACTION_CODE"]
+            cols = ", ".join(cols_list)
+            return f"SELECT {cols} FROM {base.sql_name(self.source_dialect)} t0 WHERE t0.SHARD_KEY = {idx % 997}"
+            
+        cols = ", ".join(cols_list)
+        nested = f"(SELECT MAX(cnt) FROM (SELECT COUNT(*) AS cnt FROM {base.sql_name(self.source_dialect)} ni WHERE ni.SHARD_KEY = {idx % 997} GROUP BY ni.STATUS) agg)"
+        joins = " ".join(f"INNER JOIN {jr.sql_name(self.source_dialect)} t{j} ON t0.ID = t{j}.PARENT_ID AND t{j}.SHARD_KEY = {idx % 997}" for j, jr in enumerate(join_refs, 1))
+        
+        return f"SELECT {cols}, {nested} AS nested_metric FROM {base.sql_name(self.source_dialect)} t0 {joins} WHERE t0.STATUS IN ('A','B','C') AND t0.SHARD_KEY = {idx % 997}"
 
     def _insert_sql(self, idx: int) -> str:
         ref = self._tables[idx % len(self._tables)]
         q = ref.sql_name(self.source_dialect)
-        payload = f"payload_{idx % 10000}"
+        c = idx % 3
+        
+        if c == 0:
+            cols = "(PARENT_ID, STATUS, PAYLOAD, CREATED_AT, SHARD_KEY)"
+            vals = f"({idx % 2500}, 'A', 'data', CURRENT_TIMESTAMP, {idx % 997})"
+        elif c == 1:
+            cols = "(PARENT_ID, STATUS, PAYLOAD, LEGACY_REMARK, SHARD_KEY)"
+            vals = f"({idx % 2500}, 'A', 'data', 'old', {idx % 997})"
+        else:
+            cols = "(USER_ID, SESSION_TOKEN, ACTION_CODE, APP_VERSION)"
+            vals = f"({idx}, 'token_{idx}', 'LOGIN', '1.0.0')"
+            
         if self.source_dialect == "oracle":
-            return (
-                f"INSERT INTO {q} (ID, PARENT_ID, STATUS, PAYLOAD, CREATED_AT, SHARD_KEY) "
-                f"VALUES ({ref.sequence_name()}.NEXTVAL, {idx % 2500}, 'A', '{payload}', SYSTIMESTAMP, {idx % 997})"
-            )
-        if self.source_dialect == "db2":
-            return (
-                f"INSERT INTO {q} (PARENT_ID, STATUS, PAYLOAD, CREATED_AT, SHARD_KEY) "
-                f"VALUES ({idx % 2500}, 'A', '{payload}', CURRENT TIMESTAMP, {idx % 997})"
-            )
-        return (
-            f"INSERT INTO {q} (PARENT_ID, STATUS, PAYLOAD, CREATED_AT, SHARD_KEY) "
-            f"VALUES ({idx % 2500}, 'A', '{payload}', SYSUTCDATETIME(), {idx % 997})"
-        )
+            if c != 2:
+                cols = cols.replace("(", "(ID, ")
+                vals = vals.replace("CURRENT_TIMESTAMP", "SYSTIMESTAMP").replace("(", f"({ref.sequence_name()}.NEXTVAL, ")
+        elif self.source_dialect == "sqlserver":
+            vals = vals.replace("CURRENT_TIMESTAMP", "SYSUTCDATETIME()")
+        elif self.source_dialect == "db2":
+            vals = vals.replace("CURRENT_TIMESTAMP", "CURRENT TIMESTAMP")
+            
+        return f"INSERT INTO {q} {cols} VALUES {vals}"
 
     def _log_row(self, idx: int) -> str:
         if idx % 7 == 0:
@@ -218,7 +205,7 @@ class ChaosFactory:
         path.write_text(ddl, encoding="utf-8")
         return len(self._tables)
 
-    def write_manifest(self, path: Path) -> None:
+    def write_manifest(self, path: Path, ddl_rel_path: str) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         by_schema: dict[str, int] = {}
         by_database: dict[str, int] = {}
@@ -234,57 +221,20 @@ class ChaosFactory:
                 "tables_per_schema": by_schema,
                 "tables_per_database": by_database,
             },
-            "tables": [t.key for t in self._tables],
+            "tables": {t.key: ddl_rel_path for t in self._tables},
         }
         path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
-
 def main() -> None:
-    p = argparse.ArgumentParser(description="Generate extreme multi-source chaos assets.")
-    p.add_argument("--lines", type=int, default=1_000_000, help="Number of JSONL rows (default: 1,000,000)")
-    p.add_argument(
-        "--out",
-        type=str,
-        default=str(DEFAULT_OUT),
-        help="JSONL output path",
-    )
-    p.add_argument(
-        "--scale",
-        type=int,
-        default=1_000,
-        help="Number of generated logical tables (default: 1,000)",
-    )
-    p.add_argument(
-        "--source-dialect",
-        type=str,
-        default="sqlserver",
-        choices=list(SUPPORTED_DIALECTS),
-        help="Source SQL dialect for generated DDL/logs",
-    )
-    p.add_argument(
-        "--join-width",
-        type=int,
-        default=10,
-        help="Number of joined tables per SELECT query (default: 10)",
-    )
-    p.add_argument(
-        "--select-columns",
-        type=int,
-        default=24,
-        help="Number of selected synthetic columns per SELECT query (default: 24)",
-    )
-    p.add_argument(
-        "--ddl-out",
-        type=str,
-        default=str(ROOT / "chaos_data" / "ddl" / "extreme_chaos_ddl.sql"),
-        help="DDL output path",
-    )
-    p.add_argument(
-        "--manifest-out",
-        type=str,
-        default=str(ROOT / "chaos_data" / "ddl" / "extreme_chaos_manifest.json"),
-        help="Table distribution manifest output path",
-    )
+    p = argparse.ArgumentParser()
+    p.add_argument("--lines", type=int, default=1_000_000)
+    p.add_argument("--out", type=str, default=str(DEFAULT_OUT))
+    p.add_argument("--scale", type=int, default=1_000)
+    p.add_argument("--source-dialect", type=str, default="sqlserver", choices=list(SUPPORTED_DIALECTS))
+    p.add_argument("--join-width", type=int, default=10)
+    p.add_argument("--select-columns", type=int, default=24)
+    p.add_argument("--ddl-out", type=str, default=str(ROOT / "chaos_data" / "ddl" / "extreme_chaos_ddl.sql"))
+    p.add_argument("--manifest-out", type=str, default=str(ROOT / "chaos_data" / "ddl" / "extreme_chaos_manifest.json"))
     args = p.parse_args()
 
     factory = ChaosFactory(
@@ -293,18 +243,20 @@ def main() -> None:
         join_width=args.join_width,
         select_columns=args.select_columns,
     )
+    
     out = Path(args.out).resolve()
     ddl_out = Path(args.ddl_out).resolve()
     manifest_out = Path(args.manifest_out).resolve()
 
+    ddl_rel = str(ddl_out.relative_to(ROOT)) if ddl_out.is_relative_to(ROOT) else str(ddl_out)
+
     ddl_tables = factory.write_ddl(ddl_out)
-    factory.write_manifest(manifest_out)
+    factory.write_manifest(manifest_out, ddl_rel)
     written = factory.stream_logs(lines=args.lines, out_jsonl=out)
 
     print(f"Wrote {ddl_tables:,} table DDL statements to {ddl_out}")
     print(f"Wrote table manifest to {manifest_out}")
     print(f"Wrote {written:,} JSONL rows to {out}")
-
 
 if __name__ == "__main__":
     main()

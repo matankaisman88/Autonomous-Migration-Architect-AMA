@@ -15,7 +15,7 @@ Set-Location (Resolve-Path "$PSScriptRoot\..")
 function Ensure-Dirs {
     New-Item -ItemType Directory -Force -Path "chaos_data\sql_logs" | Out-Null
     New-Item -ItemType Directory -Force -Path "chaos_data\ddl" | Out-Null
-    New-Item -ItemType Directory -Force -Path "sample_data\generated_chaos" | Out-Null
+    New-Item -ItemType Directory -Force -Path "out" | Out-Null
 }
 
 function Generate-Dialect([string]$Dialect, [int]$Rows, [int]$TableScale) {
@@ -38,16 +38,22 @@ function Generate-Dialect([string]$Dialect, [int]$Rows, [int]$TableScale) {
 function Build-Report([string]$Dialect) {
     Write-Host "[2/2][$Dialect] Building AMA report (this can take a while on large files)..."
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    
+    $env:AMA_DDL_MANIFEST_PATH = "chaos_data/ddl/extreme_${Dialect}_manifest.json"
+    $env:AMA_SQL_LOGS_GLOB = "chaos_data/sql_logs/extreme_${Dialect}.jsonl"
+    $env:AMA_DISCOVERY_MERGE_ALL = "true"
     $env:AMA_SQL_PARSE_MODE = "regex"
+    
     & $Python "-m" "ama.cli" "run" `
-        "--sql-logs" "chaos_data/sql_logs/extreme_${Dialect}.jsonl" `
         "--discovery-mode" `
-        "--no-target" `
-        "--no-ddl-merge" `
         "--skip-vectors" `
         "--format" "json" `
-        "--out-file" "sample_data/generated_chaos/${Dialect}_report.json"
+        "--out-file" "out/${Dialect}_report.json"
+        
     Remove-Item Env:AMA_SQL_PARSE_MODE -ErrorAction SilentlyContinue
+    Remove-Item Env:AMA_DDL_MANIFEST_PATH -ErrorAction SilentlyContinue
+    Remove-Item Env:AMA_SQL_LOGS_GLOB -ErrorAction SilentlyContinue
+    Remove-Item Env:AMA_DISCOVERY_MERGE_ALL -ErrorAction SilentlyContinue
     $sw.Stop()
     Write-Host "[2/2][$Dialect] Report done in $([int]$sw.Elapsed.TotalSeconds)s."
 }
@@ -88,16 +94,26 @@ switch ($Target) {
             "--manifest-out" "chaos_data/ddl/extreme_sqlserver_manifest.json"
         $sw.Stop()
         Write-Host "[1/2][sqlserver] Generation done in $([int]$sw.Elapsed.TotalSeconds)s."
+        
+        Write-Host "[2/2][sqlserver] Building EXTREME AMA report..."
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        $env:AMA_DDL_MANIFEST_PATH = "chaos_data/ddl/extreme_sqlserver_manifest.json"
+        $env:AMA_SQL_LOGS_GLOB = "chaos_data/sql_logs/extreme_sqlserver.jsonl"
+        $env:AMA_DISCOVERY_MERGE_ALL = "true"
         $env:AMA_SQL_PARSE_MODE = "regex"
+        
         & $Python "-m" "ama.cli" "run" `
-            "--sql-logs" "chaos_data/sql_logs/extreme_sqlserver.jsonl" `
             "--discovery-mode" `
-            "--no-target" `
-            "--no-ddl-merge" `
             "--skip-vectors" `
             "--format" "json" `
-            "--out-file" "sample_data/generated_chaos/extreme_1m_sqlserver_report.json"
+            "--out-file" "out/extreme_1m_sqlserver_report.json"
+            
         Remove-Item Env:AMA_SQL_PARSE_MODE -ErrorAction SilentlyContinue
+        Remove-Item Env:AMA_DDL_MANIFEST_PATH -ErrorAction SilentlyContinue
+        Remove-Item Env:AMA_SQL_LOGS_GLOB -ErrorAction SilentlyContinue
+        Remove-Item Env:AMA_DISCOVERY_MERGE_ALL -ErrorAction SilentlyContinue
+        $sw.Stop()
+        Write-Host "[2/2][sqlserver] Report done in $([int]$sw.Elapsed.TotalSeconds)s."
     }
 }
 
@@ -105,4 +121,4 @@ Write-Host ""
 Write-Host "Done. Generated artifacts under:"
 Write-Host "  chaos_data/sql_logs"
 Write-Host "  chaos_data/ddl"
-Write-Host "  sample_data/generated_chaos"
+Write-Host "  out/"

@@ -38,6 +38,15 @@ def _sanitize_model_name(table_key: str) -> str:
     return "".join(ch if ch.isalnum() or ch == "_" else "_" for ch in table_key.lower())
 
 
+def _ensure_correct_table_reference(sql: str, table_key: str) -> str:
+    placeholders = ["your_table_name", "source_table", "input_table", "table_name", "source_data", "raw_data", "base_table"]
+    pattern = re.compile(r'\b(' + "|".join(placeholders) + r')\b', re.IGNORECASE)
+    sql = pattern.sub(f'"{table_key}"', sql)
+    if "from" not in sql.lower():
+        sql += f'\nFROM "{table_key}"'
+    return sql
+
+
 def _schema_yml_for_model(model_name: str, mapped_columns: list[MappingRow]) -> str:
     lines = [
         "version: 2",
@@ -93,16 +102,9 @@ def _looks_like_select_sql(sql: str) -> bool:
 
 
 def _has_row_level_where_filter(sql: str) -> bool:
-    """
-    Detect row-level filters in generated SELECT SQL.
-
-    For migration-full-copy defaults, we reject LLM SQL that introduces WHERE clauses
-    and fall back to deterministic all-rows projection.
-    """
     try:
         root = sqlglot.parse_one(sql)
     except Exception:
-        # Let existing syntax validation/self-heal handle parse issues.
         return False
     for select_node in root.find_all(exp.Select):
         if select_node.args.get("where") is not None:
@@ -111,7 +113,6 @@ def _has_row_level_where_filter(sql: str) -> bool:
 
 
 def _contains_hebrew(value: str) -> bool:
-    """Quick check for Hebrew codepoints used for deterministic translation rationale."""
     if not value:
         return False
     return bool(re.search(r"[\u0590-\u05FF]", value))
@@ -293,7 +294,6 @@ def select_columns_for_model(metadata: ModelMetadata, usage_by_model: dict[str, 
                 extra={"model_name": metadata.model_name, "column_name": used_col},
             )
     metadata.usage_columns = valid_usage
-    # Per requirement: include all DDL columns by default.
     metadata.selected_columns = list(metadata.ddl_columns)
     return metadata.selected_columns
 
@@ -311,12 +311,6 @@ def validate_incremental_unique_key(metadata: ModelMetadata) -> None:
 
 
 def _infer_incremental_ordering_field_and_strategy(columns: list[str]) -> tuple[str, str]:
-    """
-    Heuristic for choosing an incremental ordering field:
-    - Prefer event-time columns (event/occurred + time/timestamp/_at).
-    - Otherwise use file/ingestion-time columns (file/ingest/source + time/timestamp/_at).
-    - Fallback to the first timestamp-like column, else the first column.
-    """
     cols = [str(c).strip() for c in (columns or []) if str(c).strip()]
     if not cols:
         return "id", "file-time"
@@ -357,10 +351,8 @@ def render_canonical_sql(metadata: ModelMetadata, target_dialect: TargetDialect)
     if metadata.materialized != "incremental":
         return config_materialized + transpiled + "\n"
 
-    # For incremental models, dbt typically requires `unique_key`.
     uk = metadata.unique_key
     if isinstance(uk, list):
-        # Jinja can pass lists; represent it in a stable way.
         uk_expr = "[" + ", ".join(f"'{str(x)}'" for x in uk if str(x).strip()) + "]"
     else:
         uk_expr = "'" + str(uk).strip() + "'"
@@ -373,7 +365,6 @@ def render_canonical_sql(metadata: ModelMetadata, target_dialect: TargetDialect)
         f")"
     )
 
-    # Keep ordering metadata as plain comments for transparency.
     ordering_comments = (
         f"-- incremental_ordering_strategy: {ordering_strategy}\n"
         f"-- incremental_ordering_field: {ordering_field}\n"
@@ -478,9 +469,6 @@ def generate_model_artifact(
     )
     generation_confidence = 0.0
 
-    # Always expose full DDL column inventory in Checkpoint A mapping.
-    # `raw_columns` are what we observed in the logs; `source_ddl_columns` are the full
-    # manifest/DDL set for the table.
     source_ddl_columns = source_ddl_columns or []
     normalized_raw: list[str] = []
     for c in (raw_columns or []):
@@ -512,7 +500,6 @@ def generate_model_artifact(
 
     mapped = [build_mapping_row(col, glossary, alias_registry) for col in all_columns]
 
-    # Snapshot inputs for semantic-mapping rationale.
     initial_source_by_col = {row.hebrew_name: row.source.value for row in mapped}
     unresolved_hebrew_cols = [
         row.hebrew_name
@@ -555,7 +542,6 @@ def generate_model_artifact(
         "[TRANSLITERATION_WARNING]" in (m.warning_flags or []) for m in mapped
     )
 
-    # Mark columns that came only from the DDL (not observed in logs) for operator clarity.
     if ddl_only_cols:
         for r in mapped:
             if r.hebrew_name in ddl_only_cols and "[DDL_ONLY_WARNING]" not in (r.warning_flags or []):
@@ -772,10 +758,8 @@ def generate_model_artifact(
                     },
                 )
 
-    # QA Lead: validate SQL with sqlglot, then bounded self-healing if rejected.
     fallback_sql = sql
     if not broken:
-        # Deterministic fallback that bypasses LLM variability.
         fallback_sql = _build_normal_model_sql(table_key, mapped, target_dialect)
 
     def _developer_self_correct_sql(
@@ -853,6 +837,10 @@ def generate_model_artifact(
         self_correct_sql=_developer_self_correct_sql,
         thought_callback=thought_callback,
     )
+
+    if not broken:
+        final_sql = _ensure_correct_table_reference(final_sql, table_key)
+
     sql = final_sql
     review_required = bool(review_required) or bool(hitl_required)
     self_heal_attempts_payload = [a.to_payload() for a in attempts]
