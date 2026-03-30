@@ -92,6 +92,53 @@ def _docker_container_running(name: str) -> bool:
         raise RuntimeError(f"Failed checking docker container state: {exc}") from exc
 
 
+def _docker_container_ip(name: str, *, prefer_network: str = "bridge") -> str:
+    """
+    Resolve a container's IP address from `docker inspect`.
+
+    This is useful because other containers may not reach `SERVER=localhost`;
+    they usually need the SQL Server container IP (or a shared network alias).
+    """
+    try:
+        proc = subprocess.run(
+            ["docker", "inspect", name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(proc.stderr.strip() or "docker inspect failed")
+
+        data = json.loads(proc.stdout)
+        if not isinstance(data, list) or not data:
+            raise RuntimeError("Unexpected docker inspect output")
+
+        networks = (
+            data[0]
+            .get("NetworkSettings", {})
+            .get("Networks", {})  # e.g. {"bridge": {...}, "my_net": {...}}
+        )
+        if not isinstance(networks, dict):
+            raise RuntimeError("Unexpected docker inspect network structure")
+
+        if prefer_network in networks:
+            prefer_ip = networks[prefer_network].get("IPAddress")
+            if isinstance(prefer_ip, str) and prefer_ip.strip():
+                return prefer_ip.strip()
+
+        # Fallback: return the first non-empty IP we find.
+        for net in networks.values():
+            if not isinstance(net, dict):
+                continue
+            ip = net.get("IPAddress")
+            if isinstance(ip, str) and ip.strip():
+                return ip.strip()
+    except Exception as exc:
+        _log("DOCKER", f"Failed to resolve {name} IP; falling back to localhost: {exc}")
+
+    return "localhost"
+
+
 def ensure_mssql_container(*, sa_password: str) -> None:
     """
     Ensure Docker container `ama-mssql-dev` exists and is running.
@@ -433,6 +480,7 @@ def main() -> None:
         )
 
     ensure_mssql_container(sa_password=sa_password)
+    api_server_host = _docker_container_ip(CONTAINER_NAME, prefer_network="bridge")
 
     master_conn = SqlConnectionConfig(
         driver=DEFAULT_DRIVER,
@@ -462,7 +510,9 @@ def main() -> None:
     # Seed into SQL Server so the demo has usable data.
     _seed_tables(db_conn=target_conn, table_columns=table_columns)
 
-    final_conn = _update_env_file(sa_password=sa_password)
+    # The generated connection string is consumed by the API container, where
+    # `localhost` does NOT refer to the SQL Server container.
+    final_conn = _update_env_file(sa_password=sa_password, server=api_server_host)
     _log("ENV", f"Final connection string:\n{final_conn}")
 
 

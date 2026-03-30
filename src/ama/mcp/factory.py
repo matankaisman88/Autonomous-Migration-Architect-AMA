@@ -42,7 +42,12 @@ def get_schema_provider(
     encrypted : if True, decrypt connection_string using AMA_ENCRYPTION_KEY
     """
     resolved_mode = os.environ.get("AMA_SCHEMA_MODE", mode).lower().strip()
-    raw_conn = os.environ.get("AMA_DB_CONNECTION_STRING", connection_string or "").strip()
+    # Prefer the explicit `connection_string` argument (e.g. passed by API request),
+    # but fall back to `AMA_DB_CONNECTION_STRING` env var when the argument is
+    # missing/empty. This avoids accidentally ignoring request-provided credentials.
+    env_conn = os.environ.get("AMA_DB_CONNECTION_STRING", "").strip()
+    arg_conn = (connection_string or "").strip()
+    raw_conn = arg_conn if arg_conn else env_conn
 
     if encrypted and raw_conn:
         from ama.mcp.encryption import decrypt

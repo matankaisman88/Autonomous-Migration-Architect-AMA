@@ -64,12 +64,40 @@ class SQLServerSchemaProvider(SchemaProvider):
         try:
             import pyodbc  # lazy import: required only when sqlserver mode is active
 
-            conn_str = self._augment_connection_string_readonly(self._conn_str)
-            conn = pyodbc.connect(conn_str, timeout=self._timeout)
-            conn.autocommit = True
-            yield conn
+            # Best-effort: request a read-only intent, but some environments/versions
+            # can timeout with ApplicationIntent=ReadOnly. If that happens, retry
+            # without it so discovery still works.
+            conn_str_base = str(self._conn_str).strip()
+            conn_str_aug = self._augment_connection_string_readonly(conn_str_base)
+            # Try the caller's connection string first to avoid environments
+            # where ApplicationIntent=ReadOnly can cause slow/hanging logins.
+            attempts = [conn_str_base]
+            if conn_str_aug != conn_str_base:
+                attempts.append(conn_str_aug)
+
+            last_exc: Exception | None = None
+            for i, attempt_conn_str in enumerate(attempts):
+                try:
+                    conn = pyodbc.connect(attempt_conn_str, timeout=self._timeout)
+                    conn.autocommit = True
+                    yield conn
+                    return
+                except Exception as exc:
+                    last_exc = exc
+                    if i == 0 and len(attempts) > 1:
+                        logger.warning(
+                            "SQLServer connect failed; retrying with ApplicationIntent=ReadOnly. Error: %s",
+                            exc,
+                        )
+                        continue
+
+                    logger.warning("SQLServer connection failed: %s", exc)
+                    raise
+
+            # If we got here, all attempts failed.
+            if last_exc is not None:
+                raise last_exc
         except Exception as exc:
-            logger.warning("SQLServer connection failed: %s", exc)
             raise
         finally:
             if conn is not None:
