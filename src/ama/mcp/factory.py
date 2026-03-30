@@ -69,6 +69,14 @@ def get_schema_provider(
         from ama.mcp.oracle_provider import OracleSchemaProvider
         return OracleSchemaProvider(connection_string=raw_conn, timeout_seconds=ts)
 
+    elif resolved_mode == "sqlserver":
+        if not raw_conn:
+            raise ValueError(
+                "AMA_SCHEMA_MODE=sqlserver requires AMA_DB_CONNECTION_STRING."
+            )
+        from ama.mcp.sqlserver_provider import SQLServerSchemaProvider
+        return SQLServerSchemaProvider(connection_string=raw_conn, timeout_seconds=ts)
+
     else:  # "file" (default)
         from ama.mcp.file_provider import FileSchemaProvider
         mp = manifest_path or Path(os.environ.get("AMA_MANIFEST_PATH", "ddl_manifest.json"))
