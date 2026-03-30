@@ -24,7 +24,7 @@ KFAR_DDL_DIR = KFAR_DIR / "ddl"
 
 
 CONTAINER_NAME = "ama-mssql-dev"
-DEFAULT_DRIVER = "ODBC Driver 17 for SQL Server"
+DEFAULT_DRIVER = "ODBC Driver 18 for SQL Server"
 TARGET_DB = "kfar_supply"
 
 
@@ -37,14 +37,15 @@ class SqlConnectionConfig:
     pwd: str
 
     def to_odbc_connection_string(self) -> str:
-        # Keep exactly the shape required by acceptance criteria.
-        return (
-            f"DRIVER={{{self.driver}}};"
-            f"SERVER={self.server};"
-            f"DATABASE={self.database};"
-            f"UID={self.uid};"
-            f"PWD={self.pwd}"
-        )
+            return (
+                f"DRIVER={{{self.driver}}};"
+                f"SERVER={self.server};"
+                f"DATABASE={self.database};"
+                f"UID={self.uid};"
+                f"PWD={self.pwd};"
+                "Encrypt=yes;"
+                "TrustServerCertificate=yes;"
+            )
 
 
 def _log(prefix: str, msg: str) -> None:
