@@ -226,6 +226,8 @@ def test_get_tools_contains_required_migration_agent_functions() -> None:
         "request_write_permission",
         "generate_synthetic_rows",
         "validate_sql_on_duckdb",
+        "list_live_tables",
+        "explain_sql_live",
         "query_inventory",
         "bulk_migrate_tables",
         "explain_table_score",

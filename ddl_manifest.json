@@ -1,0 +1,28 @@
+{
+  "_comment": "Qualified table name -> DDL JSON path relative to data root (--data-root). Unlisted tables use AMA_DDL_COLUMNS_PATH / orders_columns.json.",
+  "sales.orders": "sample_data/ddl/orders_columns.json",
+  "sales.customers": "sample_data/ddl/sales_columns.json",
+  "sales.products": "sample_data/ddl/sales_columns.json",
+  "sales.order_lines": "sample_data/ddl/sales_columns.json",
+  "finance.invoices": "sample_data/ddl/finance_columns.json",
+  "finance.payments": "sample_data/ddl/finance_columns.json",
+  "finance.credits": "sample_data/ddl/finance_columns.json",
+  "finance.commissions": "sample_data/ddl/finance_columns.json",
+  "finance.budget_lines": "sample_data/ddl/finance_columns.json",
+  "finance.tax_rates": "sample_data/ddl/finance_columns.json",
+  "finance.contracts": "sample_data/ddl/finance_columns.json",
+  "logistics.shipments": "sample_data/ddl/logistics_columns.json",
+  "logistics.warehouses": "sample_data/ddl/logistics_columns.json",
+  "logistics.inventory_snapshots": "sample_data/ddl/logistics_columns.json",
+  "crm.accounts": "sample_data/ddl/crm_columns.json",
+  "crm.sales_reps": "sample_data/ddl/crm_columns.json",
+  "crm.territories": "sample_data/ddl/crm_columns.json",
+  "crm.leads": "sample_data/ddl/crm_columns.json",
+  "marketing.promotions": "sample_data/ddl/marketing_columns.json",
+  "marketing.campaign_results": "sample_data/ddl/marketing_columns.json",
+  "analytics.forecast_runs": "sample_data/ddl/analytics_columns.json",
+  "analytics.targets": "sample_data/ddl/analytics_columns.json",
+  "analytics.return_authorizations": "sample_data/ddl/analytics_columns.json",
+  "legacy_hebrew.חשבוניות": "sample_data/ddl/legacy_hebrew_columns.json"
+}
+

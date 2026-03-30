@@ -169,6 +169,44 @@ def get_tools() -> list[dict[str, Any]]:
         {
             "type": "function",
             "function": {
+                "name": "list_live_tables",
+                "description": (
+                    "List all tables from the live connected database (Postgres or Oracle). "
+                    "Use this instead of analyze_schema when you need to discover what tables exist."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "schema_filter": {
+                            "type": "string",
+                            "description": "Optional schema/owner name to filter results.",
+                        }
+                    },
+                    "required": [],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "explain_sql_live",
+                "description": (
+                    "Run the DB engine's native EXPLAIN on a SQL statement. "
+                    "Returns the optimizer plan and any errors. "
+                    "Always call this before execute_dbt_test in Self-Healing mode."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "sql": {"type": "string", "description": "SQL to validate with EXPLAIN."},
+                    },
+                    "required": ["sql"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
                 "name": "query_inventory",
                 "description": "Filter and sort scored inventory tables.",
                 "parameters": {
@@ -240,7 +278,19 @@ def _extract_columns_for_table(report: dict[str, Any], table_key: str) -> list[s
     return list(dict.fromkeys(out))
 
 
-def _load_manifest_table_columns(report: dict[str, Any], report_path: Path) -> dict[str, list[str]]:
+def _load_manifest_table_columns(
+    report: dict[str, Any],
+    report_path: Path,
+    schema_provider=None,  # NEW: SchemaProvider | None
+) -> dict[str, list[str]]:
+    # Fast path: live provider knows all tables already
+    if schema_provider is not None:
+        try:
+            tables = schema_provider.list_tables()
+            return {t: schema_provider.get_columns(t) for t in tables}
+        except Exception:
+            pass  # fall through to file-based path
+
     alias_merge = report.get("alias_merge")
     if not isinstance(alias_merge, dict):
         return {}
@@ -948,7 +998,12 @@ def generate_synthetic_rows(
     return out
 
 
-def validate_sql_on_duckdb(*, sql: str, dialect: str = "duckdb") -> dict[str, Any]:
+def validate_sql_on_duckdb(
+    *,
+    sql: str,
+    dialect: str = "duckdb",
+    schema_provider=None,  # NEW: optional live explain
+) -> dict[str, Any]:
     """
     Fast syntax validation using SQLGlot (sqlglot-backed, not an actual execution).
 
@@ -957,11 +1012,65 @@ def validate_sql_on_duckdb(*, sql: str, dialect: str = "duckdb") -> dict[str, An
     """
     target = validate_target_dialect(dialect)
     ok, reasons = validate_sql_with_sqlglot(sql, target_dialect=target)
+
+    explain_result = {"ok": True, "plan": "skipped", "error": None, "dialect": "static"}
+    if schema_provider is not None:
+        try:
+            er = schema_provider.execute_explain(sql)
+            explain_result = {
+                "ok": er.ok,
+                "plan": er.plan,
+                "error": er.error,
+                "dialect": er.dialect,
+            }
+            if not er.ok and er.error:
+                ok = False
+                reasons.append(f"Live DB EXPLAIN failed: {er.error}")
+        except Exception as exc:
+            reasons.append(f"Live DB EXPLAIN error: {exc}")
+
     return {
         "ok": ok,
         "dialect": target.value,
         "reasons": reasons,
+        "explain_plan": explain_result.get("plan", ""),
+        "explain_dialect": explain_result.get("dialect", ""),
+        "explain_error": explain_result.get("error"),
     }
+
+
+def list_live_tables(schema_filter: str | None = None) -> dict[str, Any]:
+    """
+    Live discovery helper for MCP SchemaProvider.
+
+    Uses AMA_SCHEMA_MODE / AMA_DB_CONNECTION_STRING from the environment.
+    Always returns a safe structure; never raises.
+    """
+    from ama.mcp.factory import get_schema_provider
+
+    try:
+        provider = get_schema_provider()
+        tables = provider.list_tables(schema_filter=schema_filter)
+        return {"tables": tables, "count": len(tables)}
+    except Exception:
+        return {"tables": [], "count": 0}
+
+
+def explain_sql_live(sql: str) -> dict[str, Any]:
+    """
+    Live EXPLAIN helper for MCP SchemaProvider.
+
+    Uses AMA_SCHEMA_MODE / AMA_DB_CONNECTION_STRING from the environment.
+    Always returns a safe structure; never raises.
+    """
+    from ama.mcp.factory import get_schema_provider
+
+    try:
+        provider = get_schema_provider()
+        er = provider.execute_explain(sql)
+        return {"ok": er.ok, "plan": er.plan, "error": er.error, "dialect": er.dialect}
+    except Exception as exc:
+        return {"ok": False, "plan": "", "error": str(exc), "dialect": ""}
 
 
 def propose_dbt_model(

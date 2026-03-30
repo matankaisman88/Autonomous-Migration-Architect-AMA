@@ -211,6 +211,14 @@ def _dispatch_tool(
         sql = str(args.get("sql") or "")
         dialect = str(args.get("dialect") or default_dialect or "duckdb").strip().lower()
         return agent_tools.validate_sql_on_duckdb(sql=sql, dialect=dialect)
+    if tool_name == "list_live_tables":
+        schema_filter = args.get("schema_filter")
+        return agent_tools.list_live_tables(
+            schema_filter=str(schema_filter).strip() if schema_filter is not None else None
+        )
+    if tool_name == "explain_sql_live":
+        sql = str(args.get("sql") or "")
+        return agent_tools.explain_sql_live(sql=sql)
     if tool_name == "query_inventory":
         lim_raw = args.get("limit")
         try:

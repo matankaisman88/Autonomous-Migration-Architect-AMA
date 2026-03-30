@@ -11,6 +11,11 @@ services:
       - AMA_CHECKPOINT_DIR=/app/dbt_project/target/checkpoints
       - AMA_OPENAI_API_KEY=${AMA_OPENAI_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - AMA_SCHEMA_MODE=${AMA_SCHEMA_MODE:-file}
+      - AMA_DB_CONNECTION_STRING=${AMA_DB_CONNECTION_STRING:-}
+      - AMA_DB_TIMEOUT=${AMA_DB_TIMEOUT:-10}
+      - AMA_ENCRYPTION_KEY=${AMA_ENCRYPTION_KEY:-}
+      - AMA_MANIFEST_PATH=${AMA_MANIFEST_PATH:-ddl_manifest.json}
     volumes:
       - ./sample_data:/app/sample_data:ro
       - ./dbt_project:/app/dbt_project

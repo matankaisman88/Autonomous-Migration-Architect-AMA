@@ -36,6 +36,15 @@ dev = [
     "pytest>=8.0.0",
 ]
 
+postgres = ["psycopg2-binary>=2.9"]
+oracle   = ["oracledb>=2.0"]
+encrypt  = ["cryptography>=42.0"]
+mcp-all  = [
+    "psycopg2-binary>=2.9",
+    "oracledb>=2.0",
+    "cryptography>=42.0",
+]
+
 [project.scripts]
 ama-ingest = "ama.cli:main"
 ama-dashboard = "ama.cli:dashboard_main"

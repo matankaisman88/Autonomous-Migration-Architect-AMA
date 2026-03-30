@@ -6,6 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ama.api.routes import agent, analytics, bulk, cockpit, dq, hitl, ingest, migration, planner, report, scale
+from ama.api.routes.connections import router as connections_router
+from ama.api.routes.discovery import router as discovery_router
 from ama.api.ws import router as ws_router
 
 
@@ -48,6 +50,8 @@ app.include_router(dq.router, prefix="/dq", tags=["Data Quality"])
 app.include_router(cockpit.router, prefix="/cockpit", tags=["DBT Cockpit"])
 app.include_router(ingest.router, prefix="/ingest", tags=["Ingest"])
 app.include_router(ws_router, tags=["WebSocket"])
+app.include_router(connections_router, prefix="/api", tags=["Connections"])
+app.include_router(discovery_router, prefix="/api", tags=["Discovery"])
 
 
 @app.get("/health", tags=["Health"])
