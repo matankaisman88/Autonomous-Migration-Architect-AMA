@@ -75,15 +75,15 @@ class SQLServerSchemaProvider(SchemaProvider):
             if conn is not None:
                 try:
                     conn.close()
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.warning("SQLServer: failed to close connection: %s", exc)
 
     def _set_query_timeout(self, cursor: Any) -> None:
         # pyodbc uses cursor.timeout for query execution timeout (seconds).
         try:
             cursor.timeout = self._timeout
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("SQLServer: failed to set cursor timeout: %s", exc)
 
     # ── SchemaProvider interface ───────────────────────────────────────────────
 
