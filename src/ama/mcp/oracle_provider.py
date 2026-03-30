@@ -10,6 +10,7 @@ Connection string format: user/password@host:port/service_name
 from __future__ import annotations
 
 import logging
+import uuid
 from contextlib import contextmanager
 from typing import Any, Generator
 
@@ -227,12 +228,15 @@ class OracleSchemaProvider(SchemaProvider):
         try:
             with self._connect() as conn:
                 cur = conn.cursor()
-                # Write plan into PLAN_TABLE (Oracle internal — not user data)
-                cur.execute(f"EXPLAIN PLAN FOR {sql}")
+                # Write plan into PLAN_TABLE using an isolated STATEMENT_ID so concurrent
+                # requests don't read each other's optimizer output.
+                stmt_id = uuid.uuid4().hex[:20]  # Oracle limit is 30 chars
+                cur.execute(f"EXPLAIN PLAN SET STATEMENT_ID = '{stmt_id}' FOR {sql}")
                 # Retrieve the formatted plan
                 cur.execute(
                     "SELECT PLAN_TABLE_OUTPUT "
-                    "FROM TABLE(DBMS_XPLAN.DISPLAY('PLAN_TABLE', NULL, 'BASIC +ROWS +COST'))"
+                    "FROM TABLE(DBMS_XPLAN.DISPLAY('PLAN_TABLE', :1, 'BASIC +ROWS +COST'))",
+                    [stmt_id],
                 )
                 lines = [str(row[0]) for row in cur.fetchall()]
                 plan_text = "\n".join(lines)

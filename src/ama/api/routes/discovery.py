@@ -1,39 +1,74 @@
 """
 Discovery routes.
 
-GET /discovery/tables     — list tables from live DB (or file manifest)
-GET /discovery/schema     — get full column schema for one table
-GET /discovery/sample     — get PII-masked sample rows for one table
+POST /discovery/tables     — list tables from live DB (or file manifest)
+POST /discovery/schema     — get full column schema for one table
+POST /discovery/sample     — get PII-masked sample rows for one table
+
+Security note:
+  `connection_string` is accepted only in request bodies (not URL query params),
+  to avoid leaking credentials into load balancer / CDN access logs.
 """
 from __future__ import annotations
 
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/discovery", tags=["Discovery"])
 
 
+class DiscoveryTablesRequest(BaseModel):
+    mode: str = "file"  # file | postgres | oracle
+    connection_string: str | None = None
+    encrypted: bool = False
+    schema_filter: str | None = None  # optional schema/owner name
+
+
+class DiscoverySchemaRequest(BaseModel):
+    mode: str = "file"  # file | postgres | oracle
+    connection_string: str | None = None
+    encrypted: bool = False
+    table_key: str  # "schema.table"
+
+
+class DiscoverySampleRequest(BaseModel):
+    mode: str = "file"  # file | postgres | oracle
+    connection_string: str | None = None
+    encrypted: bool = False
+    table_key: str  # "schema.table"
+    limit: int = 5  # safe default
+
+
 @router.get("/tables")
-def list_tables(
-    mode: str = Query(default="file", description="file | postgres | oracle"),
-    connection_string: str | None = Query(default=None),
-    schema_filter: str | None = Query(default=None, description="Filter by schema/owner name"),
-) -> dict[str, Any]:
+def _legacy_list_tables_get() -> None:
+    raise HTTPException(
+        status_code=405,
+        detail="Use POST /api/discovery/tables with a request body (connection_string must not be in URL query params).",
+    )
+
+
+@router.post("/tables")
+def list_tables(body: DiscoveryTablesRequest) -> dict[str, Any]:
     """
     Pull table list directly from the selected DB (or file manifest).
     Replaces manual table name entry in the onboarding UI.
     """
-    from ama.mcp.factory import get_schema_provider
-
     try:
-        provider = get_schema_provider(mode=mode, connection_string=connection_string)
-        tables = provider.get_table_list(schema_filter=schema_filter)
+        from ama.mcp.factory import get_schema_provider
+
+        provider = get_schema_provider(
+            mode=body.mode,
+            connection_string=body.connection_string,
+            encrypted=body.encrypted,
+        )
+        tables = provider.get_table_list(schema_filter=body.schema_filter)
         return {
-            "mode": mode,
-            "schema_filter": schema_filter,
+            "mode": body.mode,
+            "schema_filter": body.schema_filter,
             "count": len(tables),
             "tables": tables,
         }
@@ -45,22 +80,30 @@ def list_tables(
 
 
 @router.get("/schema/{table_key:path}")
-def get_table_schema(
-    table_key: str,
-    mode: str = Query(default="file"),
-    connection_string: str | None = Query(default=None),
-) -> dict[str, Any]:
+def _legacy_get_table_schema_get(table_key: str) -> None:
+    raise HTTPException(
+        status_code=405,
+        detail="Use POST /api/discovery/schema with a request body (connection_string must not be in URL query params).",
+    )
+
+
+@router.post("/schema")
+def get_table_schema(body: DiscoverySchemaRequest) -> dict[str, Any]:
     """
     Return full column metadata for a single table.
     table_key format: schema.table  e.g. sales.orders
     """
-    from ama.mcp.factory import get_schema_provider
-
     try:
-        provider = get_schema_provider(mode=mode, connection_string=connection_string)
-        ts = provider.get_table_schema(table_key)
+        from ama.mcp.factory import get_schema_provider
+
+        provider = get_schema_provider(
+            mode=body.mode,
+            connection_string=body.connection_string,
+            encrypted=body.encrypted,
+        )
+        ts = provider.get_table_schema(body.table_key)
         if ts is None:
-            raise HTTPException(status_code=404, detail=f"Table '{table_key}' not found")
+            raise HTTPException(status_code=404, detail=f"Table '{body.table_key}' not found")
         return {
             "table_key": ts.full_name,
             "schema_name": ts.schema_name,
@@ -84,26 +127,38 @@ def get_table_schema(
 
 
 @router.get("/sample/{table_key:path}")
-def get_sample_data(
-    table_key: str,
-    mode: str = Query(default="file"),
-    connection_string: str | None = Query(default=None),
-    limit: int = Query(default=5, ge=1, le=50),
-) -> dict[str, Any]:
+def _legacy_get_sample_data_get(table_key: str) -> None:
+    raise HTTPException(
+        status_code=405,
+        detail="Use POST /api/discovery/sample with a request body (connection_string must not be in URL query params).",
+    )
+
+
+@router.post("/sample")
+def get_sample_data(body: DiscoverySampleRequest) -> dict[str, Any]:
     """
     Return PII-masked sample rows for a table.
     Data is masked BEFORE leaving this endpoint.
     File mode always returns empty rows (no live data).
     """
-    from ama.mcp.factory import get_schema_provider
-
     try:
-        provider = get_schema_provider(mode=mode, connection_string=connection_string)
-        rows = provider.get_sample_data(table_key, limit=limit)
+        from ama.mcp.factory import get_schema_provider
+
+        provider = get_schema_provider(
+            mode=body.mode,
+            connection_string=body.connection_string,
+            encrypted=body.encrypted,
+        )
+        cap = int(body.limit)
+        if cap < 1:
+            cap = 1
+        if cap > 50:
+            cap = 50
+        rows = provider.get_sample_data(body.table_key, limit=cap)
         return {
-            "table_key": table_key,
-            "mode": mode,
-            "limit": limit,
+            "table_key": body.table_key,
+            "mode": body.mode,
+            "limit": cap,
             "rows_returned": len(rows),
             "pii_masked": True,
             "rows": [r.data for r in rows],

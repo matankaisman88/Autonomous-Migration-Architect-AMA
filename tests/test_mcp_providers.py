@@ -233,7 +233,10 @@ def test_discovery_tables_endpoint_file_mode(tmp_path):
     mp.write_text(json.dumps({}), encoding="utf-8")
 
     client = TestClient(app)
-    resp = client.get(f"/api/discovery/tables?mode=file&connection_string=")
+    resp = client.post(
+        "/api/discovery/tables",
+        json={"mode": "file"},
+    )
     assert resp.status_code == 200
 
 

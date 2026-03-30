@@ -36,6 +36,12 @@ _NAME_COLS = re.compile(
 # Simple heuristic: 2–4 Hebrew/Latin words that look like a person's name
 _NAME_VAL = re.compile(r"^[\u0590-\u05FFa-zA-Z]{2,20}(\s[\u0590-\u05FFa-zA-Z]{2,20}){1,3}$")
 
+# Column name hints for phone detection (avoid false positives on generic numeric IDs)
+_PHONE_COLS = re.compile(
+    r"\b(phone|tel|mobile|cellular|טלפון|נייד|פלאפון|fax|פקס)\b",
+    re.I,
+)
+
 
 def _mask_value(column_name: str, value: Any) -> Any:
     """Mask a single cell value. Returns original type when not a string."""
@@ -60,7 +66,7 @@ def _mask_value(column_name: str, value: Any) -> Any:
     # phone (Israeli then international)
     if _PHONE_IL.search(v):
         return _PHONE_IL.sub("***-***-****", v)
-    if _PHONE_INT.search(v):
+    if _PHONE_COLS.search(column_name) and _PHONE_INT.search(v):
         return _PHONE_INT.sub("***-***-****", v)
 
     # full name (column-hint + value heuristic)

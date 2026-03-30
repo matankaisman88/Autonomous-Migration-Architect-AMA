@@ -11,7 +11,6 @@ Store it in AMA_ENCRYPTION_KEY environment variable — never commit it.
 """
 from __future__ import annotations
 
-import base64
 import os
 
 
