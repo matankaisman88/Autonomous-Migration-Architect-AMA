@@ -9,6 +9,7 @@ from ama.api.routes import agent, analytics, bulk, cockpit, dq, hitl, ingest, mi
 from ama.api.routes.connections import router as connections_router
 from ama.api.routes.discovery import router as discovery_router
 from ama.api.ws import router as ws_router
+from ama.api.routes import mcp as mcp_router
 
 
 @asynccontextmanager
@@ -52,6 +53,7 @@ app.include_router(ingest.router, prefix="/ingest", tags=["Ingest"])
 app.include_router(ws_router, tags=["WebSocket"])
 app.include_router(connections_router, prefix="/api", tags=["Connections"])
 app.include_router(discovery_router, prefix="/api", tags=["Discovery"])
+app.include_router(mcp_router.router, prefix="/mcp")
 
 
 @app.get("/health", tags=["Health"])
