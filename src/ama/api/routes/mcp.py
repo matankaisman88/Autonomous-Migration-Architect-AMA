@@ -41,7 +41,6 @@ async def handle_list_tools() -> list[types.Tool]:
 
 @mcp_server.call_tool()
 async def handle_call_tool(name: str, arguments: dict | None) -> list[types.TextContent]:
-    """מבצע את פעולת הכלי שה-AI ביקש"""
     try:
         provider = get_schema_provider(mode="sqlserver")
         
