@@ -10,10 +10,12 @@ import json
 import os
 import pytest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from ama.mcp.base import ColumnInfo, ExplainResult, SampleRow, SchemaProvider, TableSchema
 from ama.mcp.file_provider import FileSchemaProvider
 from ama.mcp.factory import get_schema_provider
+from ama.api.routes.mcp import _dispatch_tool
 
 
 # ── fixtures ──────────────────────────────────────────────────────────────────
@@ -297,4 +299,64 @@ def test_oracle_list_tables():
     p = OracleSchemaProvider(ORA_CONN)
     tables = p.list_tables()
     assert isinstance(tables, list)
+
+
+class TestMcpToolDispatch:
+    def test_list_tables_dispatches_by_mode(self):
+        for mode in ["sqlserver", "postgres", "oracle", "file"]:
+            mock_provider = MagicMock()
+            mock_provider.list_tables.return_value = ["s.t"]
+            with patch("ama.api.routes.mcp.get_schema_provider", return_value=mock_provider) as mock_get:
+                result = _dispatch_tool("list_tables", {"db_mode": mode})
+                mock_get.assert_called_once_with(mode=mode)
+                assert "s.t" in result[0].text
+
+    def test_deprecated_alias_list_mssql_tables(self):
+        mock_provider = MagicMock()
+        mock_provider.list_tables.return_value = ["dbo.orders"]
+        with patch("ama.api.routes.mcp.get_schema_provider", return_value=mock_provider) as mock_get:
+            _dispatch_tool("list_mssql_tables", {})
+            mock_get.assert_called_once_with(mode="sqlserver")
+            mock_provider.list_tables.assert_called_once()
+
+    def test_get_table_schema_dispatches_by_mode(self):
+        mock_provider = MagicMock()
+        mock_provider.get_table_schema.return_value = TableSchema(
+            schema_name="public",
+            table_name="orders",
+            columns=[
+                ColumnInfo(name="id", data_type="integer"),
+                ColumnInfo(name="amount", data_type="numeric"),
+            ],
+        )
+        with patch("ama.api.routes.mcp.get_schema_provider", return_value=mock_provider) as mock_get:
+            result = _dispatch_tool(
+                "get_table_schema",
+                {"db_mode": "postgres", "table_name": "public.orders"},
+            )
+            mock_get.assert_called_once_with(mode="postgres")
+            payload = json.loads(result[0].text)
+            assert "columns" in payload
+            assert len(payload["columns"]) == 2
+
+    def test_deprecated_alias_get_mssql_schema(self):
+        mock_provider = MagicMock()
+        mock_provider.get_table_schema.return_value = TableSchema(
+            schema_name="dbo",
+            table_name="orders",
+            columns=[ColumnInfo(name="id", data_type="int")],
+        )
+        with patch("ama.api.routes.mcp.get_schema_provider", return_value=mock_provider) as mock_get:
+            _dispatch_tool("get_mssql_schema", {"table_name": "dbo.orders"})
+            mock_get.assert_called_once_with(mode="sqlserver")
+
+    def test_unknown_tool_returns_error(self):
+        result = _dispatch_tool("nonexistent_tool", {})
+        assert result[0].text.startswith("Unknown tool")
+
+    def test_provider_exception_returns_error_message(self):
+        with patch("ama.api.routes.mcp.get_schema_provider", side_effect=RuntimeError("db down")):
+            result = _dispatch_tool("list_tables", {"db_mode": "postgres"})
+            assert "Error" in result[0].text
+            assert "db down" in result[0].text
 
