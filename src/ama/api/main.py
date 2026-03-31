@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+import json
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +12,37 @@ from ama.api.routes.connections import router as connections_router
 from ama.api.routes.discovery import router as discovery_router
 from ama.api.ws import router as ws_router
 from ama.api.routes import mcp as mcp_router
+
+
+def _is_truthy(value: str | None) -> bool:
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _cors_origins_from_env() -> list[str]:
+    """
+    Resolve CORS origins from env.
+    - Prefer CORS_ORIGINS (JSON array or comma-separated list)
+    - Fallback to ["*"] only when DEBUG is true
+    - Otherwise default to localhost dev origins
+    """
+    raw = (os.getenv("CORS_ORIGINS") or "").strip()
+    if raw:
+        if raw.startswith("["):
+            try:
+                parsed = json.loads(raw)
+                if isinstance(parsed, list):
+                    cleaned = [str(v).strip() for v in parsed if str(v).strip()]
+                    if cleaned:
+                        return cleaned
+            except json.JSONDecodeError:
+                pass
+        cleaned = [part.strip() for part in raw.split(",") if part.strip()]
+        if cleaned:
+            return cleaned
+
+    if _is_truthy(os.getenv("DEBUG")):
+        return ["*"]
+    return ["http://localhost:3000", "http://127.0.0.1:3000"]
 
 
 @asynccontextmanager
@@ -34,7 +67,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins_from_env(),
     allow_methods=["*"],
     allow_headers=["*"],
 )

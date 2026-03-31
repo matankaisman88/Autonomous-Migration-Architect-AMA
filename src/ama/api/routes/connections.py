@@ -13,6 +13,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from ama.security.credentials import default_data_root, ensure_under_root
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/connections", tags=["Connections"])
@@ -38,7 +39,18 @@ class ExplainRequest(BaseModel):
     sql: str
     mode: str = "file"
     connection_string: str | None = None
+    manifest_path: str | None = None
     encrypted: bool = False
+
+
+def _safe_manifest_path(manifest_path: str | None) -> Path | None:
+    if not manifest_path:
+        return None
+    candidate = Path(manifest_path)
+    root = default_data_root()
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    return ensure_under_root(candidate, root)
 
 
 @router.post("/test", response_model=ConnectionTestResponse)
@@ -53,7 +65,7 @@ def test_connection(body: ConnectionTestRequest) -> Any:
         provider = get_schema_provider(
             mode=body.mode,
             connection_string=body.connection_string,
-            manifest_path=Path(body.manifest_path) if body.manifest_path else None,
+            manifest_path=_safe_manifest_path(body.manifest_path),
             encrypted=body.encrypted,
         )
 
@@ -98,6 +110,7 @@ def explain_sql(body: ExplainRequest) -> dict[str, Any]:
         provider = get_schema_provider(
             mode=body.mode,
             connection_string=body.connection_string,
+            manifest_path=_safe_manifest_path(body.manifest_path),
             encrypted=body.encrypted,
         )
         result = provider.execute_explain(body.sql)

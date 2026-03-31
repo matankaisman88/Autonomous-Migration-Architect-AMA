@@ -12,10 +12,12 @@ Security note:
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from ama.security.credentials import default_data_root, ensure_under_root
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/discovery", tags=["Discovery"])
@@ -24,6 +26,7 @@ router = APIRouter(prefix="/discovery", tags=["Discovery"])
 class DiscoveryTablesRequest(BaseModel):
     mode: str = "file"  # file | postgres | oracle
     connection_string: str | None = None
+    manifest_path: str | None = None
     encrypted: bool = False
     schema_filter: str | None = None  # optional schema/owner name
 
@@ -31,6 +34,7 @@ class DiscoveryTablesRequest(BaseModel):
 class DiscoverySchemaRequest(BaseModel):
     mode: str = "file"  # file | postgres | oracle
     connection_string: str | None = None
+    manifest_path: str | None = None
     encrypted: bool = False
     table_key: str  # "schema.table"
 
@@ -38,9 +42,20 @@ class DiscoverySchemaRequest(BaseModel):
 class DiscoverySampleRequest(BaseModel):
     mode: str = "file"  # file | postgres | oracle
     connection_string: str | None = None
+    manifest_path: str | None = None
     encrypted: bool = False
     table_key: str  # "schema.table"
     limit: int = 5  # safe default
+
+
+def _safe_manifest_path(manifest_path: str | None) -> Path | None:
+    if not manifest_path:
+        return None
+    candidate = Path(manifest_path)
+    root = default_data_root()
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    return ensure_under_root(candidate, root)
 
 
 @router.get("/tables")
@@ -63,6 +78,7 @@ def list_tables(body: DiscoveryTablesRequest) -> dict[str, Any]:
         provider = get_schema_provider(
             mode=body.mode,
             connection_string=body.connection_string,
+            manifest_path=_safe_manifest_path(body.manifest_path),
             encrypted=body.encrypted,
         )
         tables = provider.get_table_list(schema_filter=body.schema_filter)
@@ -99,6 +115,7 @@ def get_table_schema(body: DiscoverySchemaRequest) -> dict[str, Any]:
         provider = get_schema_provider(
             mode=body.mode,
             connection_string=body.connection_string,
+            manifest_path=_safe_manifest_path(body.manifest_path),
             encrypted=body.encrypted,
         )
         ts = provider.get_table_schema(body.table_key)
@@ -122,6 +139,8 @@ def get_table_schema(body: DiscoverySchemaRequest) -> dict[str, Any]:
         }
     except HTTPException:
         raise
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -147,13 +166,14 @@ def get_sample_data(body: DiscoverySampleRequest) -> dict[str, Any]:
         provider = get_schema_provider(
             mode=body.mode,
             connection_string=body.connection_string,
+            manifest_path=_safe_manifest_path(body.manifest_path),
             encrypted=body.encrypted,
         )
         cap = int(body.limit)
         if cap < 1:
             cap = 1
-        if cap > 50:
-            cap = 50
+        if cap > 10:
+            cap = 10
         rows = provider.get_sample_data(body.table_key, limit=cap)
         return {
             "table_key": body.table_key,
@@ -163,6 +183,8 @@ def get_sample_data(body: DiscoverySampleRequest) -> dict[str, Any]:
             "pii_masked": True,
             "rows": [r.data for r in rows],
         }
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

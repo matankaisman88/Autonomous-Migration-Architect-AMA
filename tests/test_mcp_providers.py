@@ -10,6 +10,7 @@ import json
 import os
 import pytest
 from pathlib import Path
+from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 from ama.mcp.base import ColumnInfo, ExplainResult, SampleRow, SchemaProvider, TableSchema
@@ -213,13 +214,10 @@ def test_connections_test_endpoint_file_mode(tmp_path):
     from fastapi.testclient import TestClient
     from ama.api.main import app
 
-    mp = tmp_path / "ddl_manifest.json"
-    mp.write_text(json.dumps({"sales.orders": "ddl/orders.json"}), encoding="utf-8")
-
     client = TestClient(app)
     resp = client.post(
         "/api/connections/test",
-        json={"mode": "file", "manifest_path": str(mp)},
+        json={"mode": "file"},
     )
     assert resp.status_code == 200
     data = resp.json()
@@ -255,6 +253,32 @@ def test_connections_explain_file_mode():
     data = resp.json()
     assert data["ok"] is True
     assert data["plan"] == "static_validation_only"
+
+
+def test_connections_manifest_path_traversal_rejected():
+    from fastapi.testclient import TestClient
+    from ama.api.main import app
+
+    client = TestClient(app)
+    resp = client.post(
+        "/api/connections/test",
+        json={"mode": "file", "manifest_path": "../../etc/passwd"},
+    )
+    assert resp.status_code == 400
+
+
+def test_discovery_sample_limit_capped_to_ten():
+    from fastapi.testclient import TestClient
+    from ama.api.main import app
+
+    client = TestClient(app)
+    resp = client.post(
+        "/api/discovery/sample",
+        json={"mode": "file", "table_key": "sales.orders", "limit": 50},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["limit"] == 10
 
 
 # ── live DB tests (skipped unless env vars set) ───────────────────────────────
@@ -359,4 +383,68 @@ class TestMcpToolDispatch:
             result = _dispatch_tool("list_tables", {"db_mode": "postgres"})
             assert "Error" in result[0].text
             assert "db down" in result[0].text
+
+
+class TestPiiMaskingFlow:
+    def test_postgres_sample_data_masks_rows_before_return(self):
+        from ama.mcp.postgres_provider import PostgresSchemaProvider
+
+        provider = PostgresSchemaProvider("postgresql://x")
+
+        class _FakeCursor:
+            description = [("email",), ("amount",)]
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, _sql, _params):
+                return None
+
+            def fetchall(self):
+                return [("alice@example.com", 42)]
+
+        class _FakeConn:
+            def cursor(self):
+                return _FakeCursor()
+
+        @contextmanager
+        def _fake_connect():
+            yield _FakeConn()
+
+        provider._connect = _fake_connect  # type: ignore[method-assign]
+        with patch("ama.mcp.postgres_provider.mask_rows", return_value=[{"email": "a***@***.com", "amount": 42}]) as mock_mask:
+            rows = provider.get_sample_data("public.orders", limit=1)
+            mock_mask.assert_called_once()
+            assert rows[0].data["email"] == "a***@***.com"
+
+    def test_sqlserver_sample_data_masks_rows_before_return(self):
+        from ama.mcp.sqlserver_provider import SQLServerSchemaProvider
+
+        provider = SQLServerSchemaProvider("DRIVER={ODBC Driver};SERVER=localhost;DATABASE=db")
+
+        class _FakeCursor:
+            description = [("phone",), ("amount",)]
+
+            def execute(self, _sql):
+                return None
+
+            def fetchall(self):
+                return [("050-1234567", 99)]
+
+        class _FakeConn:
+            def cursor(self):
+                return _FakeCursor()
+
+        @contextmanager
+        def _fake_connect():
+            yield _FakeConn()
+
+        provider._connect = _fake_connect  # type: ignore[method-assign]
+        with patch("ama.mcp.sqlserver_provider.mask_rows", return_value=[{"phone": "***-***-****", "amount": 99}]) as mock_mask:
+            rows = provider.get_sample_data("dbo.orders", limit=1)
+            mock_mask.assert_called_once()
+            assert rows[0].data["phone"] == "***-***-****"
 

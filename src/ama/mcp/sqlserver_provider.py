@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from typing import Any, Generator
 
 from ama.mcp.base import ColumnInfo, ExplainResult, SampleRow, SchemaProvider, TableSchema
-from ama.mcp.pii import mask_row
+from ama.mcp.pii import mask_rows
 
 logger = logging.getLogger(__name__)
 
@@ -260,12 +260,8 @@ class SQLServerSchemaProvider(SchemaProvider):
                     {cols[i]: row[i] for i in range(min(len(cols), len(row)))}
                     for row in cur.fetchall()
                 ]
-                masked_rows: list[SampleRow] = []
-                for row in raw_rows:
-                    # Mandatory: mask every row before returning.
-                    masked = mask_row(row)
-                    masked_rows.append(SampleRow(data=masked))
-                return masked_rows
+                masked = mask_rows(raw_rows)
+                return [SampleRow(data=row) for row in masked]
         except Exception as exc:
             logger.error("SQLServer get_sample_data(%s) failed: %s", table_key, exc)
             return []
