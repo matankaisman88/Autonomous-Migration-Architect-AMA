@@ -1,8 +1,10 @@
 import {
+  Alert,
   Button,
   Chip,
   Divider,
   Grid2,
+  Link,
   MenuItem,
   Paper,
   Stack,
@@ -24,6 +26,7 @@ import { StatCard } from "../components/StatCard";
 import { useRequireReportId, useErrorSetter } from "./common";
 import { useAppState } from "../state";
 import type { ReportSummary } from "../types";
+import { Link as RouterLink } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 type ImpactRow = {
@@ -79,6 +82,30 @@ export function OverviewPage() {
 
   return (
     <Grid2 container spacing={2}>
+      <Grid2 size={{ xs: 12 }}>
+        <Alert severity="info" variant="outlined" sx={{ borderRadius: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
+            Lineage &amp; live database (new)
+          </Typography>
+          <Typography variant="body2" component="div">
+            <strong>Lineage graph</strong> — open{" "}
+            <Link component={RouterLink} to="/tables" underline="hover" fontWeight={600}>
+              Tables
+            </Link>
+            , load a report in the header, click <strong>Evaluate</strong>, then pick a table. The React Flow co-query graph is in the full-width{" "}
+            <em>Table lineage</em> card below the grid.
+          </Typography>
+          <Typography variant="body2" component="div" sx={{ mt: 1 }}>
+            <strong>Live connection</strong> — use the left nav{" "}
+            <Link component={RouterLink} to="/live" underline="hover" fontWeight={600}>
+              Live connection
+            </Link>{" "}
+            for SQL Server / Oracle / DB2 demo deploy, WebSocket progress, <code>live_data/</code> exports, and optional{" "}
+            <strong>build report / auto-open Tables</strong>. If that page looks unchanged, rebuild the Docker{" "}
+            <code>web</code> image or run the Vite dev server from <code>frontend/</code>.
+          </Typography>
+        </Alert>
+      </Grid2>
       <Grid2 size={{ xs: 12, md: 3 }}>
         <StatCard
           label="Tables"

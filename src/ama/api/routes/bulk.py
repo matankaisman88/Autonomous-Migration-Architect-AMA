@@ -19,7 +19,7 @@ router = APIRouter()
 class BulkStartRequest(BaseModel):
     table_keys: list[str]
     dialect: str = "duckdb"
-    conf_floor: int = 90
+    conf_floor: int = 70
     crit_ceil: int = 40
     approved_by: str = "api"
     max_workers: int = Field(default=4, ge=1, le=16)

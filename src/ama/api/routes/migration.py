@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from ama.api import deps
+from ama.dbt_migration.generator import normalize_candidate_sql
 from ama.dbt_migration.writer import _write_model_files
 from ama.hitl_apply import decision_from_queue
 from ama.migration_agent import agent_tools
@@ -118,7 +119,8 @@ def migration_approve(report_id: str, body: ApproveRequest) -> dict[str, Any]:
                 error_log=str(test_res.get("logs") or test_res.get("reason") or ""),
                 attempt_history=[],
             )
-            fix_sql = str(fix_res.get("corrected_sql") or "") or None
+            raw_fix_sql = str(fix_res.get("corrected_sql") or "")
+            fix_sql = normalize_candidate_sql(raw_fix_sql, body.table_key) or None
             if fix_sql:
                 _write_model_files(
                     output_dir=output_dir,

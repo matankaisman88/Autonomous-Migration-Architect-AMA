@@ -8,6 +8,7 @@ from ama.ai_query_helper import AIQueryResult, OpenAIRateLimitError
 from ama.dbt_migration.generator import (
     generate_model_artifact,
     generate_models_from_manifest,
+    normalize_candidate_sql,
 )
 from ama.dbt_migration.models import (
     CheckpointAArtifact,
@@ -177,6 +178,77 @@ def test_generate_model_artifact_rejects_llm_row_filters(monkeypatch) -> None:
 
     assert artifact.generation_mode == "legacy"
     assert "where status = 'unpaid'" not in artifact.sql.lower()
+
+
+def test_generate_model_artifact_qualifies_unscoped_from_table(monkeypatch) -> None:
+    monkeypatch.setattr("ama.dbt_migration.mapping.has_openai_api_key", lambda: False)
+    monkeypatch.setattr("ama.dbt_migration.generator.has_openai_api_key", lambda: True)
+    monkeypatch.setattr(
+        "ama.dbt_migration.generator._call_schema_agent",
+        lambda **_kwargs: ({"context_analysis": "ok", "suggested_columns": ["order_id"], "confidence": 0.95}, 10, 0.95),
+    )
+    monkeypatch.setattr(
+        "ama.dbt_migration.generator._call_dbt_agent",
+        lambda **_kwargs: (
+            "SELECT order_id, customer_id, order_date FROM orders",
+            "unqualified source",
+            20,
+            0.9,
+        ),
+    )
+
+    artifact, _mapped = generate_model_artifact(
+        table_key="dbo.orders",
+        raw_columns=["order_id", "customer_id", "order_date"],
+        glossary={},
+        alias_registry={},
+        target_dialect=TargetDialect.DUCKDB,
+        broken=False,
+        rationale="migrate all orders",
+    )
+
+    sql_l = artifact.sql.lower()
+    assert 'from "dbo"."orders"' in sql_l or 'from "dbo.orders"' in sql_l or "from dbo.orders" in sql_l
+    assert " from orders" not in sql_l
+
+
+def test_generate_model_artifact_rejects_other_columns_placeholder(monkeypatch) -> None:
+    monkeypatch.setattr("ama.dbt_migration.mapping.has_openai_api_key", lambda: False)
+    monkeypatch.setattr("ama.dbt_migration.generator.has_openai_api_key", lambda: True)
+    monkeypatch.setattr(
+        "ama.dbt_migration.generator._call_schema_agent",
+        lambda **_kwargs: ({"context_analysis": "ok", "suggested_columns": ["customer_id"], "confidence": 0.95}, 10, 0.95),
+    )
+    monkeypatch.setattr(
+        "ama.dbt_migration.generator._call_dbt_agent",
+        lambda **_kwargs: (
+            "SELECT customer_id, other_columns FROM customers",
+            "placeholder projection",
+            20,
+            0.9,
+        ),
+    )
+
+    artifact, _mapped = generate_model_artifact(
+        table_key="dbo.customers",
+        raw_columns=["customer_id", "customer_name", "email"],
+        glossary={},
+        alias_registry={},
+        target_dialect=TargetDialect.DUCKDB,
+        broken=False,
+        rationale="migrate all customers",
+    )
+
+    sql_l = artifact.sql.lower()
+    assert artifact.generation_mode == "legacy"
+    assert "other_columns" not in sql_l
+    assert 'from "dbo"."customers"' in sql_l or 'from "dbo.customers"' in sql_l or "from dbo.customers" in sql_l
+
+
+def test_normalize_candidate_sql_qualifies_and_rejects_placeholders() -> None:
+    ok = normalize_candidate_sql("SELECT customer_id FROM customers", "dbo.customers").lower()
+    assert 'from "dbo"."customers"' in ok or 'from "dbo.customers"' in ok or "from dbo.customers" in ok
+    assert normalize_candidate_sql("SELECT customer_id, other_columns FROM customers", "dbo.customers") == ""
 
 
 def test_generator_ignores_usage_columns_missing_from_ddl(tmp_path) -> None:

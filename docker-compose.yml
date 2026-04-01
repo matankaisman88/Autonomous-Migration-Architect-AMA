@@ -1,4 +1,5 @@
 services:
+  # After changing Python API code (e.g. live ingestion), rebuild: docker compose build api && docker compose up -d api
   api:
     build:
       context: .
@@ -19,6 +20,8 @@ services:
     volumes:
       - ./sample_data:/app/sample_data:ro
       - ./dbt_project:/app/dbt_project
+      # Live connection UI writes here; without this mount, files only exist inside the container.
+      - ./live_data:/app/live_data
     healthcheck:
       test:
         [
@@ -42,4 +45,16 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    # After pulling or editing frontend files, either rebuild (`docker compose build web && docker compose up -d web`)
+    # or run with watch: `docker compose watch` (rebuilds this service when ./frontend sources change).
+    develop:
+      watch:
+        - path: ./frontend/src
+          action: rebuild
+        - path: ./frontend/index.html
+          action: rebuild
+        - path: ./frontend/vite.config.ts
+          action: rebuild
+        - path: ./frontend/package.json
+          action: rebuild
 

@@ -8,6 +8,7 @@ import { HitlPage } from "./features/HitlPage";
 import { GlossaryPage } from "./features/GlossaryPage";
 import { OverviewPage } from "./features/OverviewPage";
 import { PlannerPage } from "./features/PlannerPage";
+import { LiveConnectionPage } from "./features/LiveConnectionPage";
 import { TablesPage } from "./features/TablesPage";
 import { AppStateProvider } from "./state";
 
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/" element={<AppShell />}>
             <Route index element={<OverviewPage />} />
             <Route path="tables" element={<TablesPage />} />
+            <Route path="live" element={<LiveConnectionPage />} />
             <Route path="bulk" element={<BulkPage />} />
             <Route path="planner" element={<PlannerPage />} />
             <Route path="glossary" element={<GlossaryPage />} />

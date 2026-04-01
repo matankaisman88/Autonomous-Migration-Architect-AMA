@@ -44,7 +44,43 @@ def _ensure_correct_table_reference(sql: str, table_key: str) -> str:
     sql = pattern.sub(f'"{table_key}"', sql)
     if "from" not in sql.lower():
         sql += f'\nFROM "{table_key}"'
-    return sql
+    return _qualify_unscoped_table_refs(sql, table_key)
+
+
+def _qualify_unscoped_table_refs(sql: str, table_key: str) -> str:
+    """
+    Rewrite unqualified references to the target table (e.g. ``FROM orders``)
+    into schema-qualified references (``FROM dbo.orders``).
+    """
+    parts = [p.strip() for p in str(table_key).split(".", 1)]
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        return sql
+    schema_name, table_name = parts[0], parts[1]
+    try:
+        parsed = sqlglot.parse_one(sql)
+    except Exception:
+        from_join = re.compile(
+            rf'(?i)\b(from|join)\s+["`\[]?{re.escape(table_name)}["`\]]?\b'
+        )
+        return from_join.sub(lambda m: f'{m.group(1)} "{schema_name}.{table_name}"', sql)
+    changed = False
+    for table in parsed.find_all(exp.Table):
+        table_id = str(table.this or "")
+        db_id = str(table.db or "")
+        if db_id:
+            continue
+        clean_name = table_id.strip('"`[]')
+        if clean_name.lower() != table_name.lower():
+            continue
+        table.set("this", exp.to_identifier(table_name))
+        table.set("db", exp.to_identifier(schema_name))
+        changed = True
+    if not changed:
+        return sql
+    try:
+        return parsed.sql()
+    except Exception:
+        return sql
 
 
 def _schema_yml_for_model(model_name: str, mapped_columns: list[MappingRow]) -> str:
@@ -110,6 +146,26 @@ def _has_row_level_where_filter(sql: str) -> bool:
         if select_node.args.get("where") is not None:
             return True
     return False
+
+
+def _contains_placeholder_projection(sql: str) -> bool:
+    text = (sql or "").lower()
+    return "other_columns" in text or "other columns" in text
+
+
+def normalize_candidate_sql(sql: str, table_key: str) -> str:
+    """
+    Validate and normalize candidate SQL before writing/running dbt.
+    Returns empty string when SQL should be rejected.
+    """
+    raw = str(sql or "").strip()
+    if not raw:
+        return ""
+    if not _looks_like_select_sql(raw):
+        return ""
+    if _contains_placeholder_projection(raw):
+        return ""
+    return _ensure_correct_table_reference(raw, table_key)
 
 
 def _contains_hebrew(value: str) -> bool:
@@ -696,7 +752,11 @@ def generate_model_artifact(
                         "is_fallback_active": False,
                     }
                 )
-                if _looks_like_select_sql(llm_sql) and not _has_row_level_where_filter(llm_sql):
+                if (
+                    _looks_like_select_sql(llm_sql)
+                    and not _has_row_level_where_filter(llm_sql)
+                    and not _contains_placeholder_projection(llm_sql)
+                ):
                     sql = llm_sql
                     generation_mode = "ai"
                     generation_confidence = float(dbt_conf)
@@ -839,7 +899,8 @@ def generate_model_artifact(
     )
 
     if not broken:
-        final_sql = _ensure_correct_table_reference(final_sql, table_key)
+        normalized = normalize_candidate_sql(final_sql, table_key)
+        final_sql = normalized if normalized else fallback_sql
 
     sql = final_sql
     review_required = bool(review_required) or bool(hitl_required)

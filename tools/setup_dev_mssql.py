@@ -472,11 +472,18 @@ def _update_env_file(*, sa_password: str, server: str = "localhost") -> str:
 
 
 def main() -> None:
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(ROOT / ".env")
+    except ImportError:
+        pass
+
     sa_password = os.environ.get("MSSQL_SA_PASSWORD", "").strip()
     if not sa_password:
         raise ValueError(
-            "Missing MSSQL_SA_PASSWORD in environment. Example: "
-            "set MSSQL_SA_PASSWORD=YourStrongPassword"
+            "Missing MSSQL_SA_PASSWORD. Set it in .env (MSSQL_SA_PASSWORD=...) or in the shell. "
+            "PowerShell: $env:MSSQL_SA_PASSWORD='YourStrongPassword'; python tools/setup_dev_mssql.py"
         )
 
     ensure_mssql_container(sa_password=sa_password)

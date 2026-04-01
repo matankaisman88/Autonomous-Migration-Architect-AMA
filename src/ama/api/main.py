@@ -7,9 +7,11 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from ama.api.live_jobs import mark_all_live_jobs_shutdown
 from ama.api.routes import agent, analytics, bulk, cockpit, dq, hitl, ingest, migration, planner, report, scale
 from ama.api.routes.connections import router as connections_router
 from ama.api.routes.discovery import router as discovery_router
+from ama.api.routes.live_connection import router as live_router
 from ama.api.ws import router as ws_router
 from ama.api.routes import mcp as mcp_router
 
@@ -57,6 +59,7 @@ async def lifespan(app: FastAPI):
             if job.get("status") == "running":
                 job["status"] = "failed"
                 job["error"] = "Server shutdown"
+    mark_all_live_jobs_shutdown()
 
 
 app = FastAPI(
@@ -86,6 +89,7 @@ app.include_router(ingest.router, prefix="/ingest", tags=["Ingest"])
 app.include_router(ws_router, tags=["WebSocket"])
 app.include_router(connections_router, prefix="/api", tags=["Connections"])
 app.include_router(discovery_router, prefix="/api", tags=["Discovery"])
+app.include_router(live_router, prefix="/api", tags=["Live"])
 app.include_router(mcp_router.router, prefix="/mcp")
 
 

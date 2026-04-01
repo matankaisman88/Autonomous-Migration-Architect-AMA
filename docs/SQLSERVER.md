@@ -196,3 +196,59 @@ Most common causes:
 - **Firewall/VPN interference**
   - Fix: temporarily disable VPN / security software that blocks local Docker networking.
 
+## Live connection exports (`live_data/`)
+
+The **Live connection** UI writes files under:
+
+```text
+<AMA project root>/live_data/<connection_name>/
+```
+
+The project root is resolved from `src/ama/config.py` by walking up to `pyproject.toml`, unless you override it.
+
+- **If files do not appear in your Git clone:** the API process may be using a different root (Docker `/app`, or a non-editable install under `site-packages`). Set an explicit root in `.env`:
+
+```env
+AMA_PROJECT_ROOT=C:\path\to\Autonomous-Migration-Architect-AMA
+```
+
+Restart the API, run ingestion again, then check `live_data\<connection_name>\` under that folder.
+
+- The job log in the UI now includes a line **`Full artifact path: ...`** with the resolved directory.
+
+### Docker Compose (`docker compose up`)
+
+The API service uses **`/app`** as the project root. **`live_data/` is bind-mounted** from your clone:
+
+```text
+./live_data  →  /app/live_data  (inside the api container)
+```
+
+So exports appear on the host at **`<repo>/live_data/<connection_name>/`**. If you started Compose before this mount existed, run **`docker compose up -d --build`** (or recreate the `api` service) so the volume is applied.
+
+## Live connection: build report + auto-load in UI
+
+The Live connection page now supports:
+
+- **Build AMA report after export** — runs ingestion over `live_data/<connection_name>/` and writes:
+  - `live_data/<connection_name>/ama_live_report.json`
+- **When ready, load that report in this UI and open Tables** — automatically calls `/report/load` with the generated path.
+
+If the checkbox appears enabled but job logs show `build_report=false`, your running API image is stale. Rebuild the API service:
+
+```bash
+docker compose build api
+docker compose up -d api
+```
+
+## Scale/bulk defaults for Kfar live dataset
+
+Current API defaults are:
+
+- Scale evaluate: `conf_floor=70`, `crit_ceil=40`
+- Bulk start: `conf_floor=70`, `crit_ceil=40`
+
+This alignment ensures **Evaluate** and **Bulk** use the same queue thresholds.
+
+Also, bulk scope is constrained to the DDL manifest: tables not listed in `ddl_manifest_table_keys` are BLOCKed with `outside_manifest_scope` and cannot be queued as GREEN (for example, `legacy_hebrew.*` / technical staging tables).
+

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from pydantic import AliasChoices, Field, model_validator
@@ -114,4 +115,21 @@ class IngestionSettings(BaseSettings):
 
 
 def project_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+    """
+    Repository / workspace root for ``live_data/``, relative ``AMA_*`` paths, etc.
+
+    Set ``AMA_PROJECT_ROOT`` to an absolute path when the API runs from Docker or a
+    non-editable install so exports land on the host (e.g. mount that path as a volume).
+    Otherwise we walk upward from this file for ``pyproject.toml`` (normal ``src`` layout).
+    """
+    raw = (os.environ.get("AMA_PROJECT_ROOT") or "").strip()
+    if raw:
+        return Path(raw).expanduser().resolve()
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        try:
+            if (parent / "pyproject.toml").is_file():
+                return parent
+        except OSError:
+            continue
+    return here.parents[2]

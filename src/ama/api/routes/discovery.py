@@ -17,6 +17,9 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from ama.api import deps
+from ama.ddl_manifest import normalize_manifest_table_key
+from ama.lineage import lineage_subgraph_payload
 from ama.security.credentials import default_data_root, ensure_under_root
 
 logger = logging.getLogger(__name__)
@@ -24,7 +27,7 @@ router = APIRouter(prefix="/discovery", tags=["Discovery"])
 
 
 class DiscoveryTablesRequest(BaseModel):
-    mode: str = "file"  # file | postgres | oracle
+    mode: str = "file"  # file | postgres | oracle | sqlserver | db2
     connection_string: str | None = None
     manifest_path: str | None = None
     encrypted: bool = False
@@ -32,7 +35,7 @@ class DiscoveryTablesRequest(BaseModel):
 
 
 class DiscoverySchemaRequest(BaseModel):
-    mode: str = "file"  # file | postgres | oracle
+    mode: str = "file"  # file | postgres | oracle | sqlserver | db2
     connection_string: str | None = None
     manifest_path: str | None = None
     encrypted: bool = False
@@ -40,7 +43,7 @@ class DiscoverySchemaRequest(BaseModel):
 
 
 class DiscoverySampleRequest(BaseModel):
-    mode: str = "file"  # file | postgres | oracle
+    mode: str = "file"  # file | postgres | oracle | sqlserver | db2
     connection_string: str | None = None
     manifest_path: str | None = None
     encrypted: bool = False
@@ -187,4 +190,29 @@ def get_sample_data(body: DiscoverySampleRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@router.get("/lineage/{table_key:path}")
+def get_lineage_subgraph(table_key: str, report_id: str) -> dict[str, Any]:
+    """
+    1-hop co-query lineage subgraph for React Flow (``@xyflow/react``).
+
+    ``table_key`` is path-style; clients should use encodeURIComponent (e.g. ``dbo.orders``).
+    ``report_id`` is required (loaded report cache).
+    """
+    report = deps.get_report(report_id)
+    lin = report.get("lineage") if isinstance(report.get("lineage"), dict) else {}
+    raw_broken = lin.get("broken_table_keys") or []
+    broken: set[str] = set()
+    if isinstance(raw_broken, list):
+        for x in raw_broken:
+            if isinstance(x, str) and x.strip():
+                broken.add(normalize_manifest_table_key(x.strip()))
+    center_norm = normalize_manifest_table_key(table_key.strip())
+    return lineage_subgraph_payload(
+        lin,
+        center_norm or table_key.strip(),
+        broken,
+        report_id=report_id,
+    )
 

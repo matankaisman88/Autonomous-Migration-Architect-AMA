@@ -25,6 +25,8 @@ COPY pyproject.toml .
 COPY dbt_project.yml /opt/ama_defaults/dbt_project.yml
 COPY src/ src/
 COPY sample_data/ sample_data/
+# Live JSONL uses the same distribution as ``tools/generate_kfar_supply.py`` (multi-table discovery).
+COPY tools/generate_kfar_supply.py tools/generate_kfar_supply.py
 
 RUN pip install --no-cache-dir -e ".[dev,sqlserver]" \
     && pip install --no-cache-dir fastapi uvicorn[standard] websockets

@@ -48,6 +48,9 @@ def load_report(body: LoadReportRequest) -> dict[str, Any]:
     report_id = deps.make_report_id(report_path)
     deps.REPORT_STORE[report_id] = report
     deps.PATH_STORE[report_id] = report_path
+    from ama.lineage import clear_lineage_adjacency_cache
+
+    clear_lineage_adjacency_cache(report_id=report_id)
     return {"report_id": report_id, "table_count": len(inv), "domains": domains}
 
 

@@ -1,4 +1,12 @@
-import type { AgentTurnResponse, BulkJob, ReportSummary, ScoredTable } from "./types";
+import type {
+  AgentTurnResponse,
+  BulkJob,
+  ConnectionTestResponse,
+  LineageSubgraphResponse,
+  LiveIngestionSnapshot,
+  ReportSummary,
+  ScoredTable
+} from "./types";
 
 const API_BASE = import.meta.env.VITE_AMA_API_BASE ?? "http://localhost:8000";
 
@@ -100,10 +108,34 @@ export const api = {
       method: "POST",
       body: JSON.stringify({})
     }),
-  pollCheckpointA: (jobId: string) => request<Record<string, unknown>>(`/cockpit/checkpoint-a/job/${jobId}`)
+  pollCheckpointA: (jobId: string) => request<Record<string, unknown>>(`/cockpit/checkpoint-a/job/${jobId}`),
+  getLineage: (reportId: string, tableKey: string) =>
+    request<LineageSubgraphResponse>(
+      `/api/discovery/lineage/${encodeURIComponent(tableKey)}?report_id=${encodeURIComponent(reportId)}`
+    ),
+  testConnection: (body: {
+    mode: string;
+    connection_string?: string | null;
+    manifest_path?: string | null;
+    encrypted?: boolean;
+  }) =>
+    request<ConnectionTestResponse>("/api/connections/test", {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
+  startLiveIngestion: (body: Record<string, unknown>) =>
+    request<{ job_id: string; connection_name: string; build_report?: boolean }>("/api/live/start", {
+      method: "POST",
+      body: JSON.stringify(body)
+    })
 };
 
 export function bulkWsUrl(jobId: string): string {
   const wsBase = API_BASE.replace(/^http/i, "ws");
   return `${wsBase}/ws/bulk/${jobId}`;
+}
+
+export function liveWsUrl(jobId: string): string {
+  const wsBase = API_BASE.replace(/^http/i, "ws");
+  return `${wsBase}/ws/live/${jobId}`;
 }

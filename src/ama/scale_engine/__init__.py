@@ -122,7 +122,7 @@ def _queue_for(conf: int, crit: int, flags: list[AnomalyFlag], conf_floor: int, 
         return "red"
     if 70 <= conf < conf_floor or has_warn:
         return "yellow"
-    if conf >= conf_floor and crit < crit_ceil and not has_block and not has_warn:
+    if conf >= conf_floor and crit <= crit_ceil and not has_block and not has_warn:
         return "green"
     return "yellow"
 
@@ -137,6 +137,11 @@ def evaluate_batch(
     inv = (report.get("discovery") or {}).get("inventory") if isinstance(report.get("discovery"), dict) else []
     rows = [r for r in inv if isinstance(r, dict)] if isinstance(inv, list) else []
     manifest_cols = _load_manifest_columns(report)
+    manifest_table_keys = {
+        str(k).strip()
+        for k in (report.get("ddl_manifest_table_keys") or [])
+        if str(k).strip()
+    }
 
     cluster_rows: dict[str, list[dict[str, Any]]] = {}
     cluster_types: dict[str, dict[str, dict[str, str]]] = {}
@@ -164,6 +169,15 @@ def evaluate_batch(
             cluster_column_types=cluster_types.get(domain, {}),
             column_defs=defs,
         )
+        # Discovery can include non-manifest technical/legacy tables; keep bulk focused on migration scope.
+        if manifest_table_keys and table_key not in manifest_table_keys:
+            flags.append(
+                AnomalyFlag(
+                    level="BLOCK",
+                    name="outside_manifest_scope",
+                    reason=f"{table_key} is not in ddl_manifest_table_keys",
+                )
+            )
         queue = _queue_for(conf.score, crit.score, flags, conf_floor, crit_ceil)
         if queue == "red":
             reason = next((f.reason for f in flags if f.level == "BLOCK"), "")

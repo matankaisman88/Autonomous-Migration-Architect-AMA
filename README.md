@@ -27,7 +27,8 @@ The LLM generates SQL and rationale. It does not decide which tables are safe to
 - **Confidence (0-100):** Glossary match rate + type pattern coverage. AMA computes this from DDL and column mappings with zero LLM calls.
 - **Criticality (0-100):** Lineage hub score + query frequency + financial keyword detection. A table with 500 queries/day and 3 downstream dependents scores 100.
 
-**Bulk approval gate:** Confidence >= 90 AND Criticality < 40. Any table outside this zone routes to human review. High-criticality tables stay blocked regardless of confidence.
+**Bulk approval gate (API defaults):** Confidence >= 70 AND Criticality <= 40. Any table outside this zone routes to human review. High-criticality tables stay blocked regardless of confidence.
+Additionally, discovery rows outside `ddl_manifest_table_keys` are hard-blocked (`outside_manifest_scope`) and never enter bulk automation.
 
 ### Why a Migration Contract before bulk approval?
 

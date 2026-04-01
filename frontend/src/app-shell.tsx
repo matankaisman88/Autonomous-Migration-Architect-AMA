@@ -22,6 +22,7 @@ import {
 const NAV = [
   { to: "/", label: "Overview" },
   { to: "/tables", label: "Tables" },
+  { to: "/live", label: "Live connection" },
   { to: "/glossary", label: "Glossary" },
   { to: "/bulk", label: "Bulk" },
   { to: "/planner", label: "Planner" },

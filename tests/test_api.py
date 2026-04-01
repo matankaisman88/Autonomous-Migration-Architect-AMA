@@ -197,3 +197,16 @@ def test_websocket_bulk_progress_sends_state(monkeypatch) -> None:
         assert isinstance(msg, dict)
         assert "status" in msg
 
+
+def test_discovery_lineage_subgraph() -> None:
+    client = TestClient(app)
+    report_id = _load_report(client)
+    res = client.get(
+        "/api/discovery/lineage/dbo.orders",
+        params={"report_id": report_id},
+    )
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert "nodes" in data and "edges" in data
+    assert isinstance(data["nodes"], list)
+

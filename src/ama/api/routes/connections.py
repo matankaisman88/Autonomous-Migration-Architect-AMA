@@ -20,10 +20,16 @@ router = APIRouter(prefix="/connections", tags=["Connections"])
 
 
 class ConnectionTestRequest(BaseModel):
-    mode: str                          # "file" | "postgres" | "oracle"
+    mode: str                          # "file" | "postgres" | "oracle" | "sqlserver" | "db2"
     connection_string: str | None = None
     manifest_path: str | None = None
     encrypted: bool = False            # True → decrypt with AMA_ENCRYPTION_KEY
+    host: str | None = None
+    port: int | None = None
+    user: str | None = None
+    password: str | None = None
+    database: str | None = None
+    service_name: str | None = None
 
 
 class ConnectionTestResponse(BaseModel):
@@ -41,6 +47,42 @@ class ExplainRequest(BaseModel):
     connection_string: str | None = None
     manifest_path: str | None = None
     encrypted: bool = False
+
+
+def _compose_connection_string(body: ConnectionTestRequest) -> str | None:
+    """Build a driver connection string from discrete fields (never logged here)."""
+    if body.connection_string and str(body.connection_string).strip():
+        return str(body.connection_string).strip()
+    mode = body.mode.lower().strip()
+    if mode == "file":
+        return None
+    if mode in ("sqlserver", "tsql"):
+        if not all([body.host, body.port, body.user, body.database]):
+            return None
+        pwd = "" if body.password is None else body.password
+        return (
+            "DRIVER={ODBC Driver 18 for SQL Server};"
+            f"SERVER={body.host},{body.port};"
+            f"DATABASE={body.database};"
+            f"UID={body.user};"
+            f"PWD={pwd};"
+            "TrustServerCertificate=yes;"
+        )
+    if mode == "oracle":
+        if not all([body.host, body.port, body.user]):
+            return None
+        pwd = "" if body.password is None else body.password
+        svc = (body.service_name or body.database or "XEPDB1").strip()
+        return f"{body.user}/{pwd}@{body.host}:{body.port}/{svc}"
+    if mode == "db2":
+        if not all([body.host, body.port, body.user, body.database]):
+            return None
+        pwd2 = "" if body.password is None else body.password
+        return (
+            f"DATABASE={body.database};HOSTNAME={body.host};PORT={body.port};"
+            f"PROTOCOL=TCPIP;UID={body.user};PWD={pwd2};"
+        )
+    return None
 
 
 def _safe_manifest_path(manifest_path: str | None) -> Path | None:
@@ -62,9 +104,11 @@ def test_connection(body: ConnectionTestRequest) -> Any:
     from ama.mcp.factory import get_schema_provider
 
     try:
+        composed = _compose_connection_string(body)
+        conn = composed if composed is not None else body.connection_string
         provider = get_schema_provider(
             mode=body.mode,
-            connection_string=body.connection_string,
+            connection_string=conn,
             manifest_path=_safe_manifest_path(body.manifest_path),
             encrypted=body.encrypted,
         )

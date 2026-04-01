@@ -15,7 +15,7 @@ router = APIRouter()
 
 
 class EvaluateRequest(BaseModel):
-    conf_floor: int = 90
+    conf_floor: int = 70
     crit_ceil: int = 40
     dry_run: bool = True
 

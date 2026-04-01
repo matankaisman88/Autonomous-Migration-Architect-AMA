@@ -3,6 +3,9 @@ Utilities for logging and displaying paths without leaking home directories or t
 
 AMA does not store API keys in code; ``AMA_OPENAI_API_KEY`` and similar are read via
 ``IngestionSettings`` / environment only.
+
+Live-ingestion and background jobs must use ``redact_path`` / ``safe_path_repr`` for any
+filesystem paths written to logs — never log raw connection strings or passwords.
 """
 
 from __future__ import annotations

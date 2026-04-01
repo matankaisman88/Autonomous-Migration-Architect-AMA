@@ -20,6 +20,7 @@ import {
 import { useMemo, useState } from "react";
 import { api } from "../api";
 import { PageCard } from "../components/PageCard";
+import { TableLineageGraph } from "./TableLineageGraph";
 import { QueueChip, useRequireReportId, useErrorSetter } from "./common";
 import type { ScoredTable } from "../types";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
@@ -396,6 +397,21 @@ export function TablesPage() {
               <Typography variant="body2">Path: {String(approveResult.sql_path ?? "-")}</Typography>
               {approveResult.error ? <Typography color="error">Error: {String(approveResult.error)}</Typography> : null}
             </>
+          )}
+        </PageCard>
+      </Grid2>
+      <Grid2 size={{ xs: 12 }}>
+        <PageCard title="Table lineage (co-query)">
+          {reportId && selectedTable ? (
+            <TableLineageGraph
+              reportId={reportId}
+              tableKey={selectedTable}
+              onError={(msg) => setError(msg)}
+            />
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Load a report and select a table to view lineage.
+            </Typography>
           )}
         </PageCard>
       </Grid2>

@@ -77,6 +77,57 @@ def test_criticality_score_composition_forces_red() -> None:
     assert scored.queue == "red"
 
 
+def test_non_sensitive_high_usage_with_single_downstream_can_stay_green() -> None:
+    report = _base_report()
+    report["discovery"]["inventory"] = [
+        {
+            "full_name": "sales.customers",
+            "business_domain": "Sales",
+            "query_count": 500,
+            "status": "active",
+            "priority_score": 1.0,
+            "column_count": 6,
+        }
+    ]
+    report["alias_merge"] = {
+        "customer_id": "customer_id",
+        "created_at": "created_at",
+        "segment": "segment",
+        "city": "city",
+    }
+    report["lineage"]["edges"] = [{"source": "sales.customers", "target": "sales.orders"}]
+    report["importance_ddl"] = [
+        {"source_table": "sales.customers", "column": "customer_id"},
+        {"source_table": "sales.customers", "column": "created_at"},
+        {"source_table": "sales.customers", "column": "segment"},
+        {"source_table": "sales.customers", "column": "city"},
+    ]
+    out = evaluate_batch(report=report, dry_run=True)
+    scored = out.scored_tables[0]
+    assert scored.criticality < 40
+    assert scored.queue == "green"
+
+
+def test_table_outside_manifest_scope_is_blocked() -> None:
+    report = _base_report()
+    report["discovery"]["inventory"] = [
+        {
+            "full_name": "legacy_hebrew.חשבוניות",
+            "business_domain": "Legacy",
+            "query_count": 30,
+            "status": "active",
+            "priority_score": 0.2,
+            "column_count": 4,
+        }
+    ]
+    report["ddl_manifest_table_keys"] = ["dbo.orders", "dbo.customers"]
+    report["importance_ddl"] = [{"source_table": "legacy_hebrew.חשבוניות", "column": "מספר_חשבונית"}]
+    out = evaluate_batch(report=report, dry_run=True)
+    scored = out.scored_tables[0]
+    assert scored.queue == "red"
+    assert any(f.name == "outside_manifest_scope" and f.level == "BLOCK" for f in scored.anomaly_flags)
+
+
 def test_contract_hash_stability() -> None:
     green = [
         {

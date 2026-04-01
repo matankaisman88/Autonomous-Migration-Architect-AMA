@@ -34,7 +34,7 @@ def get_schema_provider(
 
     Parameters
     ----------
-    mode : "file" | "postgres" | "oracle"
+    mode : "file" | "postgres" | "oracle" | "sqlserver" | "db2"
     connection_string : required when mode != "file"
     manifest_path : DDL manifest JSON path (file mode only)
     data_root : base dir for resolving DDL paths (file mode only)
@@ -81,6 +81,15 @@ def get_schema_provider(
             )
         from ama.mcp.sqlserver_provider import SQLServerSchemaProvider
         return SQLServerSchemaProvider(connection_string=raw_conn, timeout_seconds=ts)
+
+    elif resolved_mode == "db2":
+        if not raw_conn:
+            raise ValueError(
+                "AMA_SCHEMA_MODE=db2 requires AMA_DB_CONNECTION_STRING "
+                "(e.g. DATABASE=...;HOSTNAME=...;PORT=...;PROTOCOL=TCPIP;UID=...;PWD=...;)."
+            )
+        from ama.mcp.db2_provider import DB2SchemaProvider
+        return DB2SchemaProvider(connection_string=raw_conn, timeout_seconds=ts)
 
     else:  # "file" (default)
         from ama.mcp.file_provider import FileSchemaProvider
