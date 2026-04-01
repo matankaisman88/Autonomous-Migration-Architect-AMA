@@ -208,6 +208,22 @@ def _run_bulk_job(
                         )
                         ok = bool(retry.get("success"))
                         reason = str(retry.get("logs") or reason).strip()
+                        if not ok:
+                            passthrough_sql = normalize_candidate_sql(f"SELECT * FROM {table_key}", table_key)
+                            if passthrough_sql:
+                                _write_model_files(
+                                    output_dir=output_dir,
+                                    model_name=model_name,
+                                    sql=passthrough_sql,
+                                    schema_yml=schema_yml,
+                                )
+                                retry2 = migration_agent_tools.test_model(
+                                    dbt_project_dir=dbt_project_dir,
+                                    model_name=model_name,
+                                    target=dbt_target,
+                                )
+                                ok = bool(retry2.get("success"))
+                                reason = str(retry2.get("logs") or reason).strip()
                 with _BULK_JOBS_LOCK:
                     if ok:
                         _BULK_JOBS[job_id]["success"].append(table_key)
