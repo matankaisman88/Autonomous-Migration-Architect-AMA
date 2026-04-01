@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ama.dbt_migration.generator import normalize_candidate_sql
 from ama.dbt_migration.writer import _write_model_files
 from ama.hitl_apply import decision_from_queue
 from ama.migration_agent import agent_tools as migration_agent_tools
@@ -108,7 +109,8 @@ def _run_bulk_job(
                     glossary_path=None,
                 )
                 model_name = str(prop.get("model_name") or table_key.replace(".", "_"))
-                sql = str(prop.get("sql") or "")
+                raw_sql = str(prop.get("sql") or "")
+                sql = normalize_candidate_sql(raw_sql, table_key)
                 schema_yml = str(prop.get("schema_yml") or "")
                 _write_model_files(
                     output_dir=output_dir,
@@ -185,7 +187,8 @@ def _run_bulk_job(
                         error_log=reason,
                         attempt_history=[],
                     )
-                    corrected_sql = str((fix or {}).get("corrected_sql") or "").strip()
+                    raw_corrected_sql = str((fix or {}).get("corrected_sql") or "").strip()
+                    corrected_sql = normalize_candidate_sql(raw_corrected_sql, table_key)
                     if corrected_sql:
                         try:
                             schema_path = output_dir / f"{model_name}.schema.yml"

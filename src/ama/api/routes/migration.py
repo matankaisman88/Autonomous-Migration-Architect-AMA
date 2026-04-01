@@ -87,12 +87,15 @@ def migration_approve(report_id: str, body: ApproveRequest) -> dict[str, Any]:
     report = deps.get_report(report_id)
     dbt_project_dir = deps.get_dbt_project_dir()
     output_dir = deps.get_output_dir(report_id)
+    normalized_sql = normalize_candidate_sql(body.sql, body.table_key)
+    if not normalized_sql:
+        raise HTTPException(status_code=400, detail="approved SQL is invalid or unsafe for target table")
 
     try:
         sql_path, _ = _write_model_files(
             output_dir=output_dir,
             model_name=body.model_name,
-            sql=body.sql,
+            sql=normalized_sql,
             schema_yml=body.schema_yml,
         )
     except Exception as exc:
