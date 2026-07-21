@@ -99,7 +99,12 @@ class MockCursor:
         # Plan cache fallback
         if "dm_exec_query_stats" in low:
             self.description = [("batch_text",)]
-            self._results = list(getattr(self, "_plan_cache_rows", []))
+            rows = list(getattr(self, "_plan_cache_rows", []))
+            if getattr(self, "_plan_cache_respect_range", False) and params and len(params) >= 3:
+                until = params[2]
+                if hasattr(until, "date") and until.date().isoformat() == "2026-07-01":
+                    rows = []
+            self._results = rows
             return
 
         self._results = []
@@ -267,6 +272,20 @@ def test_extract_logs_falls_back_to_plan_cache(monkeypatch):
     assert any("plan cache" in w.lower() for w in result.warnings)
     assert result.stats.get("unique_after_dedupe") == 1
     assert "sp_helpdb" not in result.records[0]["sql"]
+
+
+def test_extract_logs_plan_cache_respects_date_range_when_query_store_empty(monkeypatch):
+    conn = _install_mock_pyodbc(monkeypatch)
+    cur = conn.cursor()
+    cur._qs_state = "READ_WRITE"
+    cur._qs_sql_rows = []
+    cur._plan_cache_rows = [("SELECT * FROM dbo.orders WHERE id = 1",)]
+    cur._plan_cache_respect_range = True
+    p = SQLServerSchemaProvider("DRIVER=Dummy;SERVER=Dummy;DATABASE=Dummy", timeout_seconds=2)
+    result = p.extract_logs("2026-07-01", "2026-07-01", max_rows=10, schemas=["dbo"])
+    assert result.records == []
+    assert result.source == "query_store"
+    assert any("supplementing from plan cache" in w for w in result.warnings)
 
 
 def test_extract_logs_plan_cache_splits_go_batches(monkeypatch):

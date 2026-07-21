@@ -482,12 +482,16 @@ class SQLServerSchemaProvider(SchemaProvider):
         max_rows: int,
         *,
         since: datetime | None = None,
+        until: datetime | None = None,
     ) -> list[str]:
         params: list[Any] = [max_rows]
-        since_clause = ""
+        time_clauses = ""
         if since is not None:
-            since_clause = " AND qs.last_execution_time >= ?"
+            time_clauses += " AND qs.last_execution_time >= ?"
             params.append(since)
+        if until is not None:
+            time_clauses += " AND qs.last_execution_time <= ?"
+            params.append(until)
         cur.execute(
             f"""
             SELECT TOP (?)
@@ -496,7 +500,7 @@ class SQLServerSchemaProvider(SchemaProvider):
             CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) AS st
             WHERE st.text IS NOT NULL
               AND LTRIM(RTRIM(st.text)) <> ''
-              {since_clause}
+              {time_clauses}
             ORDER BY qs.last_execution_time DESC
             """,
             tuple(params),
@@ -574,9 +578,11 @@ class SQLServerSchemaProvider(SchemaProvider):
                 else:
                     warnings.append(
                         "Query Store unavailable or disabled — using plan cache "
-                        f"(executions since {start_dt.date().isoformat()})"
+                        f"({start_dt.date().isoformat()} through {end_dt.date().isoformat()})"
                     )
-                    raw_sqls = self._extract_logs_plan_cache(cur, fetch_pool, since=start_dt)
+                    raw_sqls = self._extract_logs_plan_cache(
+                        cur, fetch_pool, since=start_dt, until=end_dt
+                    )
                     stats["plan_cache_batches"] = len(raw_sqls)
                     date_range_applied = True
 
@@ -590,9 +596,12 @@ class SQLServerSchemaProvider(SchemaProvider):
                 if not filtered and qs_enabled:
                     warnings.append(
                         "Query Store had no application SQL for the requested schemas/date range "
-                        f"— supplementing from plan cache (executions since {start_dt.date().isoformat()})"
+                        f"— supplementing from plan cache "
+                        f"({start_dt.date().isoformat()} through {end_dt.date().isoformat()})"
                     )
-                    plan_raw = self._extract_logs_plan_cache(cur, fetch_pool, since=start_dt)
+                    plan_raw = self._extract_logs_plan_cache(
+                        cur, fetch_pool, since=start_dt, until=end_dt
+                    )
                     stats["plan_cache_batches"] = len(plan_raw)
                     filtered, plan_skipped = filter_application_sql_texts(plan_raw, norm_schemas, cap)
                     stats["after_schema_filter"] = len(filtered)

@@ -47,7 +47,7 @@ Real-extraction manifests include `_extraction_meta` (log source, schemas, warni
 ### SQL logs (`extract_logs`)
 
 1. **Query Store** (if enabled): `sys.query_store_*` filtered by date range.
-2. **Fallback:** `sys.dm_exec_query_stats` + `sys.dm_exec_sql_text()` (plan cache only; dates ignored).
+2. **Fallback:** `sys.dm_exec_query_stats` + `sys.dm_exec_sql_text()` (plan cache), filtered to the same resolved date range when Query Store is empty or disabled.
 3. Filters out system/noise SQL (`sys.*`, `sp_*`, `SET SHOWPLAN`, etc.).
 4. Keeps queries that reference requested schemas (e.g. `dbo.`).
 5. **Literal redaction** before write: string literals → `'<REDACTED>'`, comparison numerics → `<N>`.
