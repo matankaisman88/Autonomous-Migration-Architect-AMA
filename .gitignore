@@ -47,8 +47,14 @@ out/
 # Live connection exports (runtime; bind-mounted in Docker — see docs/LIVE_CONNECTION.md)
 live_data/
 
+# dbt runtime (generated models, compile output, checkpoints)
+dbt_project/target/
+dbt_project/logs/
+dbt_project/models/ama_generated/
+
 # Frontend (local npm install / Vite build artifacts)
 frontend/node_modules/
+frontend/dist/
 frontend/*.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts
