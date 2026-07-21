@@ -267,6 +267,14 @@ def _infer_sql_type(column_name: str) -> str:
     c = (column_name or "").lower()
     if c.endswith("_id") or c == "id":
         return "INT"
+    if c == "is_active" or c.startswith("is_"):
+        return "BIT"
+    if c in ("quantity", "qty") or c.endswith("_qty"):
+        return "DECIMAL(18,4)"
+    if "discount" in c:
+        return "DECIMAL(18,2)"
+    if c == "currency":
+        return "NVARCHAR(10)"
     if "amount" in c or "total" in c or "price" in c or "rate" in c or "vat" in c:
         return "DECIMAL(18,2)"
     if "date" in c or c.endswith("_at") or c.endswith("_time") or c.endswith("_dt"):
@@ -280,6 +288,14 @@ def _synthetic_value(column_name: str) -> Any:
     c = (column_name or "").lower()
     if c.endswith("_id") or c == "id":
         return 1001
+    if c == "is_active" or c.startswith("is_"):
+        return 1
+    if c in ("quantity", "qty") or c.endswith("_qty"):
+        return 10
+    if "discount" in c:
+        return 5.00
+    if c == "currency":
+        return "USD"
     if "amount" in c or "total" in c or "price" in c or "rate" in c or "vat" in c:
         return 123.45
     if "date" in c or c.endswith("_at") or c.endswith("_time") or c.endswith("_dt"):

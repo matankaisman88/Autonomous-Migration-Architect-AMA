@@ -7,6 +7,9 @@
     3. Execute (F5). Queries 1–70 use dbo only; 71–100 need finance + logistics schemas.
 
   After running, re-run Live → Real Extraction with today's log end date.
+
+  Note: demo DDL infers is_active, quantity, and discount as NVARCHAR (seed value 'sample').
+  Queries below use TRY_CAST on those columns so all 100 batches complete without conversion errors.
 */
 
 USE kfar_supply;
@@ -15,7 +18,7 @@ GO
 -- dbo.customers (1–15)
 SELECT TOP 100 customer_id, customer_name, email FROM dbo.customers;
 GO
-SELECT customer_id, city, country_code FROM dbo.customers WHERE is_active = 1;
+SELECT customer_id, city, country_code FROM dbo.customers WHERE TRY_CAST(is_active AS int) = 1;
 GO
 SELECT customer_name, email, phone FROM dbo.customers WHERE city = N'Tel Aviv';
 GO
@@ -27,11 +30,11 @@ SELECT customer_id, customer_name FROM dbo.customers WHERE email LIKE N'%@%';
 GO
 SELECT DISTINCT country_code FROM dbo.customers ORDER BY country_code;
 GO
-SELECT customer_id, customer_name FROM dbo.customers WHERE is_active = 0;
+SELECT customer_id, customer_name FROM dbo.customers WHERE TRY_CAST(is_active AS int) = 0;
 GO
 SELECT TOP 20 customer_name, city FROM dbo.customers WHERE country_code = N'IL';
 GO
-SELECT AVG(CAST(is_active AS float)) AS active_rate FROM dbo.customers;
+SELECT AVG(TRY_CAST(is_active AS float)) AS active_rate FROM dbo.customers;
 GO
 SELECT customer_id FROM dbo.customers WHERE phone IS NOT NULL;
 GO
@@ -55,7 +58,7 @@ SELECT status, COUNT(*) AS order_count FROM dbo.orders GROUP BY status;
 GO
 SELECT TOP 50 order_id, created_at FROM dbo.orders ORDER BY amount DESC;
 GO
-SELECT order_id, discount FROM dbo.orders WHERE discount > 0;
+SELECT order_id, discount FROM dbo.orders WHERE TRY_CAST(discount AS DECIMAL(18,4)) > 0;
 GO
 SELECT currency, SUM(amount) AS revenue FROM dbo.orders GROUP BY currency;
 GO
@@ -79,7 +82,7 @@ SELECT AVG(amount) AS avg_order_value FROM dbo.orders;
 GO
 SELECT customer_id, MAX(amount) AS max_order FROM dbo.orders GROUP BY customer_id;
 GO
-SELECT order_id, amount, discount FROM dbo.orders WHERE discount IS NOT NULL AND discount > 0;
+SELECT order_id, amount, discount FROM dbo.orders WHERE discount IS NOT NULL AND TRY_CAST(discount AS DECIMAL(18,4)) > 0;
 GO
 SELECT TOP 100 order_id, customer_id, created_at FROM dbo.orders ORDER BY order_id;
 GO
@@ -89,9 +92,9 @@ GO
 -- dbo.order_lines (36–50)
 SELECT TOP 100 line_id, order_id, product_id, quantity FROM dbo.order_lines;
 GO
-SELECT order_id, SUM(quantity) AS total_qty FROM dbo.order_lines GROUP BY order_id;
+SELECT order_id, SUM(TRY_CAST(quantity AS DECIMAL(18,4))) AS total_qty FROM dbo.order_lines GROUP BY order_id;
 GO
-SELECT product_id, SUM(quantity) AS units_sold FROM dbo.order_lines GROUP BY product_id;
+SELECT product_id, SUM(TRY_CAST(quantity AS DECIMAL(18,4))) AS units_sold FROM dbo.order_lines GROUP BY product_id;
 GO
 SELECT line_id, unit_price, net_amount FROM dbo.order_lines WHERE net_amount > 100;
 GO
@@ -101,17 +104,17 @@ SELECT TOP 50 * FROM dbo.order_lines ORDER BY net_amount DESC;
 GO
 SELECT product_id, AVG(unit_price) AS avg_price FROM dbo.order_lines GROUP BY product_id;
 GO
-SELECT line_id, order_id FROM dbo.order_lines WHERE quantity >= 10;
+SELECT line_id, order_id FROM dbo.order_lines WHERE TRY_CAST(quantity AS DECIMAL(18,4)) >= 10;
 GO
 SELECT order_id, SUM(net_amount) AS order_line_total FROM dbo.order_lines GROUP BY order_id;
 GO
-SELECT TOP 100 line_id, discount FROM dbo.order_lines WHERE discount > 0;
+SELECT TOP 100 line_id, discount FROM dbo.order_lines WHERE TRY_CAST(discount AS DECIMAL(18,4)) > 0;
 GO
 SELECT product_id, COUNT(DISTINCT order_id) AS order_count FROM dbo.order_lines GROUP BY product_id;
 GO
-SELECT line_id, quantity, unit_price, (quantity * unit_price) AS gross FROM dbo.order_lines;
+SELECT line_id, quantity, unit_price, (TRY_CAST(quantity AS DECIMAL(18,4)) * unit_price) AS gross FROM dbo.order_lines;
 GO
-SELECT order_id FROM dbo.order_lines GROUP BY order_id HAVING SUM(quantity) > 20;
+SELECT order_id FROM dbo.order_lines GROUP BY order_id HAVING SUM(TRY_CAST(quantity AS DECIMAL(18,4))) > 20;
 GO
 SELECT TOP 20 product_id, SUM(net_amount) AS revenue FROM dbo.order_lines GROUP BY product_id ORDER BY revenue DESC;
 GO
@@ -143,7 +146,7 @@ SELECT o.customer_id, AVG(o.amount) AS avg_order, COUNT(ol.line_id) AS line_coun
 GO
 SELECT c.customer_id FROM dbo.customers c WHERE NOT EXISTS (SELECT 1 FROM dbo.orders o WHERE o.customer_id = c.customer_id);
 GO
-SELECT o.order_id FROM dbo.orders o WHERE EXISTS (SELECT 1 FROM dbo.order_lines ol WHERE ol.order_id = o.order_id AND ol.quantity > 5);
+SELECT o.order_id FROM dbo.orders o WHERE EXISTS (SELECT 1 FROM dbo.order_lines ol WHERE ol.order_id = o.order_id AND TRY_CAST(ol.quantity AS DECIMAL(18,4)) > 5);
 GO
 SELECT c.customer_name, o.order_id, ol.quantity, ol.unit_price FROM dbo.customers c JOIN dbo.orders o ON c.customer_id = o.customer_id JOIN dbo.order_lines ol ON o.order_id = ol.order_id WHERE o.amount > 500;
 GO
@@ -153,11 +156,11 @@ SELECT TOP 50 c.city, SUM(o.amount) AS city_revenue FROM dbo.customers c JOIN db
 GO
 SELECT o.order_id, COUNT(ol.line_id) AS lines, SUM(ol.net_amount) AS net FROM dbo.orders o LEFT JOIN dbo.order_lines ol ON o.order_id = ol.order_id GROUP BY o.order_id;
 GO
-SELECT c.customer_id, c.customer_name, o.order_id, o.status FROM dbo.customers c JOIN dbo.orders o ON c.customer_id = o.customer_id WHERE c.is_active = 1;
+SELECT c.customer_id, c.customer_name, o.order_id, o.status FROM dbo.customers c JOIN dbo.orders o ON c.customer_id = o.customer_id WHERE TRY_CAST(c.is_active AS int) = 1;
 GO
-SELECT ol.product_id, c.country_code, SUM(ol.quantity) AS qty FROM dbo.order_lines ol JOIN dbo.orders o ON ol.order_id = o.order_id JOIN dbo.customers c ON o.customer_id = c.customer_id GROUP BY ol.product_id, c.country_code;
+SELECT ol.product_id, c.country_code, SUM(TRY_CAST(ol.quantity AS DECIMAL(18,4))) AS qty FROM dbo.order_lines ol JOIN dbo.orders o ON ol.order_id = o.order_id JOIN dbo.customers c ON o.customer_id = c.customer_id GROUP BY ol.product_id, c.country_code;
 GO
-SELECT o.order_id, o.customer_id, o.amount FROM dbo.orders o WHERE o.customer_id IN (SELECT customer_id FROM dbo.customers WHERE is_active = 1);
+SELECT o.order_id, o.customer_id, o.amount FROM dbo.orders o WHERE o.customer_id IN (SELECT customer_id FROM dbo.customers WHERE TRY_CAST(is_active AS int) = 1);
 GO
 
 -- finance + logistics (71–100) — skip if those schemas are not deployed
