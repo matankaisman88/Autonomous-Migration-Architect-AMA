@@ -9,7 +9,7 @@ from ama.scale_engine.audit import append_decision
 from ama.scale_engine.contract import build_contract
 from ama.scale_engine.anomaly import AnomalyFlag
 from ama.scale_engine.criticality import CriticalityResult
-from ama.scale_engine.scorer import ConfidenceResult
+from ama.scale_engine.scorer import ConfidenceResult, score_confidence
 
 
 def _base_report() -> dict:
@@ -391,6 +391,29 @@ def test_bulk_dialect_flows_to_proposals_source_text() -> None:
     assert "key=\"bulk_dialect\"" in text
     assert "st.session_state[\"migration_dialect\"]" in text
     assert "dialect=str(st.session_state.get(\"migration_dialect\") or \"duckdb\")" in text
+
+
+def test_score_confidence_without_glossary_uses_alias_merge_label() -> None:
+    report = {
+        "glossary_source": {"total_entries": 0, "layers": [], "glossary_paths_resolved": []},
+        "alias_merge": {
+            "merged_entities": [
+                {
+                    "source_table": "dbo.customers",
+                    "canonical_column": "customer_id",
+                    "merge_confidence": 0.98,
+                }
+            ]
+        },
+    }
+    result = score_confidence(
+        inventory_row={"full_name": "dbo.customers"},
+        report=report,
+        column_defs=[{"name": "customer_id", "type": "int"}],
+    )
+    assert "alias merge matches" in result.reason
+    assert "glossary" not in result.reason.lower().split("alias merge")[0]
+    assert "merge_match" in result.components
 
 
 def test_bulk_parallel_workers_control_and_executor_source_text() -> None:

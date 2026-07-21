@@ -153,6 +153,8 @@ def _resolve_glossary_paths(
     root: Path, settings: IngestionSettings, args: argparse.Namespace
 ) -> list[Path]:
     """Primary glossary, then optional dirty/overlay. Explicit --glossary skips auto paths unless --glossary-dirty is set."""
+    if getattr(args, "no_glossary", False):
+        return []
     if args.glossary:
         paths = [Path(args.glossary).resolve()]
         gd = getattr(args, "glossary_dirty", None)
@@ -396,12 +398,13 @@ def cmd_run(args: argparse.Namespace) -> int:
     logged_by_ddl: dict[str, list[str]] = {}
     mr = None
     gloss_paths = _resolve_glossary_paths(root, settings, args)
+    no_glossary = bool(getattr(args, "no_glossary", False))
     glossary_source_report = build_glossary_source_report(root, gloss_paths)
     ddl_path = _resolve_ddl_path(root, settings, args)
     manifest_path = _resolve_manifest_path(root, settings, args)
     manifest = load_ddl_manifest(manifest_path)
     if ddl_path is not None:
-        gloss = load_glossary(*gloss_paths)
+        gloss = load_glossary(*gloss_paths, use_default_seed=not no_glossary)
         mf = getattr(args, "merge_floor", None)
         ct = getattr(args, "confirmed_threshold", None)
         merge_floor = float(mf) if mf is not None else settings.merge_confidence_floor

@@ -43,7 +43,7 @@ export type LineageFlowNode = {
   id: string;
   type: string;
   position: { x: number; y: number };
-  data: { label: string; role: LineageNodeRole };
+  data: { label: string; role: LineageNodeRole; query_count?: number | null };
 };
 
 export type LineageFlowEdge = {
@@ -51,7 +51,12 @@ export type LineageFlowEdge = {
   source: string;
   target: string;
   label?: string;
-  data?: { weight: number; kind: string };
+  data?: {
+    weight?: number;
+    kind: string;
+    column?: string;
+    coquery_count?: number;
+  };
 };
 
 export type LineageSubgraphResponse = {
@@ -59,6 +64,8 @@ export type LineageSubgraphResponse = {
   edges: LineageFlowEdge[];
   empty_reason: string | null;
   center_table_key: string;
+  lineage_mode?: "pk_fk" | "coquery";
+  legend?: string;
 };
 
 export type ConnectionTestResponse = {

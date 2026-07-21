@@ -107,12 +107,12 @@ class MergeResult:
     proposals: list[MergeCandidate]
 
 
-def load_glossary(*paths: Path | None) -> dict[str, str]:
+def load_glossary(*paths: Path | None, use_default_seed: bool = True) -> dict[str, str]:
     """
     Merge one or more glossary JSON objects (flat string→string maps).
     Later files only add keys not already present (first file wins).
     Keys starting with ``_`` are skipped (reserved for metadata).
-    If no path exists or is given, returns :func:`default_glossary`.
+    When no file loads, returns :func:`default_glossary` if ``use_default_seed`` else ``{}``.
     """
     out: dict[str, str] = {}
     any_loaded = False
@@ -131,7 +131,7 @@ def load_glossary(*paths: Path | None) -> dict[str, str]:
             if nk and nk not in out:
                 out[nk] = nv
     if not any_loaded:
-        return default_glossary()
+        return default_glossary() if use_default_seed else {}
     return out
 
 
@@ -261,7 +261,7 @@ class AliasResolver:
         confirmed_threshold: float = DEFAULT_CONFIRMED_THRESHOLD,
     ) -> None:
         self.ddl_columns = [normalize_sql_identifier(c) for c in ddl_columns if c.strip()]
-        self.glossary = glossary or default_glossary()
+        self.glossary = default_glossary() if glossary is None else glossary
         self._llm = llm
         self.merge_floor = merge_floor
         self.confirmed_threshold = confirmed_threshold

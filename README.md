@@ -16,6 +16,13 @@ docker compose up --build
 
 Pre-loaded with the Kfar Supply dataset - a fictional Israeli wholesale distributor with legacy SQL Server schema.
 
+Use **Live connection** in the UI to connect to SQL Server and export artifacts under `live_data/<connection_name>/`:
+
+- **Kfar Demo (synthetic)** — deploys demo DDL/DML and synthetic SQL logs (original demo path).
+- **Real Extraction (read-only)** — pulls real DDL from `INFORMATION_SCHEMA` and SQL text from Query Store / plan cache; optional **all schemas** or comma-separated schema list; no bundled glossary.
+
+See [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) and [docs/SQLSERVER.md](docs/SQLSERVER.md).
+
 Want Oracle/DB2 variants for the same flow? Generate them with `tools/generate_extreme_chaos.py --source-dialect <dialect>` or run `make demo-multi-source`.
 
 ## Architecture
@@ -85,6 +92,31 @@ Ingest -> Alias Resolution -> Deterministic Scoring -> Queue Assignment
 - Jira CSV + Confluence HTML export
 - Enterprise-scale streaming log analysis (chunked processing, incremental co-occurrence, sparse similarity path)
 - Multi-domain synthetic data generator for testing, including `ChaosFactory` scale generation (1,000+ tables)
+- **Live connection** — SQL Server ingest via UI/API: Kfar demo deploy or read-only real DDL + query log extraction → `live_data/`
+
+## Live Connection (SQL Server)
+
+Connect from the React UI (**Live connection**) or `POST /api/live/start`:
+
+| `source_mode` | Behavior |
+| --- | --- |
+| `kfar_demo` (default) | Deploy Kfar Supply tables to target DB; write synthetic logs + demo DDL; report includes bundled Hebrew glossary/comms from `sample_data/kfar_supply` |
+| `real_extract` | Read-only: extract BASE TABLE DDL + Query Store/plan-cache SQL; **`all_schemas: true`** for entire DB or **`schemas`** for `dbo, finance, …`; report uses **exported artifacts only** (no demo glossary) |
+
+Outputs land in `live_data/<connection_name>/` (`ddl/`, `manifest.json`, `sql_logs/prod.jsonl`, optional `ama_live_report.json`).
+
+**Tables tab lineage:** PK/FK schema graph with query counts on nodes and shared-query counts on edges (dashed links = SQL co-usage without DDL FK).
+
+**Docs:** [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) · [docs/SQLSERVER.md](docs/SQLSERVER.md)  
+**Test queries:** [tools/kfar_test_queries.sql](tools/kfar_test_queries.sql) (100 dbo batches for Query Store / plan cache seeding)
+
+```bash
+docker compose build api web && docker compose up -d
+# UI → Live connection → Real Extraction
+#   • All user schemas — full Kfar DB (dbo + finance + logistics)
+#   • Or schemas: dbo, finance, logistics
+# → Build report → Tables tab
+```
 
 ## Enterprise Scale + Multi-Source
 
@@ -238,12 +270,15 @@ src/ama/
   migration_agent/ <- agentic SQL generation + HITL gate
   dbt_migration/   <- SQL self-healing, model writing, dbt runner
   planner/         <- wave planning, lineage ordering
-  api/             <- FastAPI REST + WebSocket
+  api/             <- FastAPI REST + WebSocket (incl. /api/live/start)
+  mcp/             <- SchemaProvider + SQL Server extract_ddl / extract_logs
   ui/              <- Streamlit dashboard (legacy, still functional)
 frontend/          <- React + MUI dashboard
 tests/             <- 179+ tests including chaos dataset
-tools/             <- synthetic data generators
+tools/             <- synthetic data generators + kfar_test_queries.sql
+docs/              <- SQLSERVER.md, LIVE_CONNECTION.md
 sample_data/       <- Kfar Supply demo + scale engine chaos dataset
+live_data/         <- Live connection exports (gitignored; bind-mounted in Docker)
 ```
 
 ## Design Decisions

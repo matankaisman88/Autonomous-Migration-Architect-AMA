@@ -28,53 +28,68 @@ def score_confidence(
     report: dict[str, Any],
     column_defs: list[dict[str, str]],
 ) -> ConfidenceResult:
-    alias_merge = report.get("alias_merge") if isinstance(report.get("alias_merge"), dict) else {}
-    glossary_keys: set[str] = set()
-    glossary_vals: set[str] = set()
-    for k, v in alias_merge.items():
-        if k in ("merged_entities", "review_candidates", "trash_candidates", "ddl_manifest"):
-            continue
-        if isinstance(k, str):
-            glossary_keys.add(k.strip().lower())
-        if isinstance(v, str):
-            glossary_vals.add(v.strip().lower())
-        elif isinstance(v, list):
-            for item in v:
-                if isinstance(item, str):
-                    glossary_vals.add(item.strip().lower())
+    gs = report.get("glossary_source") if isinstance(report.get("glossary_source"), dict) else {}
+    glossary_loaded = int(gs.get("total_entries") or 0) > 0
+
+    glossary_terms: set[str] = set()
+    if glossary_loaded:
+        for layer in gs.get("layers") or []:
+            if not isinstance(layer, dict):
+                continue
+            for entry in layer.get("entries") or []:
+                if not isinstance(entry, dict):
+                    continue
+                for key in ("source_term", "target_column"):
+                    term = str(entry.get(key) or "").strip().lower()
+                    if term:
+                        glossary_terms.add(term)
 
     merge_by_col = _merge_confidence_by_column(report, str(inventory_row.get("full_name") or ""))
 
     total_columns = max(1, len(column_defs))
     matched_columns = 0
+    glossary_hits = 0
     pattern_hits = 0
     for col in column_defs:
         name = str(col.get("name") or "").strip().lower()
         ctype = str(col.get("type") or "").strip().lower()
         if not name:
             continue
-        col_matched = (
-            name in glossary_keys
-            or name in glossary_vals
-            or any(name in g for g in glossary_keys)
-            or merge_by_col.get(name, 0.0) >= 0.85
-        )
-        if col_matched:
+        merge_hit = merge_by_col.get(name, 0.0) >= 0.85
+        glossary_hit = glossary_loaded and name in glossary_terms
+        if merge_hit or glossary_hit:
             matched_columns += 1
+        if glossary_hit:
+            glossary_hits += 1
         if ctype and any(pat in ctype for pat in _TYPE_PATTERNS):
             pattern_hits += 1
 
-    glossary_points = int(round((matched_columns / total_columns) * 70))
+    match_points = int(round((matched_columns / total_columns) * 70))
     type_points = int(round((pattern_hits / total_columns) * 30))
-    score = max(0, min(100, glossary_points + type_points))
-    reason = (
-        f"glossary/merge matches {matched_columns}/{total_columns} columns, "
-        f"type patterns {pattern_hits}/{total_columns}"
-    )
+    score = max(0, min(100, match_points + type_points))
+    if glossary_loaded and glossary_hits:
+        reason = (
+            f"glossary {glossary_hits}/{total_columns}, "
+            f"alias merge {matched_columns}/{total_columns} columns, "
+            f"type patterns {pattern_hits}/{total_columns}"
+        )
+        components = {
+            "glossary_match": match_points,
+            "type_pattern": type_points,
+        }
+    else:
+        reason = (
+            f"alias merge matches {matched_columns}/{total_columns} columns, "
+            f"type patterns {pattern_hits}/{total_columns}"
+        )
+        components = {
+            "merge_match": match_points,
+            "type_pattern": type_points,
+        }
     return ConfidenceResult(
         score=score,
         reason=reason,
-        components={"glossary_match": glossary_points, "type_pattern": type_points},
+        components=components,
     )
 
 

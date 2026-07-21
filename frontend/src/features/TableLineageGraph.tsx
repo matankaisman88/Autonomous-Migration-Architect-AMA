@@ -5,6 +5,7 @@ import {
   Background,
   Controls,
   Handle,
+  MarkerType,
   MiniMap,
   Position,
   ReactFlow,
@@ -36,6 +37,7 @@ function LineageTableNode({ data }: NodeProps) {
   const role = (data.role as LineageNodeRole) || "neighbor";
   const c = roleColors(role);
   const label = String(data.label ?? "");
+  const queryCount = data.query_count as number | null | undefined;
   return (
     <Box
       sx={{
@@ -43,7 +45,7 @@ function LineageTableNode({ data }: NodeProps) {
         py: 0.75,
         borderRadius: 1,
         minWidth: 100,
-        maxWidth: 220,
+        maxWidth: 240,
         bgcolor: c.bg,
         border: `2px solid ${c.border}`,
         color: c.color,
@@ -54,7 +56,24 @@ function LineageTableNode({ data }: NodeProps) {
       }}
     >
       <Handle type="target" position={Position.Left} id="l" style={{ background: c.border }} />
-      {label}
+      <Box component="span" sx={{ display: "block", lineHeight: 1.3 }}>
+        {label}
+      </Box>
+      {queryCount != null ? (
+        <Box
+          component="span"
+          sx={{
+            display: "block",
+            mt: 0.35,
+            fontSize: 10,
+            fontWeight: 500,
+            opacity: 0.9,
+            color: c.color
+          }}
+        >
+          {queryCount} {queryCount === 1 ? "query" : "queries"} in logs
+        </Box>
+      ) : null}
       <Handle type="source" position={Position.Right} id="r" style={{ background: c.border }} />
     </Box>
   );
@@ -75,6 +94,7 @@ function FlowInner({
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [loading, setLoading] = useState(true);
   const [hint, setHint] = useState("");
+  const [legend, setLegend] = useState("");
   const { fitView } = useReactFlow();
 
   const runFit = useCallback(() => {
@@ -87,17 +107,23 @@ function FlowInner({
     let cancelled = false;
     setLoading(true);
     setHint("");
+    setLegend("");
     (async () => {
       try {
         const res = await api.getLineage(reportId, tableKey);
         if (cancelled) return;
+        setLegend(res.legend ?? "");
         if (res.empty_reason) {
           const msg =
             res.empty_reason === "no_lineage_edges"
               ? "No lineage edges in this report (run ingestion with discovery mode)."
               : res.empty_reason === "no_edges_for_table"
                 ? "No co-query neighbors found for this table."
-                : res.empty_reason;
+                : res.empty_reason === "no_pk_fk_edges"
+                  ? "No PK/FK relationships found in the DDL manifest."
+                  : res.empty_reason === "no_pk_fk_for_table"
+                    ? "No PK/FK neighbors for this table in the DDL manifest."
+                    : res.empty_reason;
           setHint(msg);
         } else {
           setHint("");
@@ -108,16 +134,27 @@ function FlowInner({
           position: x.position,
           data: { ...x.data }
         }));
-        const e: Edge[] = res.edges.map((x: LineageFlowEdge) => ({
-          id: x.id,
-          source: x.source,
-          target: x.target,
-          label: x.label,
-          data: x.data,
-          style: { stroke: "#64748b", strokeWidth: 1.5 },
-          labelStyle: { fill: "#94a3b8", fontSize: 10 },
-          labelBgStyle: { fill: "#0f172a" }
-        }));
+        const e: Edge[] = res.edges.map((x: LineageFlowEdge) => {
+          const kind = String(x.data?.kind ?? "coquery");
+          const isFk = kind === "pk_fk";
+          const isCoqueryOnly = kind === "coquery";
+          return {
+            id: x.id,
+            source: x.source,
+            target: x.target,
+            label: x.label,
+            data: x.data,
+            animated: isFk,
+            markerEnd: isFk ? { type: MarkerType.ArrowClosed, color: "#38bdf8" } : undefined,
+            style: {
+              stroke: isFk ? "#38bdf8" : "#64748b",
+              strokeWidth: isFk ? 2 : 1.5,
+              strokeDasharray: isCoqueryOnly ? "6 4" : undefined
+            },
+            labelStyle: { fill: isFk ? "#7dd3fc" : "#94a3b8", fontSize: 10, fontWeight: 500 },
+            labelBgStyle: { fill: "#0f172a", fillOpacity: 0.92 }
+          };
+        });
         setNodes(n);
         setEdges(e);
         runFit();
@@ -160,7 +197,13 @@ function FlowInner({
   }
 
   return (
-    <Box sx={{ height: 420, width: "100%", borderRadius: 1, overflow: "hidden", border: "1px solid", borderColor: "divider" }}>
+    <Box>
+      {legend ? (
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1, lineHeight: 1.5 }}>
+          {legend}
+        </Typography>
+      ) : null}
+      <Box sx={{ height: 420, width: "100%", borderRadius: 1, overflow: "hidden", border: "1px solid", borderColor: "divider" }}>
       {hint ? (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", px: 1, py: 0.5 }}>
           {hint}
@@ -179,6 +222,7 @@ function FlowInner({
         <Controls />
         <MiniMap pannable zoomable />
       </ReactFlow>
+    </Box>
     </Box>
   );
 }

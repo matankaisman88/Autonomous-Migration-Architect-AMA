@@ -19,6 +19,28 @@ At a high level, `generate-dbt` performs a gated multi-agent flow:
 6. After explicit approval, write model files and optionally execute `dbt run` + `dbt test`.
 7. On execution failure, enter execution fix loop (bounded retries); route exhausted failures to DLQ.
 
+## Report sources
+
+AMA reports consumed by `generate-dbt`, bulk migration, and the React UI can come from:
+
+| Source | Typical path | Notes |
+| --- | --- | --- |
+| File-based Kfar demo | `sample_data/kfar_supply/kfar_report.json` | Full Hebrew glossary, comms, git SQL |
+| Live connection export | `live_data/<connection_name>/ama_live_report.json` | Built by UI/API after ingest; see [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) |
+| Chaos / scale demos | `sample_data/generated_chaos/*_report.json` | Multi-dialect stress datasets |
+
+Load via UI auto-load (Live page) or API:
+
+```bash
+curl -X POST http://localhost:8000/report/load \
+  -H "Content-Type: application/json" \
+  -d "{\"path\":\"/app/live_data/demo/ama_live_report.json\"}"
+```
+
+Use the host path under your repo when calling from outside Docker (e.g. `C:/.../live_data/demo/ama_live_report.json` on Windows).
+
+**Real extraction reports** do not include bundled `sample_data/kfar_supply` glossary rows — only log + DDL discovery mappings.
+
 ## CLI Reference
 
 Command:

@@ -401,7 +401,7 @@ export function TablesPage() {
         </PageCard>
       </Grid2>
       <Grid2 size={{ xs: 12 }}>
-        <PageCard title="Table lineage (co-query)">
+        <PageCard title="Table lineage (schema + query usage)">
           {reportId && selectedTable ? (
             <TableLineageGraph
               reportId={reportId}

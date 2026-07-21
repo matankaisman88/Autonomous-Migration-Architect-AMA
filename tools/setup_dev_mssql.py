@@ -446,8 +446,14 @@ def _run_kfar_seeding_script() -> None:
 
 def _update_env_file(*, sa_password: str, server: str = "localhost") -> str:
     """
-    Update (or create) .env with MSSQL_CONNECTION_STRING.
-    Returns the final connection string.
+    Update (or create) .env with both connection string keys:
+      - MSSQL_CONNECTION_STRING : for host-side tools (SSMS, Excel, this script)
+        -> always uses 127.0.0.1, since it runs OUTSIDE Docker.
+      - AMA_DB_CONNECTION_STRING : for the API container (docker compose `api` service)
+        -> uses `server` (the SQL Server container's internal IP), since `localhost`
+           inside the API container refers to the API container itself.
+
+    Returns the AMA_DB_CONNECTION_STRING value (the one the live API actually uses).
     """
     try:
         from dotenv import set_key  # type: ignore
@@ -455,7 +461,16 @@ def _update_env_file(*, sa_password: str, server: str = "localhost") -> str:
         raise RuntimeError("python-dotenv is required for tools/setup_dev_mssql.py") from exc
 
     env_path = ROOT / ".env"
-    conn = SqlConnectionConfig(
+
+    host_conn = SqlConnectionConfig(
+        driver=DEFAULT_DRIVER,
+        server="127.0.0.1",
+        database=TARGET_DB,
+        uid="sa",
+        pwd=sa_password,
+    ).to_odbc_connection_string()
+
+    api_conn = SqlConnectionConfig(
         driver=DEFAULT_DRIVER,
         server=server,
         database=TARGET_DB,
@@ -466,9 +481,10 @@ def _update_env_file(*, sa_password: str, server: str = "localhost") -> str:
     if not env_path.exists():
         env_path.write_text("", encoding="utf-8")
 
-    set_key(str(env_path), "MSSQL_CONNECTION_STRING", conn, quote_mode="never")
-    _log("ENV", f"Updated {env_path} MSSQL_CONNECTION_STRING.")
-    return conn
+    set_key(str(env_path), "MSSQL_CONNECTION_STRING", host_conn, quote_mode="never")
+    set_key(str(env_path), "AMA_DB_CONNECTION_STRING", api_conn, quote_mode="never")
+    _log("ENV", f"Updated {env_path} MSSQL_CONNECTION_STRING (host) and AMA_DB_CONNECTION_STRING (API container).")
+    return api_conn
 
 
 def main() -> None:
@@ -491,7 +507,7 @@ def main() -> None:
 
     master_conn = SqlConnectionConfig(
         driver=DEFAULT_DRIVER,
-        server="localhost",
+        server="127.0.0.1",
         database="master",
         uid="sa",
         pwd=sa_password,
@@ -503,7 +519,7 @@ def main() -> None:
 
     target_conn = SqlConnectionConfig(
         driver=DEFAULT_DRIVER,
-        server="localhost",
+        server="127.0.0.1",
         database=TARGET_DB,
         uid="sa",
         pwd=sa_password,
@@ -525,4 +541,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

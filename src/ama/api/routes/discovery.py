@@ -20,6 +20,11 @@ from pydantic import BaseModel
 from ama.api import deps
 from ama.ddl_manifest import normalize_manifest_table_key
 from ama.lineage import lineage_subgraph_payload
+from ama.schema_relationships import (
+    foreign_key_edges_for_report,
+    pk_fk_subgraph_payload,
+    query_counts_from_report,
+)
 from ama.security.credentials import default_data_root, ensure_under_root
 
 logger = logging.getLogger(__name__)
@@ -193,9 +198,12 @@ def get_sample_data(body: DiscoverySampleRequest) -> dict[str, Any]:
 
 
 @router.get("/lineage/{table_key:path}")
-def get_lineage_subgraph(table_key: str, report_id: str) -> dict[str, Any]:
+def get_lineage_subgraph(table_key: str, report_id: str, mode: str = "pk_fk") -> dict[str, Any]:
     """
-    1-hop co-query lineage subgraph for React Flow (``@xyflow/react``).
+    1-hop lineage subgraph for React Flow (``@xyflow/react``).
+
+    ``mode=pk_fk`` (default): schema PK/FK relationships from DDL manifest.
+    ``mode=coquery``: co-occurrence in SQL logs.
 
     ``table_key`` is path-style; clients should use encodeURIComponent (e.g. ``dbo.orders``).
     ``report_id`` is required (loaded report cache).
@@ -209,9 +217,25 @@ def get_lineage_subgraph(table_key: str, report_id: str) -> dict[str, Any]:
             if isinstance(x, str) and x.strip():
                 broken.add(normalize_manifest_table_key(x.strip()))
     center_norm = normalize_manifest_table_key(table_key.strip())
+    center = center_norm or table_key.strip()
+    lineage_mode = (mode or "pk_fk").strip().lower()
+    if lineage_mode in ("pk_fk", "pk-fk", "schema", "fk"):
+        report_path = deps.PATH_STORE.get(report_id)
+        fk_edges = foreign_key_edges_for_report(
+            report,
+            report_id=report_id,
+            report_path=report_path,
+        )
+        return pk_fk_subgraph_payload(
+            fk_edges,
+            center,
+            broken,
+            lineage_block=lin,
+            query_counts=query_counts_from_report(report),
+        )
     return lineage_subgraph_payload(
         lin,
-        center_norm or table_key.strip(),
+        center,
         broken,
         report_id=report_id,
     )

@@ -73,9 +73,33 @@ class MockCursor:
             return
 
         # Sampling: SELECT TOP N * FROM [schema].[table]
-        if low.startswith("select top"):
+        if low.startswith("select top") and "query_store" not in low and "dm_exec" not in low:
             self.description = [("order_id",), ("email",)]
             self._results = [(1001, "alice@example.com")]
+            return
+
+        # Query Store probe
+        if "database_query_store_options" in low:
+            self.description = [("actual_state_desc",)]
+            self._results = [(getattr(self, "_qs_state", "OFF"),)]
+            return
+
+        # Query Store extraction
+        if "query_store_runtime_stats" in low:
+            self.description = [("sql_text",)]
+            self._results = list(getattr(self, "_qs_sql_rows", []))
+            return
+
+        # Server identity
+        if "@@servername" in low:
+            self.description = [("server",), ("db",)]
+            self._results = [("TEST-SQL", "kfar_supply")]
+            return
+
+        # Plan cache fallback
+        if "dm_exec_query_stats" in low:
+            self.description = [("batch_text",)]
+            self._results = list(getattr(self, "_plan_cache_rows", []))
             return
 
         self._results = []
@@ -185,4 +209,93 @@ def test_sqlserver_execute_explain_returns_xml_and_cleans_up(monkeypatch):
     # Must set showplan on and off (cleanup).
     assert any(x.lower() == "set showplan_xml on" for x in executed)
     assert any(x.lower() == "set showplan_xml off" for x in executed)
+
+
+def test_extract_ddl_multiple_schemas(monkeypatch):
+    _install_mock_pyodbc(monkeypatch)
+    p = SQLServerSchemaProvider("DRIVER=Dummy;SERVER=Dummy;DATABASE=Dummy", timeout_seconds=2)
+    tables = p.extract_ddl(["dbo", "sales"])
+    assert "dbo.orders" in tables
+    assert "sales.customers" in tables
+    assert [c.name for c in tables["dbo.orders"].columns] == ["order_id", "email"]
+
+
+def test_extract_ddl_all_schemas(monkeypatch):
+    _install_mock_pyodbc(monkeypatch)
+    p = SQLServerSchemaProvider("DRIVER=Dummy;SERVER=Dummy;DATABASE=Dummy", timeout_seconds=2)
+    tables = p.extract_ddl(all_schemas=True)
+    assert "dbo.orders" in tables
+    assert "sales.customers" in tables
+
+
+def test_extract_logs_uses_query_store_when_enabled(monkeypatch):
+    conn = _install_mock_pyodbc(monkeypatch)
+    cur = conn.cursor()
+    cur._qs_state = "READ_WRITE"
+    cur._qs_sql_rows = [
+        (
+            "SELECT db_id() FROM sys.objects",
+            1,
+        ),
+        (
+            "SELECT * FROM sales.orders WHERE email = 'a@b.com' AND amount > 500",
+            2,
+        ),
+        ("SELECT 1", 3),
+    ]
+    p = SQLServerSchemaProvider("DRIVER=Dummy;SERVER=Dummy;DATABASE=Dummy", timeout_seconds=2)
+    result = p.extract_logs("2026-07-01", "2026-07-20", max_rows=10, schemas=["dbo", "sales"])
+    assert result.source == "query_store"
+    assert result.date_range_applied is True
+    assert len(result.records) == 1
+    assert "sales.orders" in result.records[0]["sql"]
+    assert any("Skipped" in w for w in result.warnings)
+
+
+def test_extract_logs_falls_back_to_plan_cache(monkeypatch):
+    conn = _install_mock_pyodbc(monkeypatch)
+    cur = conn.cursor()
+    cur._qs_state = "OFF"
+    cur._plan_cache_rows = [
+        ("SELECT * FROM dbo.orders WHERE id = 1",),
+        ("sp_helpdb",),
+    ]
+    p = SQLServerSchemaProvider("DRIVER=Dummy;SERVER=Dummy;DATABASE=Dummy", timeout_seconds=2)
+    result = p.extract_logs("2026-07-01", "2026-07-20", max_rows=10, schemas=["dbo"])
+    assert result.source == "plan_cache"
+    assert result.date_range_applied is True
+    assert any("plan cache" in w.lower() for w in result.warnings)
+    assert result.stats.get("unique_after_dedupe") == 1
+    assert "sp_helpdb" not in result.records[0]["sql"]
+
+
+def test_extract_logs_plan_cache_splits_go_batches(monkeypatch):
+    conn = _install_mock_pyodbc(monkeypatch)
+    cur = conn.cursor()
+    cur._qs_state = "OFF"
+    cur._plan_cache_rows = [
+        (
+            "/* ama-test-q001 */ SELECT 1 FROM dbo.a;\nGO\n/* ama-test-q002 */ SELECT 2 FROM dbo.b;",
+        ),
+    ]
+    p = SQLServerSchemaProvider("DRIVER=Dummy;SERVER=Dummy;DATABASE=Dummy", timeout_seconds=2)
+    result = p.extract_logs(None, None, max_rows=10, schemas=["dbo"])
+    assert len(result.records) == 2
+    assert "ama-test-q001" in result.records[0]["sql"]
+    assert "ama-test-q002" in result.records[1]["sql"]
+
+
+def test_extract_logs_dedupes_before_redaction(monkeypatch):
+    conn = _install_mock_pyodbc(monkeypatch)
+    cur = conn.cursor()
+    cur._qs_state = "READ_WRITE"
+    cur._qs_sql_rows = [
+        ("SELECT 1 FROM dbo.t WHERE x = 'a'",),
+        ("SELECT 1 FROM dbo.t WHERE x = 'b'",),
+        ("SELECT 2 FROM dbo.t",),
+    ]
+    p = SQLServerSchemaProvider("DRIVER=Dummy;SERVER=Dummy;DATABASE=Dummy", timeout_seconds=2)
+    result = p.extract_logs(None, None, max_rows=10, schemas=["dbo"])
+    # Pre-redaction dedupe keeps both distinct query shapes despite same structure after redaction
+    assert len(result.records) == 3
 

@@ -28,6 +28,17 @@ def test_load_glossary_sample_dirty_has_qty() -> None:
     assert g.get("qty") == "quantity"
 
 
+def test_load_glossary_no_default_seed(tmp_path: Path) -> None:
+    missing = tmp_path / "missing.json"
+    g = load_glossary(missing, use_default_seed=False)
+    assert g == {}
+
+
+def test_alias_resolver_empty_glossary_skips_default_seed() -> None:
+    r = AliasResolver(ddl_columns=["customer_id"], glossary={})
+    assert r.glossary == {}
+
+
 def test_low_confidence_generics_not_merged_into_ddl_columns() -> None:
     """flag_1 / temp_001 must not be forced onto created_at (or any DDL) when confidence is trash."""
     ddl = ["order_id", "customer_id", "status", "amount", "created_at"]

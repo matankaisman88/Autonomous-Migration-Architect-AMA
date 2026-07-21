@@ -110,4 +110,14 @@ that appear in the same SQL queries — no manual effort required.
 Review `candidate_glossary.json` before using it. The `_meta.candidates` block
 shows how each mapping was derived and its confidence score.
 
+## Live connection vs file-based demo
 
+The React **Live connection** page can drive the same Kfar narrative in two ways:
+
+| Approach | When to use |
+| --- | --- |
+| **File-based** (this folder + `demo.sh` / `ama-ingest run`) | Reproducible offline demo, CI, Hebrew glossary + comms + git SQL from `sample_data/kfar_supply` |
+| **Live `kfar_demo`** (`POST /api/live/start`, default `source_mode`) | Connect to SQL Server, deploy Kfar tables live, synthetic logs, bundled glossary in report |
+| **Live `real_extract`** | Read-only pull of real DDL + Query Store/plan-cache SQL; **no** bundled glossary — see [docs/LIVE_CONNECTION.md](../../docs/LIVE_CONNECTION.md) |
+
+For Query Store testing on a live Kfar database, run [`tools/kfar_test_queries.sql`](../../tools/kfar_test_queries.sql) in SSMS after deploy.

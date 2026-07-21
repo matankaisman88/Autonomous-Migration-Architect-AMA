@@ -109,9 +109,9 @@ export const api = {
       body: JSON.stringify({})
     }),
   pollCheckpointA: (jobId: string) => request<Record<string, unknown>>(`/cockpit/checkpoint-a/job/${jobId}`),
-  getLineage: (reportId: string, tableKey: string) =>
+  getLineage: (reportId: string, tableKey: string, mode: "pk_fk" | "coquery" = "pk_fk") =>
     request<LineageSubgraphResponse>(
-      `/api/discovery/lineage/${encodeURIComponent(tableKey)}?report_id=${encodeURIComponent(reportId)}`
+      `/api/discovery/lineage/${encodeURIComponent(tableKey)}?report_id=${encodeURIComponent(reportId)}&mode=${encodeURIComponent(mode)}`
     ),
   testConnection: (body: {
     mode: string;
@@ -123,11 +123,32 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body)
     }),
-  startLiveIngestion: (body: Record<string, unknown>) =>
+  startLiveIngestion: (body: LiveStartPayload) =>
     request<{ job_id: string; connection_name: string; build_report?: boolean }>("/api/live/start", {
       method: "POST",
       body: JSON.stringify(body)
     })
+};
+
+export type LiveStartPayload = {
+  mode: string;
+  connection_name: string;
+  connection_string?: string;
+  host?: string;
+  port?: number;
+  user?: string;
+  password?: string;
+  database?: string;
+  service_name?: string;
+  jsonl_lines?: number;
+  build_report?: boolean;
+  source_mode?: "kfar_demo" | "real_extract";
+  schemas?: string[];
+  all_schemas?: boolean;
+  log_start_date?: string;
+  log_end_date?: string;
+  max_log_rows?: number;
+  migration_context?: string;
 };
 
 export function bulkWsUrl(jobId: string): string {

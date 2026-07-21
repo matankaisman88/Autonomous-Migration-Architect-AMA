@@ -198,6 +198,8 @@ Most common causes:
 
 ## Live connection exports (`live_data/`)
 
+Full reference: **[LIVE_CONNECTION.md](LIVE_CONNECTION.md)** (source modes, API, Query Store, troubleshooting).
+
 The **Live connection** UI writes files under:
 
 ```text
@@ -228,18 +230,34 @@ So exports appear on the host at **`<repo>/live_data/<connection_name>/`**. If y
 
 ## Live connection: build report + auto-load in UI
 
-The Live connection page now supports:
+The Live connection page supports two **source modes** (see [LIVE_CONNECTION.md](LIVE_CONNECTION.md)):
 
-- **Build AMA report after export** — runs ingestion over `live_data/<connection_name>/` and writes:
-  - `live_data/<connection_name>/ama_live_report.json`
-- **When ready, load that report in this UI and open Tables** — automatically calls `/report/load` with the generated path.
+- **Kfar Demo (synthetic)** — deploys demo schema/DML; report includes bundled Kfar glossary/comms/git from `sample_data/kfar_supply`.
+- **Real Extraction (read-only)** — extracts real DDL + SQL logs; **`all_schemas`** exports every user BASE TABLE; or set **`schemas`** (e.g. `dbo, finance, logistics`); report uses **only** files under `live_data/<connection_name>/` (no demo glossary).
 
-If the checkbox appears enabled but job logs show `build_report=false`, your running API image is stale. Rebuild the API service:
+**Schema scope**
+
+| UI / API | DDL exported | SQL log filter |
+| --- | --- | --- |
+| **All user schemas** (`all_schemas: true`) | Every BASE TABLE (excludes `sys`, `INFORMATION_SCHEMA`, `guest`) | All application SQL |
+| **Schemas list** (default `dbo`) | Tables in listed schemas only | Queries referencing any listed schema |
+| Omitted | Defaults to `dbo` only | `dbo` references only |
+
+**Tables tab:** lineage graph shows PK/FK arrows plus shared-query counts from SQL logs; nodes show per-table query counts.
+
+To seed Query Store / plan cache with application SQL, run [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) in SSMS against the **same server** as `AMA_DB_CONNECTION_STRING`, then re-run Real Extraction. Job logs include `Connected to server=… database=…` and dedupe stats (`unique_after_dedupe`).
+
+If the checkbox appears enabled but job logs show `build_report=false`, your running API image is stale. Rebuild API and web:
 
 ```bash
-docker compose build api
-docker compose up -d api
+docker compose build api web
+docker compose up -d api web
 ```
+
+Shared UI options:
+
+- **Build AMA report after export** — runs ingestion over `live_data/<connection_name>/` and writes `ama_live_report.json`
+- **When ready, load that report in this UI and open Tables** — auto-calls `/report/load` with the generated path
 
 ## Scale/bulk defaults for Kfar live dataset
 

@@ -3,16 +3,20 @@ import {
   Box,
   Button,
   Checkbox,
+  FormControl,
   FormControlLabel,
+  FormLabel,
   LinearProgress,
   MenuItem,
+  Radio,
+  RadioGroup,
   Stack,
   TextField,
   Typography
 } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, liveWsUrl } from "../api";
+import { api, liveWsUrl, type LiveStartPayload } from "../api";
 import { PageCard } from "../components/PageCard";
 import type { LiveIngestionSnapshot } from "../types";
 import { useAppState } from "../state";
@@ -32,6 +36,12 @@ export function LiveConnectionPage() {
   const [serviceName, setServiceName] = useState("XEPDB1");
   const [connString, setConnString] = useState("");
   const [jsonlLines, setJsonlLines] = useState(1200);
+  const [sourceMode, setSourceMode] = useState<"kfar_demo" | "real_extract">("kfar_demo");
+  const [schemasText, setSchemasText] = useState("dbo");
+  const [allSchemas, setAllSchemas] = useState(false);
+  const [logStartDate, setLogStartDate] = useState("");
+  const [logEndDate, setLogEndDate] = useState("");
+  const [maxLogRows, setMaxLogRows] = useState(10000);
   const [buildReport, setBuildReport] = useState(true);
   const [autoLoadReport, setAutoLoadReport] = useState(true);
   const [testing, setTesting] = useState(false);
@@ -148,12 +158,28 @@ export function LiveConnectionPage() {
     autoLoadHandledRef.current = null;
     pendingAutoLoadRef.current = { doLoad: buildReport && autoLoadReport };
     try {
-      const payload: Record<string, unknown> = {
+      const payload: LiveStartPayload = {
         mode,
         connection_name: connectionName,
-        jsonl_lines: jsonlLines,
-        build_report: buildReport
+        build_report: buildReport,
+        source_mode: sourceMode
       };
+      if (sourceMode === "kfar_demo") {
+        payload.jsonl_lines = jsonlLines;
+      } else {
+        if (allSchemas) {
+          payload.all_schemas = true;
+        } else {
+          const schemaList = schemasText
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          if (schemaList.length > 0) payload.schemas = schemaList;
+        }
+        if (logStartDate.trim()) payload.log_start_date = logStartDate.trim();
+        if (logEndDate.trim()) payload.log_end_date = logEndDate.trim();
+        payload.max_log_rows = maxLogRows;
+      }
       if (connString.trim()) {
         payload.connection_string = connString.trim();
       } else {
@@ -181,9 +207,18 @@ export function LiveConnectionPage() {
 
   return (
     <Stack spacing={2}>
-      <Alert severity="warning">
-        Live ingestion runs DDL/DML (Kfar demo tables) on the target database and writes exports under{" "}
-        <code>live_data/&lt;connection_name&gt;/</code>. Use a non-production environment only.
+      <Alert severity={sourceMode === "kfar_demo" ? "warning" : "info"}>
+        {sourceMode === "kfar_demo" ? (
+          <>
+            Live ingestion runs DDL/DML (Kfar demo tables) on the target database and writes exports under{" "}
+            <code>live_data/&lt;connection_name&gt;/</code>. Use a non-production environment only.
+          </>
+        ) : (
+          <>
+            Real extraction is read-only — no DDL/DML is deployed. DDL and query logs are pulled from SQL Server
+            and written under <code>live_data/&lt;connection_name&gt;/</code>.
+          </>
+        )}
       </Alert>
       <Alert severity="info" variant="outlined">
         <Typography variant="body2">
@@ -209,6 +244,28 @@ export function LiveConnectionPage() {
             value={connectionName}
             onChange={(e) => setConnectionName(e.target.value)}
           />
+          <FormControl>
+            <FormLabel id="source-mode-label">Data source</FormLabel>
+            <RadioGroup
+              row
+              aria-labelledby="source-mode-label"
+              value={sourceMode}
+              onChange={(e) => setSourceMode(e.target.value as "kfar_demo" | "real_extract")}
+            >
+              <FormControlLabel value="kfar_demo" control={<Radio size="small" />} label="Kfar Demo (synthetic)" />
+              <FormControlLabel
+                value="real_extract"
+                control={<Radio size="small" />}
+                label="Real Extraction (read-only)"
+                disabled={mode !== "sqlserver"}
+              />
+            </RadioGroup>
+            {mode !== "sqlserver" ? (
+              <Typography variant="caption" color="text.secondary">
+                Real extraction is available for SQL Server only in this release.
+              </Typography>
+            ) : null}
+          </FormControl>
           <Typography variant="subtitle2" color="text.secondary">
             After export — AMA report
           </Typography>
@@ -259,13 +316,64 @@ export function LiveConnectionPage() {
           {mode === "oracle" ? (
             <TextField label="Service name" size="small" value={serviceName} onChange={(e) => setServiceName(e.target.value)} />
           ) : null}
-          <TextField
-            label="SQL log lines to generate"
-            type="number"
-            size="small"
-            value={jsonlLines}
-            onChange={(e) => setJsonlLines(Number(e.target.value || 1200))}
-          />
+          {sourceMode === "real_extract" ? (
+            <>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={allSchemas}
+                    onChange={(e) => setAllSchemas(e.target.checked)}
+                  />
+                }
+                label="All user schemas (entire database)"
+              />
+              <TextField
+                label="Schemas (comma-separated)"
+                size="small"
+                value={schemasText}
+                onChange={(e) => setSchemasText(e.target.value)}
+                disabled={allSchemas}
+                helperText={
+                  allSchemas
+                    ? "Exports every BASE TABLE in the database (excludes sys / INFORMATION_SCHEMA)."
+                    : "Defaults to dbo when empty; list schemas such as dbo, finance, logistics."
+                }
+              />
+              <TextField
+                label="Log start date"
+                type="date"
+                size="small"
+                value={logStartDate}
+                onChange={(e) => setLogStartDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                helperText="Optional — last 7 days through today when omitted (Query Store only)"
+              />
+              <TextField
+                label="Log end date"
+                type="date"
+                size="small"
+                value={logEndDate}
+                onChange={(e) => setLogEndDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="Max log rows"
+                type="number"
+                size="small"
+                value={maxLogRows}
+                onChange={(e) => setMaxLogRows(Number(e.target.value || 10000))}
+                inputProps={{ min: 1, max: 50000 }}
+              />
+            </>
+          ) : (
+            <TextField
+              label="SQL log lines to generate"
+              type="number"
+              size="small"
+              value={jsonlLines}
+              onChange={(e) => setJsonlLines(Number(e.target.value || 1200))}
+            />
+          )}
           <Stack direction="row" spacing={1}>
             <Button variant="outlined" disabled={testing} onClick={() => void testConnection()}>
               {testing ? "Testing…" : "Test connection"}
