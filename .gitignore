@@ -44,6 +44,15 @@ chaos_data/
 # Multi-domain sandbox fixtures (tools/generate_domain_data.py)
 out/
 
+# Live connection exports (runtime; bind-mounted in Docker — see docs/LIVE_CONNECTION.md)
+live_data/
+
+# Frontend (local npm install / Vite build artifacts)
+frontend/node_modules/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
 # Local run artifacts (never commit)
 /dash_test.json
 /dash_test.hitl.json
