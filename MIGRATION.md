@@ -25,9 +25,9 @@ AMA reports consumed by `generate-dbt`, bulk migration, and the React UI can com
 
 | Source | Typical path | Notes |
 | --- | --- | --- |
-| File-based Kfar demo | `sample_data/kfar_supply/kfar_report.json` | Full Hebrew glossary, comms, git SQL |
-| Live connection export | `live_data/<connection_name>/ama_live_report.json` | Built by UI/API after ingest; see [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) |
-| Chaos / scale demos | `sample_data/generated_chaos/*_report.json` | Multi-dialect stress datasets |
+| Live connection export | `live_data/<connection_name>/ama_live_report.json` | **Primary path.** Built by UI/API after read-only extraction from a real SQL Server; see [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) |
+| Local dev fixture (Kfar Supply) | `sample_data/kfar_supply/kfar_report.json` | Dev/test only — synthetic dataset with Hebrew glossary, comms, git SQL |
+| Chaos / scale test data | `sample_data/generated_chaos/*_report.json` | Dev/test only — multi-dialect stress datasets |
 
 Load via UI auto-load (Live page) or API:
 
@@ -472,7 +472,32 @@ Bypass behavior:
 - Warning log emitted:
   - `WARNING: Wave {wave_id} bypassed with incomplete models. Proceeding to Wave {wave_id + 1}.`
 
-## UI Usage Guide (Streamlit)
+## React UI (primary)
+
+Day-to-day migration ops use the **React dashboard**. See **[USER_GUIDE.md](../USER_GUIDE.md)** for page-by-page workflows.
+
+Key API paths the React client calls:
+
+| Action | Endpoint |
+| --- | --- |
+| Load report | `POST /report/load` |
+| Per-table approve | `POST /migration/{report_id}/approve` |
+| Bulk evaluate / run | `POST /scale/{report_id}/evaluate`, bulk WebSocket job |
+| Live extraction | `POST /api/live/start` |
+
+### Per-table approve outcomes
+
+`POST /migration/{report_id}/approve` returns one of:
+
+| `status` | `success` | Meaning |
+| --- | --- | --- |
+| `approved` | `true` | Proposed SQL passed dbt validation; model written; audit decision recorded |
+| `degraded_passthrough` | `false` | Validation failed; model replaced with `SELECT * FROM <table>` — review `original_sql` vs `final_sql`; **no** audit decision |
+| `failed` | `false` | dbt validation failed with no acceptable fallback |
+
+Response also includes `test_passed`, `stage1_error`, `stage2_error`, and `passthrough_used` when relevant.
+
+## Legacy UI Usage Guide (Streamlit)
 
 The Streamlit dashboard can orchestrate the dbt migration lifecycle without manual terminal steps.
 

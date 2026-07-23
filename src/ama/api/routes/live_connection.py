@@ -1,5 +1,8 @@
 """
-Live database Kfar deploy + artifact export under ``live_data/{connection_name}/``.
+Live database real-extraction + artifact export under ``live_data/{connection_name}/``.
+
+Read-only introspection of a real SQL Server instance: DDL from ``INFORMATION_SCHEMA``
+and SQL text from Query Store / plan cache. No DDL/DML is deployed to the target.
 
 POST /api/live/start — queue background job (returns ``job_id``).
 """
@@ -14,7 +17,7 @@ import logging
 import threading
 from datetime import date
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any, Callable
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, model_validator
@@ -29,9 +32,6 @@ from ama.api.live_jobs import (
 )
 from ama.cli import cmd_run
 from ama.config import project_root
-from ama.kfar_supply.deploy import deploy_kfar_live
-from ama.kfar_supply.jsonl_gen import build_jsonl_lines
-from ama.kfar_supply.spec import KFAR_TABLES
 from ama.mcp.base import TableSchema
 from ama.mcp.extraction import LogExtractionResult, ddl_filename, table_schema_to_ddl_json
 from ama.mcp.factory import get_schema_provider
@@ -55,12 +55,10 @@ class LiveStartRequest(BaseModel):
     password: str | None = None
     database: str | None = None
     service_name: str | None = Field(default=None, description="Oracle service name (optional)")
-    jsonl_lines: int = Field(default=1200, ge=50, le=50_000)
     build_report: bool = Field(
         default=False,
         description="After a successful artifact export, run ama-ingest discovery merge and write JSON report next to artifacts",
     )
-    source_mode: Literal["kfar_demo", "real_extract"] = "kfar_demo"
     schemas: list[str] | None = None
     all_schemas: bool = Field(
         default=False,
@@ -71,13 +69,11 @@ class LiveStartRequest(BaseModel):
     max_log_rows: int = Field(default=10_000, ge=1, le=50_000)
     migration_context: str | None = Field(
         default=None,
-        description="Optional schema.table anchor for report build (real_extract only)",
+        description="Optional schema.table anchor for report build",
     )
 
     @model_validator(mode="after")
     def _validate_real_extract_fields(self) -> LiveStartRequest:
-        if self.source_mode != "real_extract":
-            return self
         if self.all_schemas and self.schemas:
             raise ValueError("Use all_schemas=true or an explicit schemas list, not both")
         if self.schemas is not None:
@@ -139,40 +135,6 @@ def _build_connection_string(body: LiveStartRequest) -> str:
             f"PROTOCOL=TCPIP;UID={body.user};PWD={pwd_db2};"
         )
     raise ValueError(f"unsupported mode: {body.mode}")
-
-
-def _deploy_dialect(mode: str) -> str:
-    m = mode.lower().strip()
-    if m == "sqlserver":
-        return "tsql"
-    return m
-
-
-def _write_artifacts(out_dir: Path, jsonl_lines: int, log: Any) -> None:
-    ddl_dir = out_dir / "ddl"
-    ddl_dir.mkdir(parents=True, exist_ok=True)
-    manifest: dict[str, str] = {}
-    for t in KFAR_TABLES:
-        rel = f"ddl/{t.ddl_json_filename}"
-        manifest[t.full_key] = rel
-        p = ddl_dir / t.ddl_json_filename
-        p.write_text(
-            json.dumps({"columns": list(t.columns)}, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
-    (out_dir / "manifest.json").write_text(
-        json.dumps({"_comment": "Kfar live export", **manifest}, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-    logs_dir = out_dir / "sql_logs"
-    logs_dir.mkdir(parents=True, exist_ok=True)
-    lines = build_jsonl_lines(jsonl_lines)
-    lp = logs_dir / "prod.jsonl"
-    with lp.open("w", encoding="utf-8") as f:
-        for row in lines:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
-    log(f"wrote artifacts under {redact_path(out_dir, keep_segments=3)}")
-    log(f"Full artifact path: {out_dir.resolve()}")
 
 
 def _pick_report_anchor(
@@ -295,10 +257,13 @@ def _live_report_arg_namespace(
     *,
     ddl_fallback: Path,
     migration_context: str,
-    use_kfar_sample_context: bool = True,
 ) -> argparse.Namespace:
-    """Minimal ``argparse.Namespace`` for :func:`ama.cli.cmd_run` (live export folder)."""
-    repo = project_root()
+    """
+    Minimal ``argparse.Namespace`` for :func:`ama.cli.cmd_run` (live export folder).
+
+    Real extraction builds the report from the exported artifacts only — the bundled
+    Kfar Supply glossary/comms/git sample_data is never attached.
+    """
     root = out_dir.resolve()
     sql_log = (root / "sql_logs" / "prod.jsonl").resolve()
     manifest = (root / "manifest.json").resolve()
@@ -307,15 +272,6 @@ def _live_report_arg_namespace(
     git_root: str | None = None
     glossary: str | None = None
     glossary_dirty: str | None = None
-    if use_kfar_sample_context:
-        comms = (repo / "sample_data" / "kfar_supply" / "comms").resolve()
-        git_sql = (repo / "sample_data" / "kfar_supply" / "git_sql").resolve()
-        gloss_primary = (repo / "sample_data" / "kfar_supply" / "glossary" / "kfar_glossary.json").resolve()
-        gloss_dirty = (repo / "sample_data" / "kfar_supply" / "glossary" / "kfar_glossary_dirty.json").resolve()
-        comms_dir = str(comms) if comms.is_dir() else None
-        git_root = str(git_sql) if git_sql.is_dir() else None
-        glossary = str(gloss_primary) if gloss_primary.is_file() else None
-        glossary_dirty = str(gloss_dirty) if gloss_dirty.is_file() else None
 
     return argparse.Namespace(
         benchmark=False,
@@ -333,7 +289,7 @@ def _live_report_arg_namespace(
         ddl_manifest=str(manifest),
         glossary=glossary,
         glossary_dirty=glossary_dirty,
-        no_glossary=not use_kfar_sample_context,
+        no_glossary=True,
         no_ddl_merge=False,
         format="json",
         merge_floor=None,
@@ -355,7 +311,6 @@ def _run_live_report_build(
     *,
     ddl_fallback: Path | None = None,
     migration_context: str | None = None,
-    use_kfar_sample_context: bool = True,
 ) -> tuple[str | None, str | None]:
     """
     Run :func:`ama.cli.cmd_run` in-process on exported ``live_data/{name}/`` artifacts.
@@ -384,10 +339,8 @@ def _run_live_report_build(
         report_out,
         ddl_fallback=ddl_fallback,
         migration_context=migration_context,
-        use_kfar_sample_context=use_kfar_sample_context,
     )
-    if not use_kfar_sample_context:
-        log("real_extract: skipping bundled Kfar glossary/comms/git sample_data")
+    log("Building report from exported artifacts only (no bundled sample_data)")
     log("Running AMA report build (cmd_run in-process) …")
     buf_out = io.StringIO()
     buf_err = io.StringIO()
@@ -422,7 +375,7 @@ def _run_live_worker(*, job_id: str, body: LiveStartRequest) -> None:
         live_job_update(job_id, status="running", stage="validate_connection", percent=5)
         log("Acquired ingestion slot")
         log(
-            f"Server: source_mode={body.source_mode} build_report={body.build_report} "
+            f"Server: real_extract build_report={body.build_report} "
             "(rebuild the api image if this stays false when the UI box is checked)"
         )
 
@@ -442,13 +395,12 @@ def _run_live_worker(*, job_id: str, body: LiveStartRequest) -> None:
         if mode == "tsql":
             mode = "sqlserver"
 
-        ping_timeout = REAL_EXTRACT_TIMEOUT_SECONDS if body.source_mode == "real_extract" else 30
         provider = None
         try:
             provider = get_schema_provider(
                 mode=mode,
                 connection_string=conn_str,
-                timeout_seconds=ping_timeout,
+                timeout_seconds=REAL_EXTRACT_TIMEOUT_SECONDS,
             )
             if not provider.ping():
                 raise RuntimeError("Connection test failed (ping returned False)")
@@ -472,92 +424,61 @@ def _run_live_worker(*, job_id: str, body: LiveStartRequest) -> None:
         out_dir = (root / "live_data" / safe_name).resolve()
         ensure_under_root(out_dir, root.resolve())
 
-        if body.source_mode == "kfar_demo":
-            if provider is not None:
-                try:
-                    provider.close()
-                except Exception:
-                    pass
-                provider = None
-
-            dd = _deploy_dialect(body.mode)
-            try:
-                live_job_update(job_id, stage="deploy_kfar", percent=25)
-                deploy_kfar_live(dd, conn_str, log=log, timeout_seconds=REAL_EXTRACT_TIMEOUT_SECONDS)
-                log("Kfar DDL/DML deploy completed")
-            except Exception as exc:
-                err = str(exc)
-                errors.append(f"deploy: {err}")
-                logger.exception("Kfar deploy failed")
-                live_job_update(
-                    job_id,
-                    status="failure",
-                    stage="deploy_kfar",
-                    percent=100,
-                    errors=errors,
-                )
-                log(f"Deploy failed: {err}")
-                return
-
         final_status = "success"
         try:
             if out_dir.exists():
                 log("Overwriting prior live_data export for this connection name")
             out_dir.mkdir(parents=True, exist_ok=True)
 
-            if body.source_mode == "real_extract":
-                assert provider is not None
-                live_job_update(job_id, stage="extract_ddl", percent=25)
-                if body.all_schemas:
-                    log("Extracting DDL for all user schemas (entire database)")
-                    tables = provider.extract_ddl(all_schemas=True)
-                    log_schemas: list[str] | None = None
-                    schema_label = "all user schemas"
-                else:
-                    schemas = body.resolved_schemas()
-                    log(f"Extracting DDL for schemas: {', '.join(schemas)}")
-                    tables = provider.extract_ddl(schemas)
-                    log_schemas = schemas
-                    schema_label = ", ".join(schemas)
-                if not tables:
-                    msg = f"no BASE TABLEs found for {schema_label}"
-                    log(msg)
-                    live_job_update(
-                        job_id,
-                        status="failure",
-                        stage="extract_ddl",
-                        percent=100,
-                        errors=[msg],
-                    )
-                    return
-                log(f"Extracted DDL for {len(tables)} table(s)")
-
-                live_job_update(job_id, stage="extract_logs", percent=55)
-                log_result = provider.extract_logs(
-                    body.log_start_date,
-                    body.log_end_date,
-                    int(body.max_log_rows),
-                    schemas=log_schemas,
-                )
-                if not log_result.records:
-                    warn = "No SQL log rows extracted — report discovery may be sparse"
-                    log(warn)
-                    errors.append(warn)
-                    final_status = "partial"
-
-                live_job_update(job_id, stage="write_artifacts", percent=70)
-                report_anchor = _write_real_artifacts(
-                    out_dir,
-                    tables,
-                    log_result,
-                    log_schemas if not body.all_schemas else None,
-                    log,
-                    all_schemas=body.all_schemas,
-                    migration_context_override=body.migration_context,
-                )
+            assert provider is not None
+            live_job_update(job_id, stage="extract_ddl", percent=25)
+            if body.all_schemas:
+                log("Extracting DDL for all user schemas (entire database)")
+                tables = provider.extract_ddl(all_schemas=True)
+                log_schemas: list[str] | None = None
+                schema_label = "all user schemas"
             else:
-                live_job_update(job_id, stage="write_artifacts", percent=70)
-                _write_artifacts(out_dir, int(body.jsonl_lines), log)
+                schemas = body.resolved_schemas()
+                log(f"Extracting DDL for schemas: {', '.join(schemas)}")
+                tables = provider.extract_ddl(schemas)
+                log_schemas = schemas
+                schema_label = ", ".join(schemas)
+            if not tables:
+                msg = f"no BASE TABLEs found for {schema_label}"
+                log(msg)
+                live_job_update(
+                    job_id,
+                    status="failure",
+                    stage="extract_ddl",
+                    percent=100,
+                    errors=[msg],
+                )
+                return
+            log(f"Extracted DDL for {len(tables)} table(s)")
+
+            live_job_update(job_id, stage="extract_logs", percent=55)
+            log_result = provider.extract_logs(
+                body.log_start_date,
+                body.log_end_date,
+                int(body.max_log_rows),
+                schemas=log_schemas,
+            )
+            if not log_result.records:
+                warn = "No SQL log rows extracted — report discovery may be sparse"
+                log(warn)
+                errors.append(warn)
+                final_status = "partial"
+
+            live_job_update(job_id, stage="write_artifacts", percent=70)
+            report_anchor = _write_real_artifacts(
+                out_dir,
+                tables,
+                log_result,
+                log_schemas if not body.all_schemas else None,
+                log,
+                all_schemas=body.all_schemas,
+                migration_context_override=body.migration_context,
+            )
         except Exception as exc:
             err = str(exc)
             errors.append(f"artifacts: {err}")
@@ -583,7 +504,6 @@ def _run_live_worker(*, job_id: str, body: LiveStartRequest) -> None:
                     final_status = "partial"
             else:
                 live_job_update(job_id, stage="ama_report", percent=88)
-                use_kfar_ctx = body.source_mode == "kfar_demo"
                 if report_anchor is not None:
                     ctx_key, ddl_path = report_anchor
                     report_path, report_build_error = _run_live_report_build(
@@ -591,13 +511,11 @@ def _run_live_worker(*, job_id: str, body: LiveStartRequest) -> None:
                         log,
                         ddl_fallback=ddl_path,
                         migration_context=ctx_key,
-                        use_kfar_sample_context=use_kfar_ctx,
                     )
                 else:
                     report_path, report_build_error = _run_live_report_build(
                         out_dir,
                         log,
-                        use_kfar_sample_context=use_kfar_ctx,
                     )
                 if report_build_error:
                     errors.append(report_build_error)
@@ -632,17 +550,16 @@ def start_live_ingestion(body: LiveStartRequest) -> dict[str, Any]:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    if body.source_mode == "real_extract":
-        m = body.mode.lower().strip()
-        if m not in ("sqlserver", "tsql"):
-            raise HTTPException(status_code=400, detail="real_extract requires mode=sqlserver")
+    # Real extraction is SQL Server only (INFORMATION_SCHEMA + Query Store / plan cache).
+    m = body.mode.lower().strip()
+    if m not in ("sqlserver", "tsql"):
+        raise HTTPException(status_code=400, detail="real extraction requires mode=sqlserver")
 
     job_id = live_job_create(
         {
             "connection_name": safe,
             "mode": body.mode,
             "build_report": body.build_report,
-            "source_mode": body.source_mode,
         }
     )
 

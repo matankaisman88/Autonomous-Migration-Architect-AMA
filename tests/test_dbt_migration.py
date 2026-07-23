@@ -4,6 +4,8 @@ import csv
 import json
 from pathlib import Path
 
+import pytest
+
 from ama.ai_query_helper import AIQueryResult, OpenAIRateLimitError
 from ama.dbt_migration.generator import (
     generate_model_artifact,
@@ -28,6 +30,7 @@ from ama.dbt_migration.service import _orchestrate_waves_with_gating
 from ama.dbt_migration.service import apply_ai_fix_from_checkpoint
 from ama.dbt_migration.service import (
     analyze_model_risk_and_scenarios,
+    approve_checkpoint_a_for_job,
     generate_synthetic_data_for_model,
     propose_sql_patch_from_chat,
     run_wave_stress_test,
@@ -861,6 +864,59 @@ def test_start_generate_checkpoint_a_job_persists_events(tmp_path, monkeypatch) 
     assert events_file.is_file()
     lines = [ln for ln in events_file.read_text(encoding="utf-8").splitlines() if ln.strip()]
     assert any(json.loads(ln).get("event_type") == "MODEL_DONE" for ln in lines)
+
+
+def test_approve_checkpoint_a_for_job_writes_models(tmp_path: Path, monkeypatch) -> None:
+    checkpoint_dir = tmp_path / "checkpoints"
+    models_dir = tmp_path / "models"
+    models_dir.mkdir(parents=True)
+    report_path = tmp_path / "report.json"
+    report_path.write_text(json.dumps({"discovery": {"inventory": []}}), encoding="utf-8")
+
+    job_id = "job-approve-1"
+    checkpoint = CheckpointAArtifact(
+        wave_summary="ws",
+        generated_models=[
+            ModelArtifact(
+                table_key="dbo.customers",
+                model_name="dbo_customers",
+                sql="select 1 as customer_id",
+                schema_yml="version: 2\nmodels:\n  - name: dbo_customers\n",
+            )
+        ],
+        mapping_rows=[],
+        review_required_tables=["dbo.customers"],
+    )
+    dbt_service.save_checkpoint_a_for_job(checkpoint_dir, job_id, checkpoint)
+    dbt_service.save_job(
+        checkpoint_dir,
+        job_id,
+        {
+            "job_id": job_id,
+            "status": "SUCCESS",
+            "report_path": str(report_path),
+            "dbt_models_dir": str(models_dir),
+            "dbt_project_dir": str(tmp_path),
+        },
+    )
+
+    result = dbt_service.approve_checkpoint_a_for_job(
+        checkpoint_dir=checkpoint_dir,
+        dlq_dir=tmp_path / "dlq",
+        job_id=job_id,
+        run_execution=False,
+    )
+    assert result["checkpoint_a_approved"] is True
+    assert result["written_count"] >= 1
+    assert (models_dir / "dbo_customers.sql").is_file()
+
+    with pytest.raises(ValueError, match="already approved"):
+        dbt_service.approve_checkpoint_a_for_job(
+            checkpoint_dir=checkpoint_dir,
+            dlq_dir=tmp_path / "dlq",
+            job_id=job_id,
+            run_execution=False,
+        )
 
 
 def test_data_gen_agent_sanitizes_llm_placeholders(monkeypatch) -> None:

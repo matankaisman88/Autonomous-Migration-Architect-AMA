@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-Regenerate the Kfar Supply Ltd. demo dataset under ``sample_data/kfar_supply/``.
+Regenerate the Kfar Supply dataset under ``sample_data/kfar_supply/``.
+
+DEV/TEST FIXTURE ONLY — not part of the live production flow. Use this to (re)generate a
+fake dataset for local development and testing without a real company database.
 
 Kfar Supply is a fictional Israeli B2B wholesale distributor migrating a 12-year-old
 on-premise SQL Server estate to Azure Synapse. The SQL log mixes Hebrew business

@@ -1,29 +1,47 @@
 # Autonomous Migration Architect (AMA)
 
-**Turn legacy SQL logs into a cloud migration plan - with deterministic safety guarantees.**
+Internal tool used by the data engineering team to plan legacy-to-cloud database migrations.
 
-AMA ingests SQL logs across SQL Server, Oracle, and DB2, resolves Hebrew <-> English column aliases, scores every table for migration confidence and business criticality, and generates wave-by-wave dbt migration plans with a human approval gate.
-A React dashboard and REST API surface the full pipeline end-to-end.
-The default Docker dataset (Kfar Supply) is SQL Server-focused; use `tools/generate_extreme_chaos.py` or the `Makefile` demo targets below for Oracle/DB2/multi-source chaos inputs.
-In a real `scale_engine_chaos` run, AMA processed **340 tables in 4 minutes** and **auto bulk-approved 287**.
+AMA connects to a real source database (SQL Server), performs read-only extraction of table DDL and SQL query activity, resolves Hebrew <-> English column aliases, scores every table for migration confidence and business criticality, and generates wave-by-wave dbt migration plans with a human approval gate. A React dashboard and REST API surface the full pipeline end-to-end.
 
-## Live Demo
+## Internal Use
+
+- **Owner:** TODO(matan): name the owning team / point of contact for this tool.
+- **Environment:** TODO(matan): where this runs internally (e.g. internal VM, k8s namespace, analyst laptop) and which DB environments it's approved to connect to.
+- **Credentials / secrets:** TODO(matan): document where source-DB connection strings and passwords are actually stored for this company (e.g. internal Vault path, `.env` on the host, secrets manager). Do **not** commit credentials to this repo. See [docs/SQLSERVER.md](docs/SQLSERVER.md) for the connection-string format.
+- **Access control:** The live API has **no application-level authentication** by design (for now). It must only be exposed on a trusted internal network — bind it to an internal interface and/or restrict access via firewall/VPN. Do **not** expose `/api/live/start` to the public internet. TODO(matan): document the exact network boundary (interface/subnet/VPN) this is expected to run behind.
+
+## Quickstart — connect and extract
+
+Run against a real SQL Server instance and produce a migration plan.
 
 ```bash
 docker compose up --build
-# Open http://localhost:3000
+# Open http://localhost:3000 → Live connection
 ```
 
-Pre-loaded with the Kfar Supply dataset - a fictional Israeli wholesale distributor with legacy SQL Server schema.
+1. Open **Live connection** in the UI (or `POST /api/live/start`).
+2. Enter your SQL Server connection details (host/port/user/password/database, or a full ODBC connection string).
+3. Choose schema scope: **All user schemas** for the whole database, or a comma-separated list (e.g. `dbo, finance, logistics`).
+4. **Test connection**, then **Start ingestion**. AMA runs a read-only extraction of table DDL (`INFORMATION_SCHEMA`) and SQL activity (Query Store / plan cache) into `live_data/<connection_name>/`.
+5. Enable **Build AMA report after export** to generate the migration report, then open **Tables** to review scoring, lineage, and the wave plan.
 
-Use **Live connection** in the UI to connect to SQL Server and export artifacts under `live_data/<connection_name>/`:
-
-- **Kfar Demo (synthetic)** — deploys demo DDL/DML and synthetic SQL logs (original demo path).
-- **Real Extraction (read-only)** — pulls real DDL from `INFORMATION_SCHEMA` and SQL text from Query Store / plan cache; optional **all schemas** or comma-separated schema list; no bundled glossary.
+Extraction is **read-only** — AMA never issues DDL/DML against the source database.
 
 See [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) and [docs/SQLSERVER.md](docs/SQLSERVER.md).
 
-Want Oracle/DB2 variants for the same flow? Generate them with `tools/generate_extreme_chaos.py --source-dialect <dialect>` or run `make demo-multi-source`.
+## Local dev / testing without a live DB
+
+If you don't have a real company database to point at, use the bundled **Kfar Supply** fixture — a synthetic dataset for local development and testing only (not part of the production flow):
+
+```bash
+# Spin up a local SQL Server loaded with the synthetic fixture
+python tools/setup_dev_mssql.py
+# (Re)generate the on-disk fixture artifacts under sample_data/kfar_supply/
+python tools/generate_kfar_supply.py
+```
+
+Then point **Live connection** at the local `kfar_supply` database and run a normal real extraction against it. See [docs/SQLSERVER.md](docs/SQLSERVER.md) for local setup details.
 
 ## Architecture
 
@@ -77,7 +95,7 @@ Ingest -> Alias Resolution -> Deterministic Scoring -> Queue Assignment
 | Migration planning | Autonomous planner with lineage ordering             |
 | API                | FastAPI + WebSocket                                  |
 | Frontend           | React 18 + MUI v6 + Vite                             |
-| Tests              | pytest, 179+ tests, chaos dataset with 13 edge cases |
+| Tests              | pytest, 300+ tests, chaos dataset with 13 edge cases |
 
 
 ## Key Features
@@ -88,35 +106,36 @@ Ingest -> Alias Resolution -> Deterministic Scoring -> Queue Assignment
 - Broken lineage detection - tables referenced in SQL but absent from DDL
 - Bulk migration with real-time WebSocket progress
 - Audit trail: every automated decision logged with reason strings
-- Dry run mode: full projection without any file writes
+- Dry run mode: full projection without file writes (Streamlit dashboard and CLI evaluate paths); React **Bulk** dry run is UI-only today — it blocks execution with a notice
 - Jira CSV + Confluence HTML export
 - Enterprise-scale streaming log analysis (chunked processing, incremental co-occurrence, sparse similarity path)
 - Multi-domain synthetic data generator for testing, including `ChaosFactory` scale generation (1,000+ tables)
-- **Live connection** — SQL Server ingest via UI/API: Kfar demo deploy or read-only real DDL + query log extraction → `live_data/`
+- **Live connection** — read-only SQL Server extraction of real DDL + query logs via UI/API → `live_data/`
 
 ## Live Connection (SQL Server)
 
-Connect from the React UI (**Live connection**) or `POST /api/live/start`:
+Connect from the React UI (**Live connection**) or `POST /api/live/start`. Extraction is **read-only** (SQL Server only): AMA reads BASE TABLE DDL from `INFORMATION_SCHEMA` and SQL text from Query Store / plan cache. No DDL/DML is deployed to the source.
 
-| `source_mode` | Behavior |
-| --- | --- |
-| `kfar_demo` (default) | Deploy Kfar Supply tables to target DB; write synthetic logs + demo DDL; report includes bundled Hebrew glossary/comms from `sample_data/kfar_supply` |
-| `real_extract` | Read-only: extract BASE TABLE DDL + Query Store/plan-cache SQL; **`all_schemas: true`** for entire DB or **`schemas`** for `dbo, finance, …`; report uses **exported artifacts only** (no demo glossary) |
+- **`all_schemas: true`** — extract every user BASE TABLE in the database.
+- **`schemas`** — comma-separated list (e.g. `dbo, finance, logistics`); defaults to `dbo`.
 
-Outputs land in `live_data/<connection_name>/` (`ddl/`, `manifest.json`, `sql_logs/prod.jsonl`, optional `ama_live_report.json`).
+Outputs land in `live_data/<connection_name>/` (`ddl/`, `manifest.json`, `sql_logs/prod.jsonl`, optional `ama_live_report.json`). The report is built from these exported artifacts only.
+
+> **Security:** `/api/live/start` accepts real connection strings/passwords and has **no application-level authentication** by design. Access is controlled at the **network layer only** (internal interface + firewall/VPN). Never expose this endpoint publicly. Credentials in the request body travel as plaintext JSON — front the API with TLS if it leaves the host.
 
 **Tables tab lineage:** PK/FK schema graph with query counts on nodes and shared-query counts on edges (dashed links = SQL co-usage without DDL FK).
 
-**Docs:** [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) · [docs/SQLSERVER.md](docs/SQLSERVER.md)  
-**Test queries:** [tools/kfar_test_queries.sql](tools/kfar_test_queries.sql) (100 dbo batches for Query Store / plan cache seeding)
+**Docs:** [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) · [docs/SQLSERVER.md](docs/SQLSERVER.md)
 
 ```bash
 docker compose build api web && docker compose up -d
-# UI → Live connection → Real Extraction
-#   • All user schemas — full Kfar DB (dbo + finance + logistics)
+# UI → Live connection
+#   • All user schemas — entire database
 #   • Or schemas: dbo, finance, logistics
 # → Build report → Tables tab
 ```
+
+To seed Query Store / plan cache with sample application SQL when testing against the **local dev fixture**, see [tools/kfar_test_queries.sql](tools/kfar_test_queries.sql).
 
 ## Enterprise Scale + Multi-Source
 
@@ -274,10 +293,10 @@ src/ama/
   mcp/             <- SchemaProvider + SQL Server extract_ddl / extract_logs
   ui/              <- Streamlit dashboard (legacy, still functional)
 frontend/          <- React + MUI dashboard
-tests/             <- 179+ tests including chaos dataset
+tests/             <- 300+ tests including chaos dataset
 tools/             <- synthetic data generators + kfar_test_queries.sql
 docs/              <- SQLSERVER.md, LIVE_CONNECTION.md
-sample_data/       <- Kfar Supply demo + scale engine chaos dataset
+sample_data/       <- Kfar Supply dev/test fixture + scale engine chaos dataset
 live_data/         <- Live connection exports (gitignored; bind-mounted in Docker)
 ```
 
@@ -287,4 +306,4 @@ AMA moved from a Streamlit-first UX to FastAPI + React because execution-heavy w
 
 AMA keeps the safety layer in deterministic Python because migration approvals must stay explainable, reproducible, and fast under repeated runs. The LLM supports SQL drafting and rationale, but it never sits in the critical safety path that decides bulk migration eligibility.
 
-AMA treats Hebrew support as a core feature because many Israeli enterprise systems still run legacy SQL Server schemas with mixed Hebrew and English identifiers. This bilingual reality creates real migration friction, and resolving it automatically gives AMA practical differentiation beyond toy demos.
+AMA treats Hebrew support as a core feature because many of the legacy SQL Server schemas we migrate internally still use mixed Hebrew and English identifiers. This bilingual reality creates real migration friction, and resolving it automatically removes a major source of manual mapping work.

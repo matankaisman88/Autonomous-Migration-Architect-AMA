@@ -11,6 +11,7 @@ from ama.dbt_migration.runner import reject_checkpoint_b_to_dlq
 from ama.dbt_migration.service import (
     analyze_model_risk_and_scenarios,
     apply_ai_fix_from_checkpoint,
+    approve_checkpoint_a_for_job,
     generate_synthetic_data_for_model,
     poll_generate_dbt_checkpoint_a_job,
     propose_sql_patch_from_chat,
@@ -64,6 +65,12 @@ class RejectCheckpointRequest(BaseModel):
     model_name: str
 
 
+class CheckpointAApproveRequest(BaseModel):
+    run_execution: bool = False
+    bypass_wave: int | None = None
+    stop_on_first_error: bool = False
+
+
 @router.post("/{report_id}/checkpoint-a/start")
 def cockpit_start_checkpoint_a(report_id: str, body: CheckpointAStartRequest) -> dict[str, Any]:
     """Start async Checkpoint-A generation job via dbt_migration.service orchestration."""
@@ -113,6 +120,27 @@ def cockpit_poll_checkpoint_a(job_id: str) -> dict[str, Any]:
     except Exception as exc:
         logger.exception("checkpoint-a poll failed")
         raise HTTPException(status_code=500, detail=f"Checkpoint-A poll failed: {exc}") from exc
+
+
+@router.post("/checkpoint-a/job/{job_id}/approve")
+def cockpit_approve_checkpoint_a(job_id: str, body: CheckpointAApproveRequest) -> dict[str, Any]:
+    """Approve Checkpoint-A: write dbt model files; optionally run dbt in background."""
+    checkpoint_dir = deps.get_checkpoint_dir()
+    dlq_dir = deps.get_dlq_dir()
+    try:
+        return approve_checkpoint_a_for_job(
+            checkpoint_dir=checkpoint_dir,
+            dlq_dir=dlq_dir,
+            job_id=job_id,
+            run_execution=body.run_execution,
+            bypass_wave=body.bypass_wave,
+            stop_on_first_error=body.stop_on_first_error,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("checkpoint-a approve failed")
+        raise HTTPException(status_code=500, detail=f"Checkpoint-A approve failed: {exc}") from exc
 
 
 @router.post("/model/risk")

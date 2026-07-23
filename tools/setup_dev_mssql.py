@@ -1,5 +1,8 @@
 """
-Setup local SQL Server for the Kfar Supply demo.
+Set up a local SQL Server loaded with the Kfar Supply fixture.
+
+DEV/TEST FIXTURE ONLY — not part of the live production flow. This spins up a fake company
+database so developers can test AMA's real-extraction flow locally without a real DB.
 
 Idempotent: safe to run multiple times; will re-create the `kfar_supply` database
 inside the container on each run.
@@ -10,6 +13,8 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
+import stat
 import subprocess
 import sys
 import time
@@ -460,6 +465,45 @@ def _run_kfar_seeding_script() -> None:
         raise RuntimeError(f"{script_path} does not expose a callable main()")
 
 
+def _redact_connection_string(conn: str) -> str:
+    return re.sub(r"(PWD=)([^;]+)", r"\1***", conn, flags=re.IGNORECASE)
+
+
+def _upsert_env_vars(env_path: Path, updates: dict[str, str]) -> None:
+    """Merge key=value pairs into .env without python-dotenv's atomic replace (Windows-safe)."""
+    lines: list[str] = []
+    if env_path.exists():
+        lines = env_path.read_text(encoding="utf-8").splitlines()
+
+    remaining = dict(updates)
+    out: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in line:
+            out.append(line)
+            continue
+        key, _, _ = line.partition("=")
+        key = key.strip()
+        if key in remaining:
+            out.append(f"{key}={remaining.pop(key)}")
+        else:
+            out.append(line)
+
+    for key, value in remaining.items():
+        out.append(f"{key}={value}")
+
+    content = "\n".join(out)
+    if content:
+        content += "\n"
+
+    if env_path.exists():
+        try:
+            env_path.chmod(stat.S_IWRITE | stat.S_IREAD)
+        except OSError:
+            pass
+    env_path.write_text(content, encoding="utf-8")
+
+
 def _update_env_file(*, sa_password: str, server: str = "localhost") -> str:
     """
     Update (or create) .env with both connection string keys:
@@ -471,11 +515,6 @@ def _update_env_file(*, sa_password: str, server: str = "localhost") -> str:
 
     Returns the AMA_DB_CONNECTION_STRING value (the one the live API actually uses).
     """
-    try:
-        from dotenv import set_key  # type: ignore
-    except ImportError as exc:
-        raise RuntimeError("python-dotenv is required for tools/setup_dev_mssql.py") from exc
-
     env_path = ROOT / ".env"
 
     host_conn = SqlConnectionConfig(
@@ -494,12 +533,26 @@ def _update_env_file(*, sa_password: str, server: str = "localhost") -> str:
         pwd=sa_password,
     ).to_odbc_connection_string()
 
-    if not env_path.exists():
-        env_path.write_text("", encoding="utf-8")
+    updates = {
+        "MSSQL_CONNECTION_STRING": host_conn,
+        "AMA_DB_CONNECTION_STRING": api_conn,
+    }
 
-    set_key(str(env_path), "MSSQL_CONNECTION_STRING", host_conn, quote_mode="never")
-    set_key(str(env_path), "AMA_DB_CONNECTION_STRING", api_conn, quote_mode="never")
-    _log("ENV", f"Updated {env_path} MSSQL_CONNECTION_STRING (host) and AMA_DB_CONNECTION_STRING (API container).")
+    try:
+        _upsert_env_vars(env_path, updates)
+        _log(
+            "ENV",
+            f"Updated {env_path} MSSQL_CONNECTION_STRING (host) and AMA_DB_CONNECTION_STRING (API container).",
+        )
+    except PermissionError as exc:
+        _log("ENV", f"WARNING: Could not write {env_path}: {exc}")
+        _log(
+            "ENV",
+            "Close any process locking .env (IDE tab, docker compose, running API) and set these keys manually:",
+        )
+        for key, value in updates.items():
+            _log("ENV", f"  {key}={_redact_connection_string(value)}")
+
     return api_conn
 
 
@@ -552,7 +605,7 @@ def main() -> None:
     # The generated connection string is consumed by the API container, where
     # `localhost` does NOT refer to the SQL Server container.
     final_conn = _update_env_file(sa_password=sa_password, server=api_server_host)
-    _log("ENV", f"Final connection string:\n{final_conn}")
+    _log("ENV", f"API container connection string (AMA_DB_CONNECTION_STRING):\n{_redact_connection_string(final_conn)}")
 
 
 if __name__ == "__main__":

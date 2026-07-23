@@ -3,9 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from ama.ai_query_helper import AIQueryResult
 from ama.migration_agent import agent_tools
 from ama.migration_agent.engine import init_state, run_agent_turn
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _write_min_report(path: Path) -> dict:
@@ -368,6 +372,76 @@ def test_extract_source_helpers() -> None:
     cols = agent_tools._extract_source_columns(sql)
     assert ("operations", "chaos_green_081") in rels
     assert cols == ["ds_col_1", "ds_col_2"]
+
+
+def test_extract_source_columns_from_cast_syntax() -> None:
+    sql = (
+        "SELECT customer_id::VARCHAR AS customer_id, email::VARCHAR AS email "
+        "FROM dbo.customers"
+    )
+    cols = agent_tools._extract_source_columns(sql)
+    assert "customer_id" in cols
+    assert "email" in cols
+
+
+def test_resolve_bootstrap_columns_from_live_data_ddl() -> None:
+    report_path = ROOT / "live_data" / "test-conn" / "ama_live_report.json"
+    if not report_path.is_file():
+        pytest.skip("live_data test-conn report not present")
+    cols = agent_tools._resolve_bootstrap_columns(
+        report={},
+        report_path=report_path,
+        table_key="dbo.customers",
+    )
+    assert "customer_id" in cols
+    assert "customer_name" in cols
+    assert "email" in cols
+
+
+def test_proposed_customers_sql_runs_after_report_ddl_bootstrap(tmp_path: Path) -> None:
+    try:
+        import duckdb  # type: ignore  # noqa: F401
+    except Exception:
+        return
+    report_path = ROOT / "live_data" / "test-conn" / "ama_live_report.json"
+    if not report_path.is_file():
+        pytest.skip("live_data test-conn report not present")
+    proposed = (
+        "WITH customer_data AS (SELECT "
+        "customer_id::VARCHAR AS customer_id, "
+        "customer_name::VARCHAR AS customer_name, "
+        "email::VARCHAR AS email, "
+        "city::VARCHAR AS city, "
+        "country_code::VARCHAR AS country_code, "
+        "phone::VARCHAR AS phone, "
+        "is_active::BOOLEAN AS is_active, "
+        "created_at::TIMESTAMP AS created_at "
+        "FROM dbo.customers) SELECT * FROM customer_data"
+    )
+    model_dir = tmp_path / "models" / "ama_generated"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    (model_dir / "dbo_customers.sql").write_text(proposed, encoding="utf-8")
+    created = agent_tools._ensure_duckdb_sources_for_model(
+        dbt_project_dir=tmp_path,
+        model_name="dbo_customers",
+        report_path=report_path,
+        primary_table_key="dbo.customers",
+    )
+    assert created >= 1
+    con = duckdb.connect(str(tmp_path / "target" / "duckdb.db"))
+    try:
+        con.execute(proposed)
+        cols = [
+            str(r[0])
+            for r in con.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_schema = 'dbo' AND table_name = 'customers'"
+            ).fetchall()
+        ]
+        assert "customer_id" in cols
+        assert "email" in cols
+    finally:
+        con.close()
 
 
 def test_ensure_duckdb_sources_for_model_creates_missing_relation(tmp_path: Path) -> None:

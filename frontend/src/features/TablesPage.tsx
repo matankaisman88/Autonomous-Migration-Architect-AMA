@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Box,
   CircularProgress,
@@ -301,10 +302,17 @@ export function TablesPage() {
                       approved_by: "react-ui"
                     });
                     setApproveResult(res);
-                    if (Boolean(res.success)) {
+                    const status = String(res.status ?? "");
+                    if (status === "degraded_passthrough") {
+                      setNotice(
+                        `Migration for ${selectedTable} was degraded to a passthrough SELECT — review before using.`
+                      );
+                    } else if (Boolean(res.success)) {
                       setMigratedTables((prev) => (prev.includes(selectedTable) ? prev : [...prev, selectedTable]));
+                      setNotice(`Migration completed for ${selectedTable}`);
+                    } else {
+                      setNotice(`Migration failed for ${selectedTable}`);
                     }
-                    setNotice(`Migration completed for ${selectedTable}`);
                   } catch (e) {
                     setError(e);
                   }
@@ -392,10 +400,56 @@ export function TablesPage() {
             <>
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle2">Migration Result</Typography>
+              {String(approveResult.status ?? "") === "degraded_passthrough" ? (
+                <Alert severity="warning" sx={{ mt: 1 }}>
+                  Approved SQL was replaced with a passthrough <code>SELECT *</code> after dbt validation failed.
+                  The proposed migration logic was not kept. Review <code>original_sql</code> vs{" "}
+                  <code>final_sql</code> below before treating this table as migrated.
+                </Alert>
+              ) : null}
+              {Boolean(approveResult.success) ? (
+                <Alert severity="success" sx={{ mt: 1 }}>
+                  Model validated and written successfully.
+                </Alert>
+              ) : String(approveResult.status ?? "") !== "degraded_passthrough" && approveResult.error ? (
+                <Alert severity="error" sx={{ mt: 1 }}>
+                  {String(approveResult.error)}
+                </Alert>
+              ) : null}
+              <Typography variant="body2">Status: {String(approveResult.status ?? "-")}</Typography>
               <Typography variant="body2">Success: {String(approveResult.success ?? "")}</Typography>
               <Typography variant="body2">Test Passed: {String(approveResult.test_passed ?? "")}</Typography>
               <Typography variant="body2">Path: {String(approveResult.sql_path ?? "-")}</Typography>
-              {approveResult.error ? <Typography color="error">Error: {String(approveResult.error)}</Typography> : null}
+              {approveResult.stage1_error ? (
+                <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 1 }}>
+                  Stage 1 error: {String(approveResult.stage1_error).slice(0, 500)}
+                </Typography>
+              ) : null}
+              {approveResult.stage2_error ? (
+                <Typography variant="caption" color="text.secondary" component="div">
+                  Stage 2 error: {String(approveResult.stage2_error).slice(0, 500)}
+                </Typography>
+              ) : null}
+              {approveResult.original_sql ? (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Original SQL (proposed)
+                  </Typography>
+                  <Box component="pre" sx={{ fontSize: 11, p: 1, bgcolor: "#f8fafc", overflow: "auto", maxHeight: 120 }}>
+                    {String(approveResult.original_sql)}
+                  </Box>
+                </Box>
+              ) : null}
+              {approveResult.final_sql && approveResult.final_sql !== approveResult.original_sql ? (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Final SQL (written to disk)
+                  </Typography>
+                  <Box component="pre" sx={{ fontSize: 11, p: 1, bgcolor: "#fff7ed", overflow: "auto", maxHeight: 120 }}>
+                    {String(approveResult.final_sql)}
+                  </Box>
+                </Box>
+              ) : null}
             </>
           )}
         </PageCard>

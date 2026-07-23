@@ -100,7 +100,7 @@ export function OverviewPage() {
             <Link component={RouterLink} to="/live" underline="hover" fontWeight={600}>
               Live connection
             </Link>{" "}
-            for SQL Server / Oracle / DB2 demo deploy, WebSocket progress, <code>live_data/</code> exports, and optional{" "}
+            for read-only SQL Server extraction, WebSocket progress, <code>live_data/</code> exports, and optional{" "}
             <strong>build report / auto-open Tables</strong>. If that page looks unchanged, rebuild the Docker{" "}
             <code>web</code> image or run the Vite dev server from <code>frontend/</code>.
           </Typography>

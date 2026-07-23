@@ -1,6 +1,6 @@
 # AMA React Frontend
 
-Minimal React app wired to the AMA FastAPI backend.
+Minimal React app wired to the AMA FastAPI backend. For full operator workflows, see **[USER_GUIDE.md](../USER_GUIDE.md)**.
 
 ## Prerequisites
 
@@ -17,21 +17,28 @@ npm run dev
 
 Then open `http://localhost:5173`.
 
-## Configure API base URL
+With Docker Compose, the built app is served at `http://localhost:3000`.
 
-Create `.env` in `frontend/`:
+## Configure
+
+Create `frontend/.env.local` (or `.env`):
 
 ```bash
 VITE_AMA_API_BASE=http://localhost:8000
+VITE_DEFAULT_REPORT_PATH=../sample_data/kfar_supply/kfar_report.json
 ```
 
-## Implemented app sections
+## App sections
 
-- Overview
-- Tables
-- Bulk Migration
-- Planner
-- HITL
-- Data Quality
-- DBT Cockpit
-- Migration Agent
+| Route | Page |
+| --- | --- |
+| `/` | Overview |
+| `/tables` | Tables |
+| `/live` | Live connection |
+| `/glossary` | Glossary |
+| `/bulk` | Bulk Migration |
+| `/planner` | Planner |
+| `/hitl` | HITL |
+| `/dq` | Data Quality |
+| `/cockpit` | DBT Cockpit |
+| `/agent` | Migration Agent |

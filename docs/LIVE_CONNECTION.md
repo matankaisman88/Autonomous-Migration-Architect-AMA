@@ -6,24 +6,29 @@ The **Live connection** page in the React UI (`/live`) connects to a SQL Server 
 
 **Progress:** WebSocket `ws://<api>/ws/live/{job_id}`
 
+**Polling fallback:** `GET /api/live/job/{job_id}` — same job snapshot as the WebSocket (status, stage, percent, logs).
+
 See also: [SQLSERVER.md](SQLSERVER.md) for ODBC setup, Docker networking, and local bootstrap.
 
-## Source modes
+## What it does
 
-| Mode | UI label | Writes to DB? | SQL logs | DDL | Report extras |
-| --- | --- | --- | --- | --- | --- |
-| `kfar_demo` (default) | **Kfar Demo (synthetic)** | **Yes** — deploys Kfar Supply demo tables + seed DML | Synthetic JSONL (`build_jsonl_lines`) | Hardcoded Kfar column JSON from `ama.kfar_supply.spec` | Bundled `sample_data/kfar_supply` glossary, comms, git SQL |
-| `real_extract` | **Real Extraction (read-only)** | **No** — read-only introspection only | Query Store → plan-cache fallback | `INFORMATION_SCHEMA` (BASE TABLEs) | **Only** exported artifacts (no bundled glossary/comms/git) |
+Live connection performs a **read-only** extraction against a real SQL Server database:
 
-Use **`kfar_demo`** for the controlled Hebrew ↔ English demo narrative.
+| Writes to DB? | SQL logs | DDL | Report extras |
+| --- | --- | --- | --- |
+| **No** — read-only introspection only | Query Store → plan-cache fallback | `INFORMATION_SCHEMA` (BASE TABLEs) | **Only** exported artifacts (no bundled glossary/comms/git) |
 
-Use **`real_extract`** against a real or shared SQL Server when you want evidence from the database itself.
+No DDL/DML is ever deployed to the source database.
 
-> **Phase 1:** `real_extract` requires `mode=sqlserver` (400 otherwise). Oracle/DB2 live extraction is planned via the same `SchemaProvider` duck-typing hooks.
+> **SQL Server only:** extraction requires `mode=sqlserver` (400 otherwise). Oracle/DB2 live extraction is planned via the same `SchemaProvider` duck-typing hooks.
+
+> **Security:** this endpoint accepts real connection strings/passwords and has **no application-level authentication** by design. Access is controlled at the **network layer only** — bind the API to an internal interface and restrict it via firewall/VPN; never expose it publicly. Credentials in the request body are sent as plaintext JSON, so front the API with TLS if traffic leaves the host.
+
+> **Local testing without a real DB:** point this flow at the synthetic **Kfar Supply** dev fixture — spin it up with `python tools/setup_dev_mssql.py` (see [SQLSERVER.md](SQLSERVER.md)). The fixture is a developer tool only and is not part of the production flow.
 
 ## Artifact layout
 
-Both modes write the same directory shape so downstream `cmd_run` / discovery merge works unchanged:
+Extraction writes the following directory shape so downstream `cmd_run` / discovery merge works unchanged:
 
 ```text
 live_data/<connection_name>/
@@ -33,7 +38,15 @@ live_data/<connection_name>/
   ama_live_report.json          # when build_report=true
 ```
 
-Real-extraction manifests include `_extraction_meta` (log source, schemas, warnings, row counts). Keys starting with `_` are ignored by the DDL manifest loader.
+Real-extraction manifests include `_extraction_meta` (log source, schemas, warnings, row counts; `source_mode` is always `"real_extract"` in output — not a client-selectable request field). Keys starting with `_` are ignored by the DDL manifest loader.
+
+### Job terminal statuses
+
+| Status | Meaning |
+| --- | --- |
+| `success` | DDL exported; logs and report build completed as requested |
+| `partial` | DDL exported but SQL logs were empty/sparse, or report build failed/skipped — check job logs |
+| `failed` | Connection, DDL extraction, or validation error — no usable manifest |
 
 ## Real extraction details
 
@@ -57,45 +70,28 @@ Real-extraction manifests include `_extraction_meta` (log source, schemas, warni
 
 **Permissions (typical):** `VIEW DATABASE STATE` for Query Store; `VIEW SERVER STATE` for plan cache (instance-level).
 
-### Report build (`real_extract`)
+### Report build
 
 - Uses only `live_data/<connection_name>/` artifacts.
-- Does **not** attach `sample_data/kfar_supply/glossary/*.json`, comms, or git SQL.
+- Does **not** attach any bundled glossary, comms, or git SQL sample_data.
 - Glossary UI shows mappings from **logs + DDL merge** only.
 - Report anchor: optional `migration_context` (`schema.table`), else first manifest table alphabetically.
 
-Job log line when skipping demo context:
+Job log line during report build:
 
 ```text
-real_extract: skipping bundled Kfar glossary/comms/git sample_data
+Building report from exported artifacts only (no bundled sample_data)
 ```
 
 ## API request examples
 
-### Kfar demo (backward compatible)
-
-```json
-{
-  "mode": "sqlserver",
-  "connection_name": "demo",
-  "host": "172.17.0.2",
-  "port": 1433,
-  "user": "sa",
-  "password": "***",
-  "database": "kfar_supply",
-  "jsonl_lines": 1200,
-  "build_report": true
-}
-```
-
-### Real extraction (specific schemas)
+### Specific schemas
 
 ```json
 {
   "mode": "sqlserver",
   "connection_name": "prod-crm",
   "connection_string": "DRIVER={ODBC Driver 18 for SQL Server};SERVER=...;DATABASE=...;UID=...;PWD=...;TrustServerCertificate=yes;",
-  "source_mode": "real_extract",
   "schemas": ["dbo", "finance", "logistics"],
   "log_start_date": "2026-07-01",
   "log_end_date": "2026-07-21",
@@ -105,14 +101,13 @@ real_extract: skipping bundled Kfar glossary/comms/git sample_data
 }
 ```
 
-### Real extraction (entire database)
+### Entire database
 
 ```json
 {
   "mode": "sqlserver",
-  "connection_name": "kfar-full",
+  "connection_name": "prod-warehouse",
   "connection_string": "...",
-  "source_mode": "real_extract",
   "all_schemas": true,
   "build_report": true
 }
@@ -120,20 +115,17 @@ real_extract: skipping bundled Kfar glossary/comms/git sample_data
 
 | Field | Default | Notes |
 | --- | --- | --- |
-| `source_mode` | `kfar_demo` | |
-| `all_schemas` | `false` | Real extract: every user BASE TABLE; mutually exclusive with `schemas` |
-| `schemas` | `["dbo"]` | Real extract only when `all_schemas` is false |
+| `all_schemas` | `false` | Every user BASE TABLE; mutually exclusive with `schemas` |
+| `schemas` | `["dbo"]` | Used when `all_schemas` is false |
 | `log_start_date` / `log_end_date` | last 7 days → today | ISO `YYYY-MM-DD` |
 | `max_log_rows` | `10000` | `1`–`50000` |
 | `migration_context` | first manifest table | Optional report anchor |
-| `jsonl_lines` | `1200` | Kfar demo only |
 
 ## UI workflow
 
 1. Open **Live connection** in the React app (`http://localhost:3000` with Docker).
 2. Choose dialect **sqlserver** and enter connection details (or paste ODBC connection string).
-3. Select **Kfar Demo** or **Real Extraction**.
-   - Real extract: check **All user schemas** for full DB, or enter `dbo, finance, logistics` in Schemas.
+3. Choose schema scope: check **All user schemas** for the full DB, or enter `dbo, finance, logistics` in Schemas.
 4. Optional: **Build AMA report after export** and **auto-load** into Tables view.
 5. **Test connection** → **Start ingestion** → watch WebSocket progress.
 
@@ -149,14 +141,14 @@ PowerShell:
 docker compose build api web; docker compose up -d
 ```
 
-## Populating Query Store for testing
+## Populating Query Store for local testing
 
-Real extraction only captures SQL that actually ran. To seed application queries against Kfar `dbo` tables:
+Real extraction only captures SQL that actually ran. When testing against the local **Kfar Supply dev fixture** (or any DB with no recent activity), seed some queries so there's something to extract:
 
-1. Open [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) in SSMS.
+1. Open [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) in SSMS (this is a dev-fixture helper).
 2. Set `USE <your_database>;` if not `kfar_supply`.
 3. Execute all batches (F5). Each batch has a unique `/* ama-test-qNNN */` comment so dedupe keeps distinct entries.
-4. Re-run **Real Extraction** with log end date = today.
+4. Re-run extraction with log end date = today.
 
 ## Docker / paths
 
@@ -170,8 +162,7 @@ Real extraction only captures SQL that actually ran. To seed application queries
 | --- | --- | --- |
 | Empty or sparse `prod.jsonl` | No app SQL in Query Store / plan cache for date range | Run workloads; widen dates; use `tools/kfar_test_queries.sql` |
 | Only system-catalog SQL | Query Store dominated by tooling queries | Fixed by application-SQL filter; re-run after app queries |
-| **Glossary inventory** Hebrew terms on real extract | Stale API before glossary skip fix | Rebuild API; use `real_extract` (not demo glossary) |
-| Only 3 DDL tables on Kfar | Default `schemas: ["dbo"]` only | Enable **All user schemas** or add `finance, logistics` |
+| Only tables from one schema | Default `schemas: ["dbo"]` only | Enable **All user schemas** or add other schemas, e.g. `finance, logistics` |
 | Log row count unchanged after re-run | Dedupe by SQL text | Run **new distinct** SQL; check `unique_after_dedupe` in job log |
 | `build_report=false` in logs | Stale API image | Rebuild `api` and `web` services |
 | `no BASE TABLEs found in schemas: dbo` | Wrong DB or empty schema | Check connection database; list tables in SSMS |

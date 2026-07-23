@@ -218,6 +218,140 @@ def poll_generate_dbt_checkpoint_a_job(
     return job, None
 
 
+def _execute_approved_checkpoint_models(
+    *,
+    checkpoint: CheckpointAArtifact,
+    report_path: Path,
+    dbt_project_dir: Path,
+    checkpoint_dir: Path,
+    dlq_dir: Path,
+    bypass_wave: int | None,
+    stop_on_first_error: bool,
+    max_fix_attempts: int = 3,
+) -> dict[str, Any]:
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    table_to_model = {a.table_key: a.model_name for a in checkpoint.generated_models}
+    wave_to_tables = _build_wave_to_tables(report)
+    wave_to_model_names: dict[int, list[str]] = {}
+    for wave_id, tables in wave_to_tables.items():
+        names = [table_to_model[t] for t in tables if t in table_to_model]
+        if names:
+            wave_to_model_names[wave_id] = names
+    if not wave_to_model_names:
+        wave_to_model_names = {0: [a.model_name for a in checkpoint.generated_models]}
+
+    model_state, telemetry, blocked = _orchestrate_waves_with_gating(
+        wave_to_model_names=wave_to_model_names,
+        dbt_project_dir=dbt_project_dir,
+        max_fix_attempts=max_fix_attempts,
+        dlq_dir=dlq_dir,
+        checkpoint_dir=checkpoint_dir,
+        bypass_wave=bypass_wave,
+        stop_on_first_error=stop_on_first_error,
+    )
+    failed = [name for name, st in model_state.items() if st in {"HITL_REQUIRED", "FAILED", "REJECTED"}]
+    if blocked and failed:
+        execution_status = MigrationStatus.HITL_REQUIRED.value
+    elif failed:
+        execution_status = MigrationStatus.PARTIAL.value
+    elif model_state:
+        execution_status = MigrationStatus.SUCCESS.value
+    else:
+        execution_status = MigrationStatus.FAILED.value
+    return {
+        "execution_status": execution_status,
+        "model_state": model_state,
+        "review_required": failed,
+        "wave_telemetry": telemetry,
+        "blocked": blocked,
+    }
+
+
+def approve_checkpoint_a_for_job(
+    *,
+    checkpoint_dir: Path,
+    dlq_dir: Path,
+    job_id: str,
+    run_execution: bool = False,
+    bypass_wave: int | None = None,
+    stop_on_first_error: bool = False,
+) -> dict[str, Any]:
+    """
+    Approve a completed Checkpoint-A job: write dbt model files, optionally run dbt in background.
+    """
+    job = load_job(checkpoint_dir, job_id)
+    if not job:
+        raise ValueError(f"job not found: {job_id}")
+    if str(job.get("status") or "").upper() != GenerationJobStatus.SUCCESS:
+        raise ValueError("Checkpoint-A job is not complete yet")
+    if bool(job.get("checkpoint_a_approved")):
+        raise ValueError("Checkpoint-A already approved for this job")
+
+    checkpoint = load_checkpoint_a_for_job(checkpoint_dir, job_id)
+    if checkpoint is None:
+        raise ValueError("Checkpoint-A artifact not found")
+
+    dbt_models_dir = Path(str(job.get("dbt_models_dir") or "")).expanduser().resolve()
+    dbt_project_dir = Path(str(job.get("dbt_project_dir") or "")).expanduser().resolve()
+    report_path = Path(str(job.get("report_path") or "")).expanduser().resolve()
+    if not report_path.is_file():
+        raise ValueError(f"Report path missing for job: {report_path}")
+
+    written = write_model_artifacts(dbt_models_dir, checkpoint.generated_models)
+    job["checkpoint_a_approved"] = True
+    job["checkpoint_a_approved_at"] = _utc_now_iso()
+    job["written_count"] = len(written)
+    job["written_paths"] = [str(p) for p in written]
+    save_job(checkpoint_dir, job_id, job)
+
+    result: dict[str, Any] = {
+        "job_id": job_id,
+        "checkpoint_a_approved": True,
+        "written_count": len(written),
+        "written_paths": [str(p) for p in written],
+        "run_execution": run_execution,
+        "review_required_tables": list(checkpoint.review_required_tables),
+    }
+
+    if not run_execution:
+        return result
+
+    job = load_job(checkpoint_dir, job_id)
+    job["execution_status"] = "RUNNING"
+    job["execution_started_at"] = _utc_now_iso()
+    save_job(checkpoint_dir, job_id, job)
+    result["execution_status"] = "RUNNING"
+
+    def _worker() -> None:
+        try:
+            exec_result = _execute_approved_checkpoint_models(
+                checkpoint=checkpoint,
+                report_path=report_path,
+                dbt_project_dir=dbt_project_dir,
+                checkpoint_dir=checkpoint_dir,
+                dlq_dir=dlq_dir,
+                bypass_wave=bypass_wave,
+                stop_on_first_error=stop_on_first_error,
+            )
+            job_now = load_job(checkpoint_dir, job_id)
+            job_now["execution_status"] = exec_result["execution_status"]
+            job_now["execution_finished_at"] = _utc_now_iso()
+            job_now["execution_model_state"] = exec_result["model_state"]
+            job_now["execution_review_required"] = exec_result["review_required"]
+            job_now["execution_wave_telemetry"] = exec_result["wave_telemetry"]
+            save_job(checkpoint_dir, job_id, job_now)
+        except Exception as exc:
+            logger.exception("checkpoint_a_execution_failed", extra={"job_id": job_id})
+            job_now = load_job(checkpoint_dir, job_id)
+            job_now["execution_status"] = "FAILED"
+            job_now["execution_finished_at"] = _utc_now_iso()
+            job_now["execution_error"] = str(exc)
+            save_job(checkpoint_dir, job_id, job_now)
+
+    threading.Thread(target=_worker, name=f"ama-cp-a-exec-{job_id}", daemon=True).start()
+    return result
+
+
 def _insights_path(checkpoint_dir: Path) -> Path:
     return checkpoint_dir / "model_insights.json"
 

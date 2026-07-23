@@ -103,12 +103,31 @@ export const api = {
         portfolio
       )}&domains=${encodeURIComponent(domains)}`
     ),
-  startCheckpointA: (reportId: string) =>
+  startCheckpointA: (
+    reportId: string,
+    options?: { target_dialect?: string; wave_id_filter?: number | null; stop_on_first_error?: boolean }
+  ) =>
     request<Record<string, unknown>>(`/cockpit/${reportId}/checkpoint-a/start`, {
       method: "POST",
-      body: JSON.stringify({})
+      body: JSON.stringify({
+        target_dialect: options?.target_dialect ?? "duckdb",
+        wave_id_filter: options?.wave_id_filter ?? null,
+        stop_on_first_error: options?.stop_on_first_error ?? false
+      })
     }),
   pollCheckpointA: (jobId: string) => request<Record<string, unknown>>(`/cockpit/checkpoint-a/job/${jobId}`),
+  approveCheckpointA: (
+    jobId: string,
+    options?: { run_execution?: boolean; bypass_wave?: number | null; stop_on_first_error?: boolean }
+  ) =>
+    request<Record<string, unknown>>(`/cockpit/checkpoint-a/job/${jobId}/approve`, {
+      method: "POST",
+      body: JSON.stringify({
+        run_execution: options?.run_execution ?? false,
+        bypass_wave: options?.bypass_wave ?? null,
+        stop_on_first_error: options?.stop_on_first_error ?? false
+      })
+    }),
   getLineage: (reportId: string, tableKey: string, mode: "pk_fk" | "coquery" = "pk_fk") =>
     request<LineageSubgraphResponse>(
       `/api/discovery/lineage/${encodeURIComponent(tableKey)}?report_id=${encodeURIComponent(reportId)}&mode=${encodeURIComponent(mode)}`
@@ -140,9 +159,7 @@ export type LiveStartPayload = {
   password?: string;
   database?: string;
   service_name?: string;
-  jsonl_lines?: number;
   build_report?: boolean;
-  source_mode?: "kfar_demo" | "real_extract";
   schemas?: string[];
   all_schemas?: boolean;
   log_start_date?: string;

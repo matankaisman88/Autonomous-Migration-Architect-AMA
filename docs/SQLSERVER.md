@@ -25,11 +25,15 @@ Verify the driver name on Windows (optional):
 
 You need Docker Desktop or a Docker Engine environment capable of running containers locally.
 
-## 2. One-time / Local Initialization Workflow (recommended)
+## 2. One-time / Local Initialization Workflow (dev fixture)
+
+> This section is for **local development/testing only** — it stands up a synthetic `kfar_supply`
+> database so you can exercise AMA without a real company database. When connecting to a real
+> internal SQL Server, skip this and just point Live connection at that server (Section 4+).
 
 This repo includes a helper that does the “right thing” for local dev.
 
-1. Set a SQL Server `sa` password in your environment (do not commit the password to git).
+1. Set a SQL Server `sa` password in your environment (do not commit the password to git). The script reads **`MSSQL_SA_PASSWORD`** from the shell or `.env`.
 2. Run the local bootstrap script:
 
 ```bash
@@ -43,8 +47,9 @@ This script:
 - injects schema from the repository’s demo DDL artifacts
 - seeds seed data for the Kfar Supply demo context
 - updates the local `.env` with:
-  - `MSSQL_CONNECTION_STRING` (for convenience)
-  - a `SERVER=` value that is reachable **from the API container**
+  - `MSSQL_CONNECTION_STRING` (for host-side tools — uses `127.0.0.1`)
+  - `AMA_DB_CONNECTION_STRING` (for the API container — uses the SQL Server container IP)
+  - Writes via direct merge (Windows-safe); if `.env` is locked by another process, the script prints redacted values to set manually
 
 ## 3. Connectivity Nuances (ODBC 18 Specifics)
 
@@ -104,9 +109,11 @@ The app’s MCP provider selection uses `AMA_SCHEMA_MODE` and `AMA_DB_CONNECTION
 
 | Variable | Value/Description |
 | :--- | :--- |
-| `AMA_SCHEMA_MODE` | Must be set to `sqlserver` |
-| `AMA_DB_CONNECTION_STRING` | Full ODBC connection string (DSN-less), used by the API container to connect |
-| `AMA_DB_TIMEOUT` | Optional (seconds). Default `10` (or whatever your env sets). Increase if your Docker is slow. |
+| `AMA_SCHEMA_MODE` | `file` (default in Docker Compose — file-based reports/fixtures) or `sqlserver` (live MCP provider against `AMA_DB_CONNECTION_STRING`) |
+| `AMA_DB_CONNECTION_STRING` | Full ODBC connection string (DSN-less), used when `AMA_SCHEMA_MODE=sqlserver` |
+| `MSSQL_CONNECTION_STRING` | Host-side ODBC string (e.g. SSMS, `setup_dev_mssql.py` on the host); uses `127.0.0.1` |
+| `MSSQL_SA_PASSWORD` | Required by `tools/setup_dev_mssql.py` when bootstrapping the local dev fixture |
+| `AMA_DB_TIMEOUT` | Optional (seconds). Default `10`. Increase if Docker networking is slow. |
 
 Note: For local Docker SQL Server with self-signed certificates, include `Encrypt=yes` and `TrustServerCertificate=yes` in the connection string.
 
@@ -198,7 +205,7 @@ Most common causes:
 
 ## Live connection exports (`live_data/`)
 
-Full reference: **[LIVE_CONNECTION.md](LIVE_CONNECTION.md)** (source modes, API, Query Store, troubleshooting).
+Full reference: **[LIVE_CONNECTION.md](LIVE_CONNECTION.md)** (real SQL Server extraction API, Query Store, troubleshooting).
 
 The **Live connection** UI writes files under:
 
@@ -230,10 +237,7 @@ So exports appear on the host at **`<repo>/live_data/<connection_name>/`**. If y
 
 ## Live connection: build report + auto-load in UI
 
-The Live connection page supports two **source modes** (see [LIVE_CONNECTION.md](LIVE_CONNECTION.md)):
-
-- **Kfar Demo (synthetic)** — deploys demo schema/DML; report includes bundled Kfar glossary/comms/git from `sample_data/kfar_supply`.
-- **Real Extraction (read-only)** — extracts real DDL + SQL logs; **`all_schemas`** exports every user BASE TABLE; or set **`schemas`** (e.g. `dbo, finance, logistics`); report uses **only** files under `live_data/<connection_name>/` (no demo glossary).
+The Live connection page performs **read-only real extraction** (see [LIVE_CONNECTION.md](LIVE_CONNECTION.md)): it extracts real DDL + SQL logs. **`all_schemas`** exports every user BASE TABLE; or set **`schemas`** (e.g. `dbo, finance, logistics`). The report uses **only** files under `live_data/<connection_name>/`.
 
 **Schema scope**
 
@@ -245,7 +249,7 @@ The Live connection page supports two **source modes** (see [LIVE_CONNECTION.md]
 
 **Tables tab:** lineage graph shows PK/FK arrows plus shared-query counts from SQL logs; nodes show per-table query counts.
 
-To seed Query Store / plan cache with application SQL, run [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) in SSMS against the **same server** as `AMA_DB_CONNECTION_STRING`, then re-run Real Extraction. Job logs include `Connected to server=… database=…` and dedupe stats (`unique_after_dedupe`).
+When testing against the local dev fixture, seed Query Store / plan cache with sample SQL by running [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) in SSMS against the **same server** as `AMA_DB_CONNECTION_STRING`, then re-run extraction. Job logs include `Connected to server=… database=…` and dedupe stats (`unique_after_dedupe`).
 
 If the checkbox appears enabled but job logs show `build_report=false`, your running API image is stale. Rebuild API and web:
 
@@ -259,7 +263,7 @@ Shared UI options:
 - **Build AMA report after export** — runs ingestion over `live_data/<connection_name>/` and writes `ama_live_report.json`
 - **When ready, load that report in this UI and open Tables** — auto-calls `/report/load` with the generated path
 
-## Scale/bulk defaults for Kfar live dataset
+## Scale/bulk defaults
 
 Current API defaults are:
 

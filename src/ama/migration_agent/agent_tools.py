@@ -265,17 +265,80 @@ def _extract_inventory(report: dict[str, Any]) -> list[dict[str, Any]]:
 def _extract_columns_for_table(report: dict[str, Any], table_key: str) -> list[str]:
     out: list[str] = []
     importance = report.get("importance_ddl")
-    if not isinstance(importance, list):
-        return out
-    for row in importance:
+    if isinstance(importance, list):
+        for row in importance:
+            if not isinstance(row, dict):
+                continue
+            if str(row.get("source_table") or "").strip() != table_key:
+                continue
+            col = str(row.get("column") or "").strip()
+            if col:
+                out.append(col)
+    if out:
+        return list(dict.fromkeys(out))
+    # Live-extraction reports store per-column rows as "schema.table::column".
+    prefix = f"{table_key}::"
+    for row in report.get("columns") or []:
         if not isinstance(row, dict):
             continue
-        if str(row.get("source_table") or "").strip() != table_key:
-            continue
-        col = str(row.get("column") or "").strip()
-        if col:
-            out.append(col)
+        col_key = str(row.get("column") or "").strip()
+        if col_key.startswith(prefix):
+            out.append(col_key.split("::", 1)[1])
     return list(dict.fromkeys(out))
+
+
+def _ddl_columns_from_live_data_artifacts(report_path: Path, table_key: str) -> list[str]:
+    """Load DDL column list from ``live_data/<conn>/ddl/<schema>_<table>.json`` when present."""
+    root = report_path.parent
+    if "." in table_key:
+        schema_name, table_name = table_key.split(".", 1)
+    else:
+        schema_name, table_name = "dbo", table_key
+    ddl_path = root / "ddl" / f"{schema_name}_{table_name}.json"
+    if not ddl_path.is_file():
+        return []
+    try:
+        payload = json.loads(ddl_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    cols = payload.get("columns") if isinstance(payload, dict) else None
+    if not isinstance(cols, list):
+        return []
+    return [str(c).strip() for c in cols if str(c).strip()]
+
+
+def _columns_from_schema_yml(schema_yml: str) -> list[str]:
+    names = re.findall(r"^\s*-\s*name:\s*(\S+)\s*$", str(schema_yml or ""), flags=re.MULTILINE)
+    return list(dict.fromkeys(names))
+
+
+def _resolve_bootstrap_columns(
+    *,
+    report: dict[str, Any] | None,
+    report_path: Path | None,
+    table_key: str,
+    schema_yml: str | None = None,
+    sql_text: str | None = None,
+) -> list[str]:
+    """
+    Resolve real DDL column names for DuckDB source bootstrap (approve-time validation).
+
+    Priority: report importance_ddl / columns array → DDL manifest → live_data/ddl JSON →
+    schema.yml (primary table only) → SQL parse → synthetic ds_col_* fallback.
+    """
+    cols: list[str] = []
+    if report is not None:
+        cols = _extract_columns_for_table(report, table_key)
+        if not cols and report_path is not None:
+            manifest_cols = _load_manifest_table_columns(report, report_path)
+            cols = manifest_cols.get(table_key, [])
+    if not cols and report_path is not None:
+        cols = _ddl_columns_from_live_data_artifacts(report_path, table_key)
+    if not cols and schema_yml:
+        cols = _columns_from_schema_yml(schema_yml)
+    if not cols and sql_text:
+        cols = _extract_source_columns(sql_text)
+    return cols
 
 
 def _load_manifest_table_columns(
@@ -481,13 +544,29 @@ def generate_sql(
     }
 
 
-def test_model(*, dbt_project_dir: Path, model_name: str, target: str | None = None) -> dict[str, Any]:
+def test_model(
+    *,
+    dbt_project_dir: Path,
+    model_name: str,
+    target: str | None = None,
+    report: dict[str, Any] | None = None,
+    report_path: Path | None = None,
+    primary_table_key: str | None = None,
+    schema_yml: str | None = None,
+) -> dict[str, Any]:
     # Important: `dbt test` can return success when a model has zero tests.
     # Run `dbt run` first so invalid SQL is caught before test-only pass states.
     requested_target = str(target or "").strip()
     _sanitize_schema_descriptions(dbt_project_dir=dbt_project_dir)
     _sanitize_generated_sql_files(dbt_project_dir=dbt_project_dir)
-    _ensure_duckdb_sources_for_model(dbt_project_dir=dbt_project_dir, model_name=model_name)
+    _ensure_duckdb_sources_for_model(
+        dbt_project_dir=dbt_project_dir,
+        model_name=model_name,
+        report=report,
+        report_path=report_path,
+        primary_table_key=primary_table_key,
+        schema_yml=schema_yml,
+    )
     run_cmd = ["dbt", "run", "--select", model_name]
     if requested_target:
         run_cmd.extend(["--target", requested_target])
@@ -751,9 +830,20 @@ def test_models_batch(
     return out
 
 
-def _ensure_duckdb_sources_for_model(*, dbt_project_dir: Path, model_name: str) -> int:
+def _ensure_duckdb_sources_for_model(
+    *,
+    dbt_project_dir: Path,
+    model_name: str,
+    report: dict[str, Any] | None = None,
+    report_path: Path | None = None,
+    primary_table_key: str | None = None,
+    schema_yml: str | None = None,
+) -> int:
     """
     Best-effort local bootstrap for missing source schema/table relations in DuckDB.
+
+    When ``report`` / ``report_path`` are provided, source tables are created with real DDL
+    column names from the loaded report (not synthetic ``ds_col_*`` placeholders).
     """
     sql_path = _find_model_sql_path(dbt_project_dir=dbt_project_dir, model_name=model_name)
     if sql_path is None:
@@ -765,7 +855,6 @@ def _ensure_duckdb_sources_for_model(*, dbt_project_dir: Path, model_name: str) 
     relations = _extract_source_relations(sql_text)
     if not relations:
         return 0
-    columns = _extract_source_columns(sql_text) or [f"ds_col_{i}" for i in range(1, 11)]
     target_dir = dbt_project_dir / "target"
     target_dir.mkdir(parents=True, exist_ok=True)
     db_path = target_dir / "duckdb.db"
@@ -779,13 +868,23 @@ def _ensure_duckdb_sources_for_model(*, dbt_project_dir: Path, model_name: str) 
     except Exception:
         return 0
     try:
-        col_def = ", ".join(f"\"{c}\" VARCHAR" for c in columns)
         for schema_name, table_name in relations:
+            table_key = f"{schema_name}.{table_name}"
+            use_schema_yml = schema_yml if (primary_table_key and table_key == primary_table_key) else None
+            columns = _resolve_bootstrap_columns(
+                report=report,
+                report_path=report_path,
+                table_key=table_key,
+                schema_yml=use_schema_yml,
+                sql_text=sql_text,
+            )
+            if not columns:
+                columns = [f"ds_col_{i}" for i in range(1, 11)]
+            col_def = ", ".join(f'"{c}" VARCHAR' for c in columns)
             try:
-                con.execute(f"CREATE SCHEMA IF NOT EXISTS \"{schema_name}\"")
-                con.execute(
-                    f"CREATE TABLE IF NOT EXISTS \"{schema_name}\".\"{table_name}\" ({col_def})"
-                )
+                con.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"')
+                con.execute(f'DROP TABLE IF EXISTS "{schema_name}"."{table_name}"')
+                con.execute(f'CREATE TABLE "{schema_name}"."{table_name}" ({col_def})')
                 created += 1
             except Exception:
                 continue
@@ -814,10 +913,18 @@ def _extract_source_relations(sql: str) -> list[tuple[str, str]]:
 
 
 def _extract_source_columns(sql: str) -> list[str]:
-    cols = re.findall(r"\b(ds_col_\d+)\b", str(sql or ""), flags=re.IGNORECASE)
+    text = str(sql or "")
+    cols = re.findall(r"\b(ds_col_\d+)\b", text, flags=re.IGNORECASE)
+    if cols:
+        return list(dict.fromkeys(cols))
+    # AMA proposals often cast source columns: ``customer_id::VARCHAR AS customer_id``.
+    cast_cols = re.findall(r"\b([a-zA-Z_][\w]*)\s*::", text, flags=re.IGNORECASE)
     out: list[str] = []
-    for c in cols:
+    skip = {"varchar", "boolean", "timestamp", "integer", "bigint", "double", "date", "text"}
+    for c in cast_cols:
         name = str(c)
+        if name.lower() in skip:
+            continue
         if name not in out:
             out.append(name)
     return out

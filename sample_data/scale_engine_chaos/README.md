@@ -1,8 +1,12 @@
 # Scale Engine Chaos Dataset
 
+> **Dev/test fixture only** — synthetic data for stress-testing Scale Engine scoring, not a production ingestion path.
+
 Deterministic synthetic dataset for stress-testing Scale Engine scoring, anomalies, and queueing.
 
-## Dashboard notes (current behavior)
+## Dashboard notes
+
+Notes below describe **Streamlit** bulk execution behavior. The **React** Bulk page uses WebSocket progress and a UI-only dry run — see [USER_GUIDE.md](../../USER_GUIDE.md).
 
 - GREEN tables can be executed individually or through Bulk Migration.
 - Bulk execution runs in a background worker and now tracks explicit states (`queued`, `running`, `done`, `failed`) with live UI polling.
