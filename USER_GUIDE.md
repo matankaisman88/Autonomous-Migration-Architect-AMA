@@ -182,6 +182,8 @@ Batch path for **green-queue** tables that pass the confidence/criticality gate.
 3. Choose target **dialect** (`duckdb`, `snowflake`, `bigquery`, `redshift`).
 4. **Start bulk job** — WebSocket-driven progress; success/failure per table.
 
+Each table is proposed with the same DDL-aware SQL generator used on **Tables** and **DBT Cockpit**. During batched local dbt validation, DuckDB source stubs are bootstrapped from report DDL, live extract JSON, `schema.yml`, and model SQL (same merge rules as single-table approve). If validation still fails after one auto-fix pass, bulk may fall back to `SELECT * FROM <table>` for that model only — re-run bulk for those tables after fixing bootstrap/DDL issues; do not treat passthrough output as a completed migration.
+
 Tables outside the DDL manifest scope are blocked (`outside_manifest_scope`). Red-queue tables are never bulk-approved automatically.
 
 **Dry run** in the UI is informational only today — disable it to execute.
@@ -575,7 +577,8 @@ flowchart LR
 | **Empty mapping review queue?** | Many reports auto-classify everything as merged. Kfar has ~3 pending rows. Try `sample_data/dashboard/demo_with_review.json` for a minimal demo. |
 | **No plan output?** | Ingest with `--discovery-mode` so `discovery.inventory` is populated. |
 | **Empty SQL logs after live extract?** | Query Store may be empty — widen dates, run workloads, or seed with `tools/kfar_test_queries.sql` on dev DB. |
-| **Approve showed degraded passthrough?** | Proposed SQL failed local dbt validation; a bare `SELECT *` was written instead. Review the warning on **Tables** — do not treat as a completed migration. |
+| **Approve showed degraded passthrough?** | Proposed SQL failed local dbt validation; a bare `SELECT *` was written instead. On **Tables**, review the warning — on **Bulk**, check failed table reasons and re-run after fixing DDL/bootstrap. Do not treat as a completed migration. |
+| **Bulk wrote `SELECT *` but schema.yml has columns?** | That table hit the passthrough fallback during batched dbt validation. Rebuild/restart the API if you recently updated bootstrap code, then re-run bulk so stubs are rebuilt from merged DDL. |
 | **Does AMA move production data?** | No. AMA extracts metadata, writes dbt models, and optionally runs dbt against local DuckDB stubs. Target warehouse loading is outside AMA. |
 | **Cockpit dbt run failed on missing column?** | Usually a stub/bootstrap mismatch — restart the API after code updates (`docker compose up --build`), re-approve with **Run dbt** so stubs are rebuilt from merged DDL/schema columns. |
 | **React vs Streamlit?** | React is the primary internal UI (including Cockpit approve); Streamlit retains fuller Agent / Checkpoint-B fix-loop UX. |

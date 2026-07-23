@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -469,6 +470,42 @@ def test_bootstrap_batch_creates_full_finance_invoices_table(tmp_path: Path) -> 
         assert "invoice_id" in names
     finally:
         con.close()
+
+
+def test_test_models_batch_passes_report_context_to_bootstrap(monkeypatch, tmp_path: Path) -> None:
+    captured: list[dict[str, Any]] = []
+
+    def _fake_ensure(**kwargs: Any) -> int:
+        captured.append(dict(kwargs))
+        return 0
+
+    def _fake_run_command(cmd: list[str], cwd: Path) -> tuple[int, str, str]:
+        return 0, "", ""
+
+    monkeypatch.setattr(agent_tools, "_ensure_duckdb_sources_for_model", _fake_ensure)
+    monkeypatch.setattr(agent_tools, "_run_command", _fake_run_command)
+    monkeypatch.setattr(agent_tools, "_read_run_results_map", lambda _d: {})
+
+    report = {"importance_ddl": [{"source_table": "dbo.customers", "column": "customer_id"}]}
+    report_path = tmp_path / "report.json"
+    report_path.write_text("{}", encoding="utf-8")
+    schema_yml = "version: 2\nmodels:\n  - name: dbo_customers\n    columns:\n      - name: customer_id\n"
+
+    agent_tools.test_models_batch(
+        dbt_project_dir=tmp_path,
+        model_names=["dbo_customers"],
+        report=report,
+        report_path=report_path,
+        model_context={
+            "dbo_customers": {"table_key": "dbo.customers", "schema_yml": schema_yml},
+        },
+    )
+
+    assert len(captured) == 1
+    assert captured[0]["report"] == report
+    assert captured[0]["report_path"] == report_path
+    assert captured[0]["primary_table_key"] == "dbo.customers"
+    assert "customer_id" in captured[0]["schema_yml"]
 
 
 def test_resolve_bootstrap_columns_merges_sparse_importance_with_ddl(tmp_path: Path) -> None:

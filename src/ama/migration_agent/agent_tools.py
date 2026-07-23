@@ -915,6 +915,9 @@ def test_models_batch(
     model_names: list[str],
     target: str | None = None,
     chunk_size: int = 50,
+    report: dict[str, Any] | None = None,
+    report_path: Path | None = None,
+    model_context: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """
     Validate many models with batched dbt invocations for performance.
@@ -924,10 +927,19 @@ def test_models_batch(
     if not names:
         return {}
     requested_target = str(target or "").strip()
+    meta = model_context or {}
     for mn in names:
         _sanitize_schema_descriptions(dbt_project_dir=dbt_project_dir)
         _sanitize_generated_sql_files(dbt_project_dir=dbt_project_dir)
-        _ensure_duckdb_sources_for_model(dbt_project_dir=dbt_project_dir, model_name=mn)
+        ctx = meta.get(mn) or {}
+        _ensure_duckdb_sources_for_model(
+            dbt_project_dir=dbt_project_dir,
+            model_name=mn,
+            report=report,
+            report_path=report_path,
+            primary_table_key=str(ctx.get("table_key") or "").strip() or None,
+            schema_yml=str(ctx.get("schema_yml") or "").strip() or None,
+        )
 
     out: dict[str, dict[str, Any]] = {mn: {"success": False, "reason": "not executed"} for mn in names}
     for chunk in _chunked_models(names, chunk_size):

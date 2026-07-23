@@ -97,9 +97,9 @@ def _run_bulk_job(
                 payload=dict(_BULK_JOBS[job_id]),
             )
 
-        prepared_models: dict[str, str] = {}
+        prepared_models: dict[str, dict[str, str]] = {}
 
-        def _process_one(table_key: str) -> tuple[str, bool, str, str]:
+        def _process_one(table_key: str) -> tuple[str, bool, str, str, str]:
             try:
                 prop = migration_agent_tools.propose_dbt_model(
                     report=report,
@@ -131,9 +131,9 @@ def _run_bulk_job(
                         approved_by="dashboard",
                         approved_at=datetime.now(timezone.utc).isoformat(),
                     )
-                return table_key, ok, model_name, ""
+                return table_key, ok, model_name, schema_yml, ""
             except Exception:
-                return table_key, False, "", "prepare/write exception"
+                return table_key, False, "", "", "prepare/write exception"
 
         workers = max(1, min(int(max_workers or 4), 8))
         with ThreadPoolExecutor(max_workers=workers) as ex:
@@ -143,12 +143,12 @@ def _run_bulk_job(
                 table_key = futs[fut]
                 with _BULK_JOBS_LOCK:
                     _BULK_JOBS[job_id]["current_table"] = table_key
-                tk, ok, model_name, reason = fut.result()
+                tk, ok, model_name, schema_yml, reason = fut.result()
                 with _BULK_JOBS_LOCK:
                     if not ok:
                         _BULK_JOBS[job_id]["failed"].append({"table_key": tk, "reason": reason})
                     else:
-                        prepared_models[tk] = model_name
+                        prepared_models[tk] = {"model_name": model_name, "schema_yml": schema_yml}
                     done_count += 1
                     _BULK_JOBS[job_id]["completed"] = done_count
                     _bulk_job_write(
@@ -168,14 +168,23 @@ def _run_bulk_job(
                     job_id=job_id,
                     payload=dict(_BULK_JOBS[job_id]),
                 )
+            model_context = {
+                info["model_name"]: {"table_key": table_key, "schema_yml": info["schema_yml"]}
+                for table_key, info in prepared_models.items()
+            }
             model_results = migration_agent_tools.test_models_batch(
                 dbt_project_dir=dbt_project_dir,
-                model_names=list(prepared_models.values()),
+                model_names=[info["model_name"] for info in prepared_models.values()],
                 target=dbt_target,
                 chunk_size=50,
+                report=report,
+                report_path=report_path,
+                model_context=model_context,
             )
             done_count = 0
-            for table_key, model_name in prepared_models.items():
+            for table_key, info in prepared_models.items():
+                model_name = info["model_name"]
+                schema_yml = info["schema_yml"]
                 r = model_results.get(model_name) or {}
                 ok = bool(r.get("success"))
                 reason = str(r.get("reason") or "").strip()
@@ -205,6 +214,10 @@ def _run_bulk_job(
                             dbt_project_dir=dbt_project_dir,
                             model_name=model_name,
                             target=dbt_target,
+                            report=report,
+                            report_path=report_path,
+                            primary_table_key=table_key,
+                            schema_yml=schema_yml,
                         )
                         ok = bool(retry.get("success"))
                         reason = str(retry.get("logs") or reason).strip()
@@ -221,6 +234,10 @@ def _run_bulk_job(
                                     dbt_project_dir=dbt_project_dir,
                                     model_name=model_name,
                                     target=dbt_target,
+                                    report=report,
+                                    report_path=report_path,
+                                    primary_table_key=table_key,
+                                    schema_yml=schema_yml,
                                 )
                                 ok = bool(retry2.get("success"))
                                 reason = str(retry2.get("logs") or reason).strip()
