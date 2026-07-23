@@ -269,8 +269,9 @@ Current API defaults are:
 
 - Scale evaluate: `conf_floor=70`, `crit_ceil=40`
 - Bulk start: `conf_floor=70`, `crit_ceil=40`
+- Per-table explain: `GET /scale/{report_id}/explain/{table_key}` — same defaults via `evaluate_batch`
 
-This alignment ensures **Evaluate** and **Bulk** use the same queue thresholds.
+This alignment ensures **Evaluate**, **Explain**, and **Bulk** use the same queue thresholds.
 
 Also, bulk scope is constrained to the DDL manifest: tables not listed in `ddl_manifest_table_keys` are BLOCKed with `outside_manifest_scope` and cannot be queued as GREEN (for example, `legacy_hebrew.*` / technical staging tables).
 

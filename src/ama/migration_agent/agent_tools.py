@@ -1536,8 +1536,18 @@ def bulk_migrate_tables(
     )
 
 
-def explain_table_score(*, report: dict[str, Any], table_key: str) -> ExplainResult:
-    eval_result = evaluate_batch(report=report, dry_run=True)
+def explain_table_score(
+    *,
+    report: dict[str, Any],
+    table_key: str,
+    conf_floor: int | None = None,
+    crit_ceil: int | None = None,
+) -> ExplainResult:
+    from ama.scale_engine import DEFAULT_CONF_FLOOR, DEFAULT_CRIT_CEIL
+
+    floor = DEFAULT_CONF_FLOOR if conf_floor is None else conf_floor
+    ceil = DEFAULT_CRIT_CEIL if crit_ceil is None else crit_ceil
+    eval_result = evaluate_batch(report=report, dry_run=True, conf_floor=floor, crit_ceil=ceil)
     scored = next((s for s in eval_result.scored_tables if s.table_key == table_key), None)
     if scored is None:
         empty_conf = ConfidenceResult(score=0, reason="table not found in inventory", components={})

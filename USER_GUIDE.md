@@ -135,7 +135,9 @@ After loading a report, click **Evaluate** to score all tables. Each row shows:
 
 Filter by domain, queue color, confidence/criticality thresholds, and search. **Hide migrated** hides tables you've already approved in this session.
 
-Default bulk gate (also used on **Bulk** page): confidence ≥ 70 **and** criticality ≤ 40.
+Default bulk gate (also used on **Bulk** page and **Explain**): confidence ≥ **70** and criticality ≤ **40**. Evaluate, Explain, and Bulk all call the same `evaluate_batch` thresholds (`DEFAULT_CONF_FLOOR=70`, `DEFAULT_CRIT_CEIL=40` in `scale_engine/`).
+
+After **Mapping review** decisions or glossary changes, click **Evaluate** again before trusting queue chips — the grid does not auto-refresh until you evaluate.
 
 ### Table lineage
 
@@ -149,7 +151,7 @@ Select a table to open the **Table lineage** graph (React Flow):
 
 In **Table Insights** for the selected table:
 
-1. **Explain** — deterministic score breakdown (confidence + criticality reasons).
+1. **Explain** — deterministic score breakdown (confidence + criticality reasons). Uses the same thresholds as **Evaluate**; if the panel shows a stale warning, re-run **Evaluate** then **Explain**.
 2. **Propose SQL** — LLM generates a dbt model + `schema.yml` for the table (cached per report/table/dialect).
 3. **Approve & Migrate** — writes model files and runs local dbt validation. On **`approved`** only, records an audit decision and adds the table to the session migrated list.
 
@@ -568,6 +570,7 @@ flowchart LR
 | **Where do secrets go?** | `.env` or `AMA_*` environment variables. Never commit credentials. |
 | **What is Rejected mappings?** | Human-declined alias suggestion — column stays unresolved; fix via glossary or model SQL, then re-evaluate. |
 | **I rejected a mapping but the table still looks green?** | Re-run **Evaluate** on Tables. Rejected mappings add a review flag and move the table off green. |
+| **Grid queue differs from Explain?** | Stale scores — click **Evaluate**, then **Explain** again. Both paths now share `conf_floor=70` / `crit_ceil=40`; mismatch means the grid or explain panel is out of date. |
 | **Mapping review approve fails on Kfar fixture?** | `sample_data/` is read-only in Docker — decisions save to `live_data/.hitl/`. Rebuild API after updates: `docker compose up --build`. |
 | **Empty mapping review queue?** | Many reports auto-classify everything as merged. Kfar has ~3 pending rows. Try `sample_data/dashboard/demo_with_review.json` for a minimal demo. |
 | **No plan output?** | Ingest with `--discovery-mode` so `discovery.inventory` is populated. |

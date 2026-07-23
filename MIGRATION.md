@@ -483,6 +483,7 @@ Key API paths the React client calls:
 | Load report | `POST /report/load` |
 | Per-table approve | `POST /migration/{report_id}/approve` |
 | Bulk evaluate / run | `POST /scale/{report_id}/evaluate`, bulk WebSocket job |
+| Per-table score explain | `GET /scale/{report_id}/explain/{table_key}` (same `conf_floor=70`, `crit_ceil=40` as evaluate) |
 | Cockpit Checkpoint-A start | `POST /cockpit/{report_id}/checkpoint-a/start` |
 | Cockpit job poll | `GET /cockpit/checkpoint-a/job/{job_id}` |
 | Cockpit approve + optional dbt | `POST /cockpit/checkpoint-a/job/{job_id}/approve` |

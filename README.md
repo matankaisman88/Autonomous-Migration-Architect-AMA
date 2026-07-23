@@ -98,7 +98,7 @@ AMA is a Python core with a React ops UI. Deterministic layers (parsing, scoring
 | **Log ingestion** | Chunked JSONL streaming, incremental co-occurrence | Enterprise-scale log analysis without loading full files into memory |
 | **Alias resolution** | Four-tier: exact → fuzzy (`difflib`) → phonetic/hash embedding → optional LLM | Hebrew ↔ English column mapping; ambiguous matches route to **Mapping review** |
 | **Semantic search** | Qdrant (+ optional `sentence-transformers`) | Vector similarity for glossary/alias candidates when embed extras installed |
-| **Safety scoring** | `scale_engine/` — pure Python, zero LLM | Dual-axis **confidence** + **criticality** → green / yellow / red queues |
+| **Safety scoring** | `scale_engine/` — pure Python, zero LLM | Dual-axis **confidence** + **criticality** → green / yellow / red queues; shared defaults (`conf_floor=70`, `crit_ceil=40`) for Evaluate, Explain, and Bulk |
 | **Migration planning** | `planner/` — lineage + co-query graph ordering | Wave-by-wave cutover plan with business/technical rationale |
 | **Column mapping review** | `.hitl.json` sidecar + `apply_hitl_to_report` | Human approve/reject for ambiguous aliases before bulk dbt |
 | **SQL generation** | OpenAI Chat Completions via tool-use agent loop | Proposed dbt model SQL + `schema.yml`; bounded token/cost tracking |

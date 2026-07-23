@@ -93,18 +93,39 @@ export function TablesPage() {
     () => [
       { field: "table_key", headerName: "Table", flex: 1.8, minWidth: 170 },
       { field: "business_domain", headerName: "Domain", flex: 1.1, minWidth: 110 },
-      { field: "queue", headerName: "Queue", flex: 0.8, minWidth: 90 },
+      {
+        field: "queue",
+        headerName: "Queue",
+        flex: 1,
+        minWidth: 120,
+        renderCell: (params) => <QueueChip queue={String(params.value ?? "")} />
+      },
       { field: "confidence", headerName: "Confidence", flex: 0.8, minWidth: 90 },
       { field: "criticality", headerName: "Criticality", flex: 0.8, minWidth: 90 }
     ],
     []
   );
 
+  const selectedRow = useMemo(
+    () => rows.find((r) => r.table_key === selectedTable) ?? null,
+    [rows, selectedTable]
+  );
+
+  async function loadExplain(tableKey: string) {
+    setExplain(await api.explain(reportId, tableKey));
+  }
+
   async function evaluate() {
     try {
       const ev = await api.evaluate(reportId);
       setRows(ev.scored_tables);
-      setSelectedTable(ev.scored_tables[0]?.table_key ?? "");
+      const nextTable = selectedTable || ev.scored_tables[0]?.table_key || "";
+      if (nextTable) {
+        setSelectedTable(nextTable);
+      }
+      setExplain(null);
+      setProposal(null);
+      setApproveResult(null);
     } catch (e) {
       setError(e);
     }
@@ -227,7 +248,12 @@ export function TablesPage() {
             fullWidth
             label="Select table"
             value={selectedTable}
-            onChange={(e) => setSelectedTable(e.target.value)}
+            onChange={(e) => {
+              setSelectedTable(e.target.value);
+              setExplain(null);
+              setProposal(null);
+              setApproveResult(null);
+            }}
             size="small"
           >
             {filteredRows.map((r) => (
@@ -244,7 +270,12 @@ export function TablesPage() {
               rows={filteredRows.map((r) => ({ ...r, id: r.table_key }))}
               columns={columns as GridColDef[]}
               disableRowSelectionOnClick
-              onRowClick={(params) => setSelectedTable(String(params.row.table_key))}
+              onRowClick={(params) => {
+                setSelectedTable(String(params.row.table_key));
+                setExplain(null);
+                setProposal(null);
+                setApproveResult(null);
+              }}
               pageSizeOptions={[5, 10, 25]}
               initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
               sx={{
@@ -269,7 +300,7 @@ export function TablesPage() {
                 disabled={!selectedTable || !reportId}
                 onClick={async () => {
                   try {
-                    setExplain(await api.explain(reportId, selectedTable));
+                    await loadExplain(selectedTable);
                   } catch (e) {
                     setError(e);
                   }
@@ -339,6 +370,11 @@ export function TablesPage() {
           {explain && (
             <>
               <Typography variant="subtitle2">Score Explanation</Typography>
+              {selectedRow && String(explain.queue ?? "") !== selectedRow.queue ? (
+                <Alert severity="warning" sx={{ mb: 1 }}>
+                  Stale explain — click <strong>Evaluate</strong> to refresh scores, then <strong>Explain</strong> again.
+                </Alert>
+              ) : null}
               <Table size="small">
                 <TableHead>
                   <TableRow>
@@ -349,7 +385,9 @@ export function TablesPage() {
                 <TableBody>
                   <TableRow>
                     <TableCell>Queue</TableCell>
-                    <TableCell>{String(explain.queue ?? "")}</TableCell>
+                    <TableCell>
+                      <QueueChip queue={String(explain.queue ?? selectedRow?.queue ?? "")} />
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Confidence</TableCell>

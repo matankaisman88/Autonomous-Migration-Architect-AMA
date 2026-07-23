@@ -238,6 +238,45 @@ def test_tables_tab_score_columns_distinct_metrics() -> None:
     assert row.confidence != int(round(0.99 * 100))
 
 
+def test_explain_matches_evaluate_queue_for_same_thresholds() -> None:
+    from ama.migration_agent.agent_tools import explain_table_score
+
+    report = {
+        "discovery": {
+            "inventory": [
+                {
+                    "full_name": "dbo.order_lines",
+                    "business_domain": "CRM",
+                    "query_count": 100,
+                    "column_count": 7,
+                }
+            ]
+        },
+        "alias_merge": {
+            "merged_entities": [
+                {
+                    "source_table": "dbo.order_lines",
+                    "canonical_column": "order_id",
+                    "merge_confidence": 0.95,
+                    "source_columns": ["order_id"],
+                }
+            ],
+            "review_candidates": [],
+            "trash_candidates": [],
+            "ddl_manifest": None,
+        },
+        "ddl_manifest_table_keys": ["dbo.order_lines"],
+        "importance_ddl": [
+            {"source_table": "dbo.order_lines", "column": f"col_{i}", "data_type": "int"} for i in range(7)
+        ],
+        "lineage": {"edges": []},
+    }
+    batch = evaluate_batch(report=report, dry_run=True, conf_floor=70, crit_ceil=40)
+    row = next(s for s in batch.scored_tables if s.table_key == "dbo.order_lines")
+    explained = explain_table_score(report=report, table_key="dbo.order_lines")
+    assert explained.queue == row.queue
+
+
 def test_hitl_rejected_mapping_flags_table_yellow() -> None:
     report = {
         "discovery": {

@@ -10,6 +10,10 @@ from ama.scale_engine.contract import MigrationContract, build_contract
 from ama.scale_engine.criticality import CriticalityResult, score_criticality
 from ama.scale_engine.scorer import ConfidenceResult, score_confidence
 
+# Bulk gate defaults — must match POST /scale/{id}/evaluate (EvaluateRequest).
+DEFAULT_CONF_FLOOR = 70
+DEFAULT_CRIT_CEIL = 40
+
 
 @dataclass
 class ScoredTable:
@@ -130,8 +134,8 @@ def _queue_for(conf: int, crit: int, flags: list[AnomalyFlag], conf_floor: int, 
 def evaluate_batch(
     report: dict[str, Any],  # PRD specifies ``dict``; ``dict[str, Any]`` is a stricter equivalent.
     dry_run: bool = False,
-    conf_floor: int = 90,
-    crit_ceil: int = 40,
+    conf_floor: int = DEFAULT_CONF_FLOOR,
+    crit_ceil: int = DEFAULT_CRIT_CEIL,
 ) -> BatchEvaluationResult:
     _ = dry_run  # scoring is always non-mutating; kept for API compatibility
     inv = (report.get("discovery") or {}).get("inventory") if isinstance(report.get("discovery"), dict) else []
