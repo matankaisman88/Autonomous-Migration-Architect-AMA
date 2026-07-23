@@ -28,6 +28,7 @@ import { useAppState } from "../state";
 import type { ReportSummary } from "../types";
 import { Link as RouterLink } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { PendingReviewBanner } from "./hitl-shared";
 
 type ImpactRow = {
   label: string;
@@ -82,6 +83,9 @@ export function OverviewPage() {
 
   return (
     <Grid2 container spacing={2}>
+      <Grid2 size={{ xs: 12 }}>
+        <PendingReviewBanner reportId={reportId} />
+      </Grid2>
       <Grid2 size={{ xs: 12 }}>
         <Alert severity="info" variant="outlined" sx={{ borderRadius: 2 }}>
           <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
@@ -143,6 +147,9 @@ export function OverviewPage() {
               <Paper variant="outlined" sx={{ p: 1.5 }}>
                 <Typography variant="body2">Tables: {summaryRaw.table_count}</Typography>
                 <Typography variant="body2">Lineage edges: {summaryRaw.lineage_edge_count}</Typography>
+                <Typography variant="body2">
+                  Pending mapping review: <strong>{summaryRaw.pending_review_count ?? 0}</strong>
+                </Typography>
                 <Typography variant="body2">
                   Glossary: <strong>{summaryRaw.has_glossary ? "Yes" : "No"}</strong>
                 </Typography>

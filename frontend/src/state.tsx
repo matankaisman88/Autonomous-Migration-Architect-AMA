@@ -16,7 +16,7 @@ type AppState = {
 
 const DEFAULT_REPORT =
   import.meta.env.VITE_DEFAULT_REPORT_PATH ??
-  "/app/sample_data/scale_engine_chaos/chaos_report.json";
+  "/app/sample_data/kfar_supply/kfar_report.json";
 
 const Ctx = createContext<AppState | null>(null);
 

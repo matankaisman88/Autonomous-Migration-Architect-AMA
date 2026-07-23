@@ -238,6 +238,53 @@ def test_tables_tab_score_columns_distinct_metrics() -> None:
     assert row.confidence != int(round(0.99 * 100))
 
 
+def test_hitl_rejected_mapping_flags_table_yellow() -> None:
+    report = {
+        "discovery": {
+            "inventory": [
+                {
+                    "full_name": "logistics.shipments",
+                    "business_domain": "Logistics",
+                    "query_count": 10,
+                    "column_count": 4,
+                }
+            ]
+        },
+        "alias_merge": {
+            "merged_entities": [
+                {
+                    "source_table": "logistics.shipments",
+                    "canonical_column": "order_id",
+                    "merge_confidence": 0.95,
+                    "source_columns": ["order_id"],
+                }
+            ],
+            "review_candidates": [],
+            "trash_candidates": [
+                {
+                    "legacy_name": "shipmentid",
+                    "suggested_ddl": "shipment_id",
+                    "merge_confidence": 0.41,
+                    "category": "hitl_rejected",
+                    "source_table": "logistics.shipments",
+                }
+            ],
+            "ddl_manifest": None,
+        },
+        "ddl_manifest_table_keys": ["logistics.shipments"],
+        "importance_ddl": [
+            {"source_table": "logistics.shipments", "column": "shipment_id", "data_type": "int"},
+            {"source_table": "logistics.shipments", "column": "order_id", "data_type": "int"},
+        ],
+        "lineage": {"edges": []},
+    }
+    row = next(
+        s for s in evaluate_batch(report=report, dry_run=True).scored_tables if s.table_key == "logistics.shipments"
+    )
+    assert row.queue != "green"
+    assert any(f.name == "hitl_rejected_mapping" for f in row.anomaly_flags)
+
+
 def test_bulk_migration_tab_dry_run_banner_source_text() -> None:
     text = Path("src/ama/ui/dashboard.py").read_text(encoding="utf-8")
     assert "DRY RUN MODE — no files will be written" in text

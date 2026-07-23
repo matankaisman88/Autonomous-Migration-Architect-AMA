@@ -4,12 +4,11 @@ Internal tool used by the data engineering team to plan legacy-to-cloud database
 
 AMA connects to a real source database (SQL Server), performs read-only extraction of table DDL and SQL query activity, resolves Hebrew <-> English column aliases, scores every table for migration confidence and business criticality, and generates wave-by-wave dbt migration plans with a human approval gate. A React dashboard and REST API surface the full pipeline end-to-end.
 
-## Internal Use
+## Security & credentials
 
-- **Owner:** TODO(matan): name the owning team / point of contact for this tool.
-- **Environment:** TODO(matan): where this runs internally (e.g. internal VM, k8s namespace, analyst laptop) and which DB environments it's approved to connect to.
-- **Credentials / secrets:** TODO(matan): document where source-DB connection strings and passwords are actually stored for this company (e.g. internal Vault path, `.env` on the host, secrets manager). Do **not** commit credentials to this repo. See [docs/SQLSERVER.md](docs/SQLSERVER.md) for the connection-string format.
-- **Access control:** The live API has **no application-level authentication** by design (for now). It must only be exposed on a trusted internal network — bind it to an internal interface and/or restrict access via firewall/VPN. Do **not** expose `/api/live/start` to the public internet. TODO(matan): document the exact network boundary (interface/subnet/VPN) this is expected to run behind.
+- **Credentials:** Store connection strings and passwords in `.env` or host environment variables (`AMA_*`). Never commit secrets to this repo. See [docs/SQLSERVER.md](docs/SQLSERVER.md) for connection-string format.
+- **Network:** The API has no application-level authentication. Run it on a trusted internal network only (localhost, VPN, or private subnet). Do not expose `/api/live/start` to the public internet.
+- **Source access:** Live extraction is read-only. Point AMA only at databases your team is approved to analyze.
 
 ## Quickstart — connect and extract
 
@@ -44,6 +43,8 @@ python tools/generate_kfar_supply.py
 ```
 
 Then point **Live connection** at the local `kfar_supply` database and run a normal real extraction against it. See [docs/SQLSERVER.md](docs/SQLSERVER.md) for local setup details.
+
+**Docker default report:** the React UI pre-fills `/app/sample_data/kfar_supply/kfar_report.json` — click **Load** on the dashboard to start with the Kfar fixture without typing a path.
 
 ## Architecture
 
@@ -87,17 +88,30 @@ Ingest -> Alias Resolution -> Deterministic Scoring -> Queue Assignment
 
 ## Stack
 
+AMA is a Python core with a React ops UI. Deterministic layers (parsing, scoring, planning) stay LLM-free; the LLM is used only for SQL drafting, glossary translation, and agent-assisted fixes.
 
-| Layer              | Technology                                           |
-| ------------------ | ---------------------------------------------------- |
-| SQL parsing        | sqlglot                                              |
-| Alias resolution   | Four-tier: exact -> fuzzy -> phonetic -> LLM         |
-| Safety scoring     | Python, deterministic, zero LLM calls                |
-| SQL generation     | OpenAI via tool-use agent loop                       |
-| Migration planning | Autonomous planner with lineage ordering             |
-| API                | FastAPI + WebSocket                                  |
-| Frontend           | React 18 + MUI v6 + Vite                             |
-| Tests              | pytest, 300+ tests, chaos dataset with 13 edge cases |
+| Layer | Technology | Role |
+| --- | --- | --- |
+| **Runtime** | Python 3.11+, Docker Compose | API + dbt project in containers; local dev via `pip install -e ".[dev]"` |
+| **Source connectivity** | `pyodbc` (SQL Server); optional `oracledb`, `ibm_db`, `psycopg2` | Read-only live extract — DDL from catalog views, SQL from Query Store / plan cache |
+| **SQL parsing** | [sqlglot](https://github.com/tobymao/sqlglot) | Multi-dialect parse/validate (SQL Server, Oracle, DB2, DuckDB, Snowflake, BigQuery, Redshift) |
+| **Log ingestion** | Chunked JSONL streaming, incremental co-occurrence | Enterprise-scale log analysis without loading full files into memory |
+| **Alias resolution** | Four-tier: exact → fuzzy (`difflib`) → phonetic/hash embedding → optional LLM | Hebrew ↔ English column mapping; ambiguous matches route to **Mapping review** |
+| **Semantic search** | Qdrant (+ optional `sentence-transformers`) | Vector similarity for glossary/alias candidates when embed extras installed |
+| **Safety scoring** | `scale_engine/` — pure Python, zero LLM | Dual-axis **confidence** + **criticality** → green / yellow / red queues |
+| **Migration planning** | `planner/` — lineage + co-query graph ordering | Wave-by-wave cutover plan with business/technical rationale |
+| **Column mapping review** | `.hitl.json` sidecar + `apply_hitl_to_report` | Human approve/reject for ambiguous aliases before bulk dbt |
+| **SQL generation** | OpenAI Chat Completions via tool-use agent loop | Proposed dbt model SQL + `schema.yml`; bounded token/cost tracking |
+| **Self-healing SQL** | sqlglot validate + Fix Agent (max 3 attempts) | Auto-correct dbt failures; escalate to manual fix when exhausted |
+| **dbt execution** | dbt + `dbt-duckdb` | Local validation against stub sources in `dbt_project/target/duckdb.db` — not production data load |
+| **Model output** | `dbt_project/models/ama_generated/` | Generated `.sql` + `.schema.yml`; Checkpoint-A/B JSON artifacts |
+| **API** | FastAPI + Uvicorn + WebSocket | REST for reports/migration/HITL; WS for bulk + live ingestion progress |
+| **Primary UI** | React 18, MUI v6, Vite, TypeScript | Dashboard: Overview, Tables, Live connection, Mapping review, Bulk, Cockpit, Agent |
+| **UI components** | MUI X Data Grid, React Flow (`@xyflow/react`), Recharts | Table inventory grid, PK/FK + co-query lineage graphs, impact charts |
+| **Legacy UI** | Streamlit + Plotly | Deep Checkpoint-B / Agent UX; React is the day-to-day path |
+| **CLI** | `ama-ingest`, `ama-dashboard`, `ama-api` | Ingest, DQ, plan, generate-dbt, dashboard entrypoints |
+| **Synthetic data** | `ChaosFactory`, Kfar Supply fixture | 1,000+ table chaos datasets; local SQL Server dev DB via `setup_dev_mssql.py` |
+| **Tests** | pytest (~320 tests) | Unit + API + chaos/scale regression; alias, parsing, dbt migration, live ingestion |
 
 
 ## Key Features
@@ -295,7 +309,7 @@ src/ama/
   mcp/             <- SchemaProvider + SQL Server extract_ddl / extract_logs
   ui/              <- Streamlit dashboard (legacy, still functional)
 frontend/          <- React + MUI dashboard
-tests/             <- 300+ tests including chaos dataset
+tests/             <- ~320 pytest tests including chaos/scale datasets
 tools/             <- synthetic data generators + kfar_test_queries.sql
 docs/              <- SQLSERVER.md, LIVE_CONNECTION.md
 sample_data/       <- Kfar Supply dev/test fixture + scale engine chaos dataset

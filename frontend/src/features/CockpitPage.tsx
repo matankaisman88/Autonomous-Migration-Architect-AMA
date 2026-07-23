@@ -19,6 +19,7 @@ import Checkbox from "@mui/material/Checkbox";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
 import { PageCard } from "../components/PageCard";
+import { MigrationReviewGate, PendingReviewBanner } from "./hitl-shared";
 import { useRequireReportId, useErrorSetter } from "./common";
 
 type CheckpointModel = {
@@ -47,6 +48,8 @@ export function CockpitPage() {
   const [reviewAcknowledged, setReviewAcknowledged] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [targetDialect, setTargetDialect] = useState("duckdb");
+  const [hitlAcknowledged, setHitlAcknowledged] = useState(false);
+  const [pendingReview, setPendingReview] = useState(0);
 
   const job = (data?.job as Record<string, unknown> | undefined) ?? {};
   const checkpointA = (data?.checkpoint_a as CheckpointA | undefined) ?? undefined;
@@ -71,7 +74,8 @@ export function CockpitPage() {
     artifactAvailable &&
     !alreadyApproved &&
     !isApproving &&
-    (reviewRequired.length === 0 || reviewAcknowledged);
+    (reviewRequired.length === 0 || reviewAcknowledged) &&
+    (pendingReview === 0 || hitlAcknowledged);
 
   useEffect(() => {
     if (!jobId || !pollActive) return;
@@ -107,9 +111,17 @@ export function CockpitPage() {
 
   return (
     <Grid2 container spacing={2}>
+      <Grid2 size={{ xs: 12 }}>
+        <PendingReviewBanner reportId={reportId} onPendingChange={setPendingReview} />
+      </Grid2>
       <Grid2 size={{ xs: 12, md: 4 }}>
         <PageCard title="Checkpoint-A Job">
           <Stack spacing={1.5}>
+            <MigrationReviewGate
+              reportId={reportId}
+              acknowledged={hitlAcknowledged}
+              onAcknowledgedChange={setHitlAcknowledged}
+            />
             <TextField
               select
               size="small"
@@ -124,9 +136,13 @@ export function CockpitPage() {
             </TextField>
             <Button
               variant="contained"
-              disabled={!reportId || status === "RUNNING"}
+              disabled={!reportId || status === "RUNNING" || (pendingReview > 0 && !hitlAcknowledged)}
               onClick={async () => {
                 try {
+                  if (pendingReview > 0 && !hitlAcknowledged) {
+                    setError(`${pendingReview} column mapping(s) still need review.`);
+                    return;
+                  }
                   setApproveResult(null);
                   setReviewAcknowledged(false);
                   const started = await api.startCheckpointA(reportId, { target_dialect: targetDialect });

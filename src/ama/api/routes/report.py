@@ -70,6 +70,15 @@ def report_summary(report_id: str) -> dict[str, Any]:
     )
     lineage_edges = report.get("lineage", {}).get("edges", [])
     has_glossary = bool(report.get("business_glossary") or report.get("glossary"))
+    am = report.get("alias_merge") or {}
+    pending_review_count = len(am.get("review_candidates") or [])
+    rejected_mapping_count = len(
+        [
+            r
+            for r in (am.get("trash_candidates") or [])
+            if isinstance(r, dict) and str(r.get("category") or "") == "hitl_rejected"
+        ]
+    )
     return {
         "report_id": report_id,
         "table_count": len(inv),
@@ -77,6 +86,8 @@ def report_summary(report_id: str) -> dict[str, Any]:
         "migration_context": str(report.get("migration_context") or ""),
         "lineage_edge_count": len(lineage_edges) if isinstance(lineage_edges, list) else 0,
         "has_glossary": has_glossary,
+        "pending_review_count": pending_review_count,
+        "rejected_mapping_count": rejected_mapping_count,
     }
 
 

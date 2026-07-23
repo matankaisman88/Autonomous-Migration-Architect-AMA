@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ama.scale_engine.anomaly import AnomalyFlag, detect_anomalies
+from ama.scale_engine.anomaly import AnomalyFlag, detect_anomalies, hitl_rejection_flags
 from ama.scale_engine.contract import MigrationContract, build_contract
 from ama.scale_engine.criticality import CriticalityResult, score_criticality
 from ama.scale_engine.scorer import ConfidenceResult, score_confidence
@@ -169,6 +169,7 @@ def evaluate_batch(
             cluster_column_types=cluster_types.get(domain, {}),
             column_defs=defs,
         )
+        flags.extend(hitl_rejection_flags(report, table_key))
         # Discovery can include non-manifest technical/legacy tables; keep bulk focused on migration scope.
         if manifest_table_keys and table_key not in manifest_table_keys:
             flags.append(

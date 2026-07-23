@@ -2,6 +2,7 @@ import { Box, Button, Checkbox, FormControlLabel, Grid2, LinearProgress, List, L
 import { useEffect, useMemo, useState } from "react";
 import { api, bulkWsUrl } from "../api";
 import { PageCard } from "../components/PageCard";
+import { MigrationReviewGate, PendingReviewBanner } from "./hitl-shared";
 import { QueueChip, useRequireReportId, useErrorSetter } from "./common";
 import type { BulkJob } from "../types";
 import type { ScoredTable } from "../types";
@@ -25,6 +26,8 @@ export function BulkPage() {
   const [contractPreview, setContractPreview] = useState<{ contract_id: string; rules: string[]; excluded: string[] } | null>(null);
   const [candidateSearch, setCandidateSearch] = useState("");
   const [resultSearch, setResultSearch] = useState("");
+  const [hitlAcknowledged, setHitlAcknowledged] = useState(false);
+  const [pendingReview, setPendingReview] = useState(0);
   const progress = useMemo(() => {
     if (!job || !job.total) return 0;
     return Math.round((job.completed / job.total) * 100);
@@ -80,6 +83,10 @@ export function BulkPage() {
         setNotice("Dry Run is UI-only currently. Disable Dry Run to execute migration.");
         return;
       }
+      if (pendingReview > 0 && !hitlAcknowledged) {
+        setError(`${pendingReview} column mapping(s) still need review. Acknowledge the warning or resolve them in Mapping review.`);
+        return;
+      }
       const started = await api.startBulk(reportId, selectedKeys, dialect);
       setJobId(started.job_id);
       setSkipped(started.skipped ?? []);
@@ -117,9 +124,17 @@ export function BulkPage() {
 
   return (
     <Grid2 container spacing={2}>
+      <Grid2 size={{ xs: 12 }}>
+        <PendingReviewBanner reportId={reportId} onPendingChange={setPendingReview} />
+      </Grid2>
       <Grid2 size={{ xs: 12, md: 5 }}>
         <PageCard title="Bulk Migration Controls">
           <Stack spacing={1}>
+            <MigrationReviewGate
+              reportId={reportId}
+              acknowledged={hitlAcknowledged}
+              onAcknowledgedChange={setHitlAcknowledged}
+            />
             <Stack direction={{ xs: "column", md: "row" }} spacing={1} useFlexGap flexWrap="wrap">
               <TextField
                 label="Confidence Floor"

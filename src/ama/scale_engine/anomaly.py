@@ -123,3 +123,29 @@ def detect_anomalies(
             )
         )
     return out
+
+
+def hitl_rejection_flags(report: dict[str, Any], table_key: str) -> list[AnomalyFlag]:
+    """Human-rejected alias mappings — table needs manual column resolution before migration."""
+    out: list[AnomalyFlag] = []
+    am = report.get("alias_merge") if isinstance(report.get("alias_merge"), dict) else {}
+    for row in am.get("trash_candidates") or []:
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("source_table") or "").strip() != table_key:
+            continue
+        if str(row.get("category") or "").strip() != "hitl_rejected":
+            continue
+        leg = str(row.get("legacy_name") or "")
+        ddl = str(row.get("suggested_ddl") or "")
+        out.append(
+            AnomalyFlag(
+                level="WARN",
+                name="hitl_rejected_mapping",
+                reason=(
+                    f"Rejected alias mapping `{leg}` → `{ddl}` — "
+                    "confirm the correct target column in glossary or model SQL before migration"
+                ),
+            )
+        )
+    return out

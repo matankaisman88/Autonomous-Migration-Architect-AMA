@@ -5,6 +5,8 @@ export type ReportSummary = {
   migration_context: string;
   lineage_edge_count: number;
   has_glossary: boolean;
+  pending_review_count?: number;
+  rejected_mapping_count?: number;
 };
 
 export type ScoredTable = {

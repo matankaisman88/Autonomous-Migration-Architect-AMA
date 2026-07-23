@@ -10,6 +10,7 @@ services:
       - AMA_DBT_PROJECT_DIR=/app/dbt_project
       - AMA_OUTPUT_DIR=/app/dbt_project/models/ama_generated
       - AMA_CHECKPOINT_DIR=/app/dbt_project/target/checkpoints
+      - AMA_HITL_DIR=/app/live_data/.hitl
       - AMA_OPENAI_API_KEY=${AMA_OPENAI_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - AMA_SCHEMA_MODE=${AMA_SCHEMA_MODE:-file}
@@ -40,6 +41,7 @@ services:
       dockerfile: ../docker/web.Dockerfile
       args:
         - VITE_AMA_API_BASE=http://localhost:8000
+        - VITE_DEFAULT_REPORT_PATH=/app/sample_data/kfar_supply/kfar_report.json
     ports:
       - "3000:3000"
     depends_on:

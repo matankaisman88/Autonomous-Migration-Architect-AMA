@@ -25,7 +25,7 @@ The primary interface is the **React dashboard** (`http://localhost:3000` with D
 3. Overview / Tables   → review scoring, lineage, per-table explain
 4. Planner             → migration waves (business + technical rationale)
 5. Bulk or Tables      → generate/approve dbt SQL (green queue first)
-6. HITL                → resolve low-confidence alias mappings
+6. Mapping review    → resolve low-confidence alias mappings (inline on Glossary/Tables too)
 7. Data Quality        → validate report shape before sign-off
 8. DBT Cockpit         → batch-generate Checkpoint-A, review SQL, approve & write (optional dbt run)
 9. Agent               → conversational migration assistant (optional)
@@ -45,7 +45,7 @@ Most pages require a **loaded report**. Use the **Load Report** bar at the top o
 | **Glossary** | `/glossary` | Business terms ↔ legacy/DDL columns with confidence |
 | **Bulk** | `/bulk` | Batch-evaluate green tables, migration contract, WebSocket progress |
 | **Planner** | `/planner` | Wave-by-wave migration plan from discovery inventory |
-| **HITL** | `/hitl` | Human-in-the-loop alias/mapping decisions |
+| **HITL** | `/hitl` | Column mapping review — approve/reject ambiguous legacy→DDL aliases |
 | **Data Quality** | `/dq` | Report validation checks (shape, discovery, ingestion stats) |
 | **DBT Cockpit** | `/cockpit` | Batch Checkpoint-A generation, review proposed SQL, approve & write/run dbt |
 | **Agent** | `/agent` | Chat-driven migration agent with write-approval gate |
@@ -95,7 +95,7 @@ On Docker, the host path is bind-mounted; inside the API container the same tree
 
 ### Security note
 
-The live API accepts real credentials and has **no application-level auth** today. Run AMA only on a trusted internal network (VPN/firewall). See [README.md](README.md) Internal Use section.
+The live API accepts real credentials and has **no application-level auth** today. Run AMA only on a trusted internal network (VPN/firewall). See [README.md](README.md) Security & credentials.
 
 ### Local dev without a real DB
 
@@ -192,11 +192,11 @@ Tables outside the DDL manifest scope are blocked (`outside_manifest_scope`). Re
 
 Builds **migration waves** from discovery inventory — same logic as `ama-ingest plan` on the CLI.
 
-1. Click **Plan Waves**.
+1. Click **Generate Plan** (runs wave planning + table evaluate in one step).
 2. Expand each wave to see:
-   - **Business rationale** — why these tables belong together
-   - **Technical rationale** — ordering/dependency reasoning
-   - Table list with domain tags and queue chips (when evaluated)
+   - **Business rationale** and **Technical rationale** — formatted cards (bold labels, inline `table` names)
+   - Per-wave queue summary chips (green / yellow / red)
+   - **Tables in this wave** — searchable grid with queue chips and confidence/criticality
 
 Use waves to sequence work: sources/staging before downstream marts. Cross-reference with **Tables** lineage before approving high-criticality objects.
 
@@ -216,37 +216,53 @@ Low-confidence mappings (especially transliteration fallbacks) should be reviewe
 
 ---
 
-## HITL (Human-in-the-loop)
+## Column mapping review (HITL)
 
-**Route:** `/hitl` · **Sidecar file:** `<report_path>.hitl.json`
+**Route:** `/hitl` (nav: **Mapping review**)
 
-HITL governs **alias and mapping review** decisions that deterministic scoring cannot auto-resolve.
+When AMA parses SQL logs, ambiguous legacy → DDL column mappings land in **`review_candidates`**. The **Mapping review** page is the inbox for approving or rejecting them before bulk dbt generation.
 
-### Concepts
+**Sidecar storage:** decisions persist automatically. When the report lives in a **writable** path (e.g. `live_data/.../ama_live_report.json`), the sidecar is `<report>.hitl.json` next to it. When the report is **read-only** (Docker mounts `sample_data/` as `:ro`), decisions go to `live_data/.hitl/<report_id>.hitl.json` instead.
+
+### Approve vs reject
+
+| Action | Effect |
+| --- | --- |
+| **Approve** | Accept the suggested mapping — moves to **Merged**, used in scoring and dbt generation |
+| **Reject** | Decline the suggestion — moves to **Rejected mappings**; the legacy column stays unresolved |
+
+After **Reject**, re-run **Evaluate** on **Tables** (or **Generate Plan** on Planner). Affected tables get a `hitl_rejected_mapping` flag and typically move off **green** to **yellow (Review)** until you fix the column via glossary or manual SQL.
+
+### What you see
 
 | Bucket | Meaning |
 | --- | --- |
 | **Merged** | High-confidence mapping accepted into the report |
-| **Review** | Ambiguous mapping — needs human decision |
-| **Trash** | Low-trust mapping — excluded from automation (not “delete data”) |
+| **Pending review** | Ambiguous mapping — needs your decision |
+| **Rejected mappings** | Human-declined suggestion — manual fix required (not “delete data”) |
 
-### UI workflow
+### UI workflow (React)
 
-The React HITL page is **load + apply only** — it reads existing decisions from the sidecar and merges them into the report. To **record new decisions** (accept/review/reject), use the Streamlit dashboard or `POST /hitl/{report_id}/decision`.
+1. Load a report — the page **auto-loads** the review queue.
+2. For each row: **`legacy_name` → `suggested_ddl`** on **`source_table`**, with confidence and citation.
+3. Click **Approve** or **Reject** — decision is saved and **applied to the in-memory report immediately**.
+4. Use batch actions when many rows are pending: **Approve all ≥ 70%**, **Reject all < 40%**, or select rows and approve/reject in bulk.
+5. Rejected rows appear under **Rejected mappings (manual fix required)** on the same page.
 
-1. **Load Decisions** — reads the HITL sidecar (`<report>.hitl.json`) next to the loaded report.
-2. Review the decision list (filter by accept/review/reject, search by signature).
-3. **Apply to Report** — merges approved HITL decisions back into the in-memory report via `apply_hitl_to_report`.
+The same approve/reject controls appear on:
 
-Decisions are keyed by a stable **review-row signature** so re-ingestion does not lose human overrides.
+- **Glossary** — filter **Needs review**, act inline on each row
+- **Tables** — unresolved/rejected mappings for the selected table, above **Propose SQL**
+- **Overview / Bulk / Cockpit** — warning when pending or rejected mappings exist; Bulk and Cockpit require an acknowledge checkbox to continue with unresolved items
 
 ### API (for tooling)
 
-- `GET /hitl/{report_id}` — load sidecar
-- `POST /hitl/{report_id}/decision` — save one decision (`approved` | `rejected` | `clear`)
-- `POST /hitl/{report_id}/apply` — apply all decisions to report
+- `GET /hitl/{report_id}/queue` — review inbox + `rejected_items` (`?source_table=` optional)
+- `POST /hitl/{report_id}/decision` — one decision (`approved` | `rejected` | `clear`; `auto_apply` default `true`)
+- `POST /hitl/{report_id}/decisions/batch` — batch by confidence filter or signature list
+- `POST /hitl/{report_id}/apply` — re-apply all sidecar decisions (rarely needed from UI)
 
-After applying, re-run **Evaluate** on **Tables** or **Bulk** to refresh queue assignments.
+After resolving mappings, re-run **Evaluate** on **Tables** or **Generate Plan** on **Planner** to refresh queue assignments.
 
 ---
 
@@ -539,7 +555,7 @@ flowchart LR
 | **Alias resolution** | Hebrew ↔ English, glossary, fuzzy/phonetic tiers |
 | **Scoring** | Deterministic confidence + criticality → green/yellow/red |
 | **Planner** | Wave ordering from inventory + lineage |
-| **HITL** | Human overrides persisted in `.hitl.json` sidecar |
+| **HITL** | Human overrides persisted in sidecar (report-adjacent or `live_data/.hitl/`) |
 | **dbt / Cockpit** | Model generation, Checkpoint-A/B, self-healing loop |
 | **Agent** | LLM tool-use orchestration with write gate |
 
@@ -550,14 +566,17 @@ flowchart LR
 | Question | Answer |
 | --- | --- |
 | **Where do secrets go?** | `.env` or `AMA_*` environment variables. Never commit credentials. |
-| **What is Trash in HITL?** | Low-trust mapping bucket — not “delete data.” |
+| **What is Rejected mappings?** | Human-declined alias suggestion — column stays unresolved; fix via glossary or model SQL, then re-evaluate. |
+| **I rejected a mapping but the table still looks green?** | Re-run **Evaluate** on Tables. Rejected mappings add a review flag and move the table off green. |
+| **Mapping review approve fails on Kfar fixture?** | `sample_data/` is read-only in Docker — decisions save to `live_data/.hitl/`. Rebuild API after updates: `docker compose up --build`. |
+| **Empty mapping review queue?** | Many reports auto-classify everything as merged. Kfar has ~3 pending rows. Try `sample_data/dashboard/demo_with_review.json` for a minimal demo. |
 | **No plan output?** | Ingest with `--discovery-mode` so `discovery.inventory` is populated. |
 | **Empty SQL logs after live extract?** | Query Store may be empty — widen dates, run workloads, or seed with `tools/kfar_test_queries.sql` on dev DB. |
 | **Approve showed degraded passthrough?** | Proposed SQL failed local dbt validation; a bare `SELECT *` was written instead. Review the warning on **Tables** — do not treat as a completed migration. |
 | **Does AMA move production data?** | No. AMA extracts metadata, writes dbt models, and optionally runs dbt against local DuckDB stubs. Target warehouse loading is outside AMA. |
 | **Cockpit dbt run failed on missing column?** | Usually a stub/bootstrap mismatch — restart the API after code updates (`docker compose up --build`), re-approve with **Run dbt** so stubs are rebuilt from merged DDL/schema columns. |
 | **React vs Streamlit?** | React is the primary internal UI (including Cockpit approve); Streamlit retains fuller Agent / Checkpoint-B fix-loop UX. |
-| **Report path in Docker?** | Host: `C:/.../live_data/foo/ama_live_report.json` · Container: `/app/live_data/foo/ama_live_report.json` |
+| **Report path in Docker?** | Kfar default: `/app/sample_data/kfar_supply/kfar_report.json` · Live extract: `/app/live_data/<name>/ama_live_report.json` · Host paths use `C:/...` |
 
 ---
 

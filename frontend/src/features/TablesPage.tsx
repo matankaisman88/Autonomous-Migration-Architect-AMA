@@ -18,11 +18,12 @@ import {
   TextField,
   Typography
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { api } from "../api";
 import { PageCard } from "../components/PageCard";
 import { TableLineageGraph } from "./TableLineageGraph";
 import { QueueChip, useRequireReportId, useErrorSetter } from "./common";
+import { MappingReviewList } from "./hitl-shared";
 import type { ScoredTable } from "../types";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useAppState } from "../state";
@@ -48,6 +49,7 @@ export function TablesPage() {
   const [sortBy, setSortBy] = useState<"name" | "confidence" | "criticality">("name");
   const [migratedTables, setMigratedTables] = useState<string[]>([]);
   const [hideMigrated, setHideMigrated] = useState(true);
+  const [tableRejectedCount, setTableRejectedCount] = useState(0);
   const greenCount = useMemo(() => rows.filter((r) => r.queue === "green").length, [rows]);
   const yellowCount = useMemo(() => rows.filter((r) => r.queue === "yellow").length, [rows]);
   const redCount = useMemo(() => rows.filter((r) => r.queue === "red").length, [rows]);
@@ -76,6 +78,17 @@ export function TablesPage() {
     [rows, domainFilter, queueFilter, minConfidence, maxCriticality, search, sortBy, hideMigrated, migratedTables]
   );
   const domains = useMemo(() => ["all", ...Array.from(new Set(rows.map((r) => r.business_domain)))], [rows]);
+
+  useEffect(() => {
+    if (!reportId || !selectedTable) {
+      setTableRejectedCount(0);
+      return;
+    }
+    void api
+      .hitlQueue(reportId, selectedTable)
+      .then((q) => setTableRejectedCount(q.rejected_count ?? 0))
+      .catch(() => setTableRejectedCount(0));
+  }, [reportId, selectedTable, rows]);
   const columns = useMemo<GridColDef<ScoredTable>[]>(
     () => [
       { field: "table_key", headerName: "Table", flex: 1.8, minWidth: 170 },
@@ -352,6 +365,23 @@ export function TablesPage() {
                   </TableRow>
                 </TableBody>
               </Table>
+            </>
+          )}
+          {selectedTable && reportId && tableRejectedCount > 0 && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              {tableRejectedCount} rejected column mapping{tableRejectedCount === 1 ? "" : "s"} on this table — not
+              migration-ready until resolved. Click <strong>Evaluate</strong> to refresh the queue chip (expect{" "}
+              <strong>yellow</strong>).
+            </Alert>
+          )}
+          {selectedTable && reportId && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2">Unresolved mappings — {selectedTable}</Typography>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                Approve or reject ambiguous column aliases for this table before proposing dbt SQL.
+              </Typography>
+              <MappingReviewList reportId={reportId} sourceTable={selectedTable} maxHeight={260} />
             </>
           )}
           {proposal && (

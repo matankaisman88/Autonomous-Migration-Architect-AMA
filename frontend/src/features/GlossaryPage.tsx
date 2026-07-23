@@ -23,12 +23,57 @@ type GlossaryEntry = {
   definition?: string;
   target_ddl?: string;
   legacy_columns?: string;
+  source_table?: string;
   source_tables?: string[];
   domain?: string;
   kind?: string;
   confidence?: number;
   confidence_display?: number;
 };
+
+function glossaryDecisionRows(entry: GlossaryEntry) {
+  const legacy = String(entry.legacy_columns ?? "").trim();
+  const target = String(entry.target_ddl ?? "").trim();
+  const tables =
+    (entry.source_tables?.length ? entry.source_tables : [entry.source_table].filter(Boolean)) as string[];
+  return tables.map((source_table) => ({ source_table, legacy_name: legacy, suggested_ddl: target }));
+}
+
+function GlossaryReviewActions({
+  reportId,
+  entry,
+  onDecided
+}: {
+  reportId: string;
+  entry: GlossaryEntry;
+  onDecided?: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const rows = glossaryDecisionRows(entry);
+
+  async function decide(action: "approved" | "rejected") {
+    setBusy(true);
+    try {
+      for (const row of rows) {
+        await api.hitlDecide(reportId, row, action);
+      }
+      onDecided?.();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Stack direction="row" spacing={0.5}>
+      <Button size="small" variant="contained" color="success" disabled={busy} onClick={() => void decide("approved")}>
+        Approve
+      </Button>
+      <Button size="small" variant="outlined" color="error" disabled={busy} onClick={() => void decide("rejected")}>
+        Reject
+      </Button>
+    </Stack>
+  );
+}
 
 export function GlossaryPage() {
   const reportId = useRequireReportId();
@@ -160,6 +205,7 @@ export function GlossaryPage() {
                   <TableCell>Tables</TableCell>
                   <TableCell>Confidence</TableCell>
                   <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
                   <TableCell>Definition</TableCell>
                 </TableRow>
               </TableHead>
@@ -173,6 +219,17 @@ export function GlossaryPage() {
                     <TableCell>{(e.source_tables || []).join(", ") || "-"}</TableCell>
                     <TableCell>{e.confidence_display ?? e.confidence ?? "-"}</TableCell>
                     <TableCell>{e.kind ?? "-"}</TableCell>
+                    <TableCell>
+                      {String(e.kind || "").toLowerCase() === "review" ? (
+                        <GlossaryReviewActions
+                          reportId={reportId}
+                          entry={e}
+                          onDecided={() => void loadGlossary()}
+                        />
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
                     <TableCell sx={{ maxWidth: 560 }}>
                       <Typography variant="body2">{e.definition ?? "-"}</Typography>
                     </TableCell>

@@ -26,7 +26,7 @@ const NAV = [
   { to: "/glossary", label: "Glossary" },
   { to: "/bulk", label: "Bulk" },
   { to: "/planner", label: "Planner" },
-  { to: "/hitl", label: "HITL" },
+  { to: "/hitl", label: "Mapping review" },
   { to: "/dq", label: "Data Quality" },
   { to: "/cockpit", label: "DBT Cockpit" },
   { to: "/agent", label: "Agent" }

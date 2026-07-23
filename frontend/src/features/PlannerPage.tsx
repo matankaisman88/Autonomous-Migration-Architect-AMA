@@ -13,6 +13,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -22,7 +23,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useMemo, useState } from "react";
 import { api } from "../api";
 import { PageCard } from "../components/PageCard";
-import { useRequireReportId, useErrorSetter } from "./common";
+import { QueueChip, useRequireReportId, useErrorSetter } from "./common";
+import { PlannerRationale } from "./planner-format";
 import { useAppState } from "../state";
 import type { ScoredTable } from "../types";
 
@@ -41,8 +43,8 @@ export function PlannerPage() {
   const [expandedWave, setExpandedWave] = useState<number | false>(false);
   const [data, setData] = useState<{ migration_context?: string; notes?: string[]; waves?: Wave[] } | null>(null);
   const [scoredByTable, setScoredByTable] = useState<Record<string, ScoredTable>>({});
-  const [queueFilter, setQueueFilter] = useState("all");
-  const [tableSearch, setTableSearch] = useState("");
+  const [tableSearchByWave, setTableSearchByWave] = useState<Record<number, string>>({});
+  const [queueFilterByWave, setQueueFilterByWave] = useState<Record<number, string>>({});
   const waves = data?.waves ?? [];
   const totalTables = useMemo(() => waves.reduce((acc, w) => acc + (w.tables?.length ?? 0), 0), [waves]);
   const uniqueDomains = useMemo(
@@ -54,6 +56,7 @@ export function PlannerPage() {
       ),
     [waves]
   );
+  const hasScores = Object.keys(scoredByTable).length > 0;
 
   return (
     <Grid2 container spacing={2}>
@@ -68,10 +71,7 @@ export function PlannerPage() {
               disabled={!reportId}
               onClick={async () => {
                 try {
-                  const [plannedRaw, evalRes] = await Promise.all([
-                    api.planWaves(reportId),
-                    api.evaluate(reportId)
-                  ]);
+                  const [plannedRaw, evalRes] = await Promise.all([api.planWaves(reportId), api.evaluate(reportId)]);
                   const planned = plannedRaw as { migration_context?: string; notes?: string[]; waves?: Wave[] };
                   setData(planned);
                   setExpandedWave(planned.waves?.[0]?.wave_id ?? false);
@@ -80,6 +80,8 @@ export function PlannerPage() {
                     mapping[row.table_key] = row;
                   }
                   setScoredByTable(mapping);
+                  setTableSearchByWave({});
+                  setQueueFilterByWave({});
                   setNotice(`Generated ${planned.waves?.length ?? 0} migration wave(s).`);
                 } catch (e) {
                   setError(e);
@@ -88,6 +90,11 @@ export function PlannerPage() {
             >
               Generate Plan
             </Button>
+            {!hasScores && data && (
+              <Typography variant="caption" color="text.secondary">
+                Queue chips appear after plan generation (evaluate runs automatically).
+              </Typography>
+            )}
             <Divider />
             <Paper variant="outlined" sx={{ p: 1.5 }}>
               <Typography variant="subtitle2">Plan Snapshot</Typography>
@@ -114,156 +121,175 @@ export function PlannerPage() {
       <Grid2 size={{ xs: 12, lg: 8 }}>
         <PageCard title="Wave Details">
           {data && (
-            <Stack spacing={1.5} sx={{ mt: 2 }}>
-              <Typography variant="subtitle2">Planner Notes</Typography>
-              {(data.notes ?? []).map((note, idx) => (
-                <Typography key={idx} variant="body2">
-                  {idx + 1}. {note}
-                </Typography>
-              ))}
-              {waves.map((wave) => (
-                <Accordion
-                  key={wave.wave_id}
-                  disableGutters
-                  expanded={expandedWave === wave.wave_id}
-                  onChange={(_, isExpanded) => setExpandedWave(isExpanded ? wave.wave_id : false)}
-                >
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip label={`Wave ${wave.wave_id}`} size="small" color="primary" />
-                      <Typography fontWeight={600}>{wave.name}</Typography>
-                      <Chip label={`${wave.tables.length} tables`} size="small" variant="outlined" />
-                    </Stack>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    {(() => {
-                      const waveDomains = Array.from(
-                        new Set(wave.tables.map((t) => t.business_domain).filter((d) => Boolean(String(d).trim())))
-                      );
-                      const schemas = Array.from(
-                        new Set(
-                          wave.tables
-                            .map((t) => String(t.full_name || "").split(".")[0])
-                            .filter((s) => Boolean(String(s).trim()))
-                        )
-                      );
-                      const queueCounts = wave.tables.reduce(
-                        (acc, t) => {
-                          const scored = scoredByTable[t.full_name];
-                          const q = scored?.queue;
-                          if (q === "green") acc.green += 1;
-                          else if (q === "yellow") acc.yellow += 1;
-                          else if (q === "red") acc.red += 1;
-                          else acc.unknown += 1;
-                          return acc;
-                        },
-                        { green: 0, yellow: 0, red: 0, unknown: 0 }
-                      );
-                      return (
-                        <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: "wrap" }} useFlexGap>
-                          <Chip size="small" label={`Tables: ${wave.tables.length}`} />
-                          <Chip size="small" label={`Schemas: ${schemas.length}`} />
-                          {waveDomains.length === 1 ? (
-                            <Chip size="small" label={`Domain: ${waveDomains[0]}`} />
-                          ) : (
-                            <Chip size="small" label={`Domains: ${waveDomains.length}`} />
-                          )}
-                          <Chip size="small" color="success" label={`Green: ${queueCounts.green}`} />
-                          <Chip size="small" color="warning" label={`Yellow: ${queueCounts.yellow}`} />
-                          <Chip size="small" color="error" label={`Red: ${queueCounts.red}`} />
-                          {queueCounts.unknown > 0 && <Chip size="small" label={`Unknown: ${queueCounts.unknown}`} />}
-                        </Stack>
-                      );
-                    })()}
-                    <Grid2 container spacing={2}>
-                      <Grid2 size={{ xs: 12, md: 6 }}>
-                        <Typography variant="subtitle2">Business rationale</Typography>
-                        <Typography variant="body2" sx={{ mb: 1 }}>
-                          {wave.business_rationale}
-                        </Typography>
-                      </Grid2>
-                      <Grid2 size={{ xs: 12, md: 6 }}>
-                        <Typography variant="subtitle2">Technical rationale</Typography>
-                        <Typography variant="body2" sx={{ mb: 1 }}>
-                          {wave.technical_rationale}
-                        </Typography>
-                      </Grid2>
-                      <Grid2 size={{ xs: 12 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                          Tables in this wave
-                        </Typography>
-                        <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ mb: 1 }} useFlexGap flexWrap="wrap">
-                          <TextField
-                            size="small"
-                            label="Search table"
-                            value={tableSearch}
-                            onChange={(e) => setTableSearch(e.target.value)}
-                            fullWidth
-                          />
-                          <TextField
-                            select
-                            size="small"
-                            label="Queue"
-                            value={queueFilter}
-                            onChange={(e) => setQueueFilter(e.target.value)}
-                            sx={{ minWidth: 130 }}
-                          >
-                            <MenuItem value="all">All</MenuItem>
-                            <MenuItem value="green">Green</MenuItem>
-                            <MenuItem value="yellow">Yellow</MenuItem>
-                            <MenuItem value="red">Red</MenuItem>
-                          </TextField>
-                        </Stack>
-                        {Array.from(new Set(wave.tables.map((t) => t.business_domain).filter((d) => Boolean(String(d).trim())))).length ===
-                          1 && (
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.8 }}>
-                            Domain: {wave.tables[0]?.business_domain || "-"}
-                          </Typography>
+            <Stack spacing={1.5} sx={{ mt: 1 }}>
+              {(data.notes ?? []).length > 0 && (
+                <Alert severity="info" variant="outlined">
+                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                    Planner notes
+                  </Typography>
+                  {(data.notes ?? []).map((note, idx) => (
+                    <Typography key={idx} variant="body2" sx={{ lineHeight: 1.5 }}>
+                      {idx + 1}. {note}
+                    </Typography>
+                  ))}
+                </Alert>
+              )}
+              {waves.map((wave) => {
+                const tableSearch = tableSearchByWave[wave.wave_id] ?? "";
+                const queueFilter = queueFilterByWave[wave.wave_id] ?? "all";
+                const waveDomains = Array.from(
+                  new Set(wave.tables.map((t) => t.business_domain).filter((d) => Boolean(String(d).trim())))
+                );
+                const schemas = Array.from(
+                  new Set(
+                    wave.tables
+                      .map((t) => String(t.full_name || "").split(".")[0])
+                      .filter((s) => Boolean(String(s).trim()))
+                  )
+                );
+                const queueCounts = wave.tables.reduce(
+                  (acc, t) => {
+                    const scored = scoredByTable[t.full_name];
+                    const q = scored?.queue;
+                    if (q === "green") acc.green += 1;
+                    else if (q === "yellow") acc.yellow += 1;
+                    else if (q === "red") acc.red += 1;
+                    else acc.unknown += 1;
+                    return acc;
+                  },
+                  { green: 0, yellow: 0, red: 0, unknown: 0 }
+                );
+                const filteredTables = wave.tables.filter((t) => {
+                  const scored = scoredByTable[t.full_name];
+                  if (queueFilter !== "all" && scored?.queue !== queueFilter) return false;
+                  if (!tableSearch.trim()) return true;
+                  return t.full_name.toLowerCase().includes(tableSearch.trim().toLowerCase());
+                });
+
+                return (
+                  <Accordion
+                    key={wave.wave_id}
+                    disableGutters
+                    expanded={expandedWave === wave.wave_id}
+                    onChange={(_, isExpanded) => setExpandedWave(isExpanded ? wave.wave_id : false)}
+                    sx={{ border: "1px solid", borderColor: "divider", borderRadius: "8px !important", "&:before": { display: "none" } }}
+                  >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 2 }}>
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                        <Chip label={`Wave ${wave.wave_id}`} size="small" color="primary" />
+                        <Typography fontWeight={600}>{wave.name}</Typography>
+                        <Chip label={`${wave.tables.length} tables`} size="small" variant="outlined" />
+                      </Stack>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 2, pb: 2 }}>
+                      <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: "wrap" }} useFlexGap>
+                        <Chip size="small" label={`Tables: ${wave.tables.length}`} />
+                        <Chip size="small" label={`Schemas: ${schemas.join(", ") || "—"}`} />
+                        {waveDomains.length === 1 ? (
+                          <Chip size="small" label={`Domain: ${waveDomains[0]}`} />
+                        ) : (
+                          waveDomains.map((d) => <Chip key={d} size="small" label={d} variant="outlined" />)
                         )}
-                        <Table size="small">
+                        <Chip size="small" color="success" variant="outlined" label={`Green ${queueCounts.green}`} />
+                        <Chip size="small" color="warning" variant="outlined" label={`Yellow ${queueCounts.yellow}`} />
+                        <Chip size="small" color="error" variant="outlined" label={`Red ${queueCounts.red}`} />
+                      </Stack>
+
+                      <Grid2 container spacing={2} sx={{ mb: 2 }}>
+                        <Grid2 size={{ xs: 12, lg: 6 }}>
+                          <PlannerRationale title="Business rationale" text={wave.business_rationale} />
+                        </Grid2>
+                        <Grid2 size={{ xs: 12, lg: 6 }}>
+                          <PlannerRationale title="Technical rationale" text={wave.technical_rationale} />
+                        </Grid2>
+                      </Grid2>
+
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Tables in this wave
+                      </Typography>
+                      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 1.5 }} useFlexGap>
+                        <TextField
+                          size="small"
+                          label="Search table"
+                          value={tableSearch}
+                          onChange={(e) =>
+                            setTableSearchByWave((prev) => ({ ...prev, [wave.wave_id]: e.target.value }))
+                          }
+                          sx={{ flex: 1, minWidth: 180 }}
+                        />
+                        <TextField
+                          select
+                          size="small"
+                          label="Queue filter"
+                          value={queueFilter}
+                          onChange={(e) =>
+                            setQueueFilterByWave((prev) => ({ ...prev, [wave.wave_id]: e.target.value }))
+                          }
+                          sx={{ minWidth: 150 }}
+                        >
+                          <MenuItem value="all">All queues</MenuItem>
+                          <MenuItem value="green">Green only</MenuItem>
+                          <MenuItem value="yellow">Yellow only</MenuItem>
+                          <MenuItem value="red">Red only</MenuItem>
+                        </TextField>
+                      </Stack>
+
+                      <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 320 }}>
+                        <Table size="small" stickyHeader>
                           <TableHead>
                             <TableRow>
-                              <TableCell>#</TableCell>
+                              <TableCell width={48}>#</TableCell>
                               <TableCell>Table</TableCell>
-                              <TableCell>Schema</TableCell>
-                              <TableCell>Queue</TableCell>
-                              <TableCell align="right">Confidence</TableCell>
-                              <TableCell align="right">Criticality</TableCell>
-                              {Array.from(new Set(wave.tables.map((t) => t.business_domain).filter((d) => Boolean(String(d).trim()))))
-                                .length > 1 && <TableCell>Domain</TableCell>}
+                              <TableCell width={100}>Schema</TableCell>
+                              <TableCell width={120}>Queue</TableCell>
+                              <TableCell align="right" width={90}>
+                                Confidence
+                              </TableCell>
+                              <TableCell align="right" width={90}>
+                                Criticality
+                              </TableCell>
+                              {waveDomains.length > 1 && <TableCell>Domain</TableCell>}
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {wave.tables
-                              .filter((t) => {
-                                const scored = scoredByTable[t.full_name];
-                                if (queueFilter !== "all" && scored?.queue !== queueFilter) return false;
-                                if (!tableSearch.trim()) return true;
-                                return t.full_name.toLowerCase().includes(tableSearch.trim().toLowerCase());
-                              })
-                              .map((t, idx) => {
-                              const scored = scoredByTable[t.full_name];
-                              const schema = String(t.full_name || "").split(".")[0] || "-";
-                              return (
-                              <TableRow key={t.full_name}>
-                                <TableCell>{idx + 1}</TableCell>
-                                <TableCell>{t.full_name}</TableCell>
-                                <TableCell>{schema}</TableCell>
-                                <TableCell>{scored?.queue ?? "-"}</TableCell>
-                                <TableCell align="right">{scored?.confidence ?? "-"}</TableCell>
-                                <TableCell align="right">{scored?.criticality ?? "-"}</TableCell>
-                                {Array.from(new Set(wave.tables.map((x) => x.business_domain).filter((d) => Boolean(String(d).trim()))))
-                                  .length > 1 && <TableCell>{t.business_domain || "-"}</TableCell>}
+                            {filteredTables.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={waveDomains.length > 1 ? 7 : 6}>
+                                  <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+                                    No tables match the current filters.
+                                  </Typography>
+                                </TableCell>
                               </TableRow>
-                              );
-                            })}
+                            ) : (
+                              filteredTables.map((t, idx) => {
+                                const scored = scoredByTable[t.full_name];
+                                const schema = String(t.full_name || "").split(".")[0] || "—";
+                                return (
+                                  <TableRow key={t.full_name} hover>
+                                    <TableCell>{idx + 1}</TableCell>
+                                    <TableCell>
+                                      <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: "0.82rem" }}>
+                                        {t.full_name}
+                                      </Typography>
+                                    </TableCell>
+                                    <TableCell>{schema}</TableCell>
+                                    <TableCell>
+                                      {scored?.queue ? <QueueChip queue={scored.queue} /> : "—"}
+                                    </TableCell>
+                                    <TableCell align="right">{scored?.confidence ?? "—"}</TableCell>
+                                    <TableCell align="right">{scored?.criticality ?? "—"}</TableCell>
+                                    {waveDomains.length > 1 && <TableCell>{t.business_domain || "—"}</TableCell>}
+                                  </TableRow>
+                                );
+                              })
+                            )}
                           </TableBody>
                         </Table>
-                      </Grid2>
-                    </Grid2>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
+                      </TableContainer>
+                    </AccordionDetails>
+                  </Accordion>
+                );
+              })}
             </Stack>
           )}
           {!data && (
@@ -276,4 +302,3 @@ export function PlannerPage() {
     </Grid2>
   );
 }
-

@@ -486,6 +486,9 @@ Key API paths the React client calls:
 | Cockpit Checkpoint-A start | `POST /cockpit/{report_id}/checkpoint-a/start` |
 | Cockpit job poll | `GET /cockpit/checkpoint-a/job/{job_id}` |
 | Cockpit approve + optional dbt | `POST /cockpit/checkpoint-a/job/{job_id}/approve` |
+| Mapping review queue | `GET /hitl/{report_id}/queue` |
+| Mapping decision | `POST /hitl/{report_id}/decision` |
+| Mapping batch decision | `POST /hitl/{report_id}/decisions/batch` |
 | Live extraction | `POST /api/live/start` |
 
 ### Per-table approve outcomes

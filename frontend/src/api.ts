@@ -1,3 +1,4 @@
+import type { HitlBatchDecideResponse, HitlDecideResponse, HitlQueueResponse, HitlReviewRow } from "./hitl-types";
 import type {
   AgentTurnResponse,
   BulkJob,
@@ -86,6 +87,30 @@ export const api = {
       body: JSON.stringify({})
     }),
   getHitl: (reportId: string) => request<Record<string, unknown>>(`/hitl/${reportId}`),
+  hitlQueue: (reportId: string, sourceTable?: string) =>
+    request<HitlQueueResponse>(
+      `/hitl/${reportId}/queue${sourceTable ? `?source_table=${encodeURIComponent(sourceTable)}` : ""}`
+    ),
+  hitlDecide: (reportId: string, row: HitlReviewRow, action: "approved" | "rejected" | "clear", autoApply = true) =>
+    request<HitlDecideResponse>(`/hitl/${reportId}/decision`, {
+      method: "POST",
+      body: JSON.stringify({ row, action, auto_apply: autoApply })
+    }),
+  hitlBatchDecide: (
+    reportId: string,
+    body: {
+      action: "approved" | "rejected";
+      min_confidence?: number;
+      max_confidence?: number;
+      signatures?: string[];
+      source_table?: string;
+      auto_apply?: boolean;
+    }
+  ) =>
+    request<HitlBatchDecideResponse>(`/hitl/${reportId}/decisions/batch`, {
+      method: "POST",
+      body: JSON.stringify({ auto_apply: true, ...body })
+    }),
   applyHitl: (reportId: string) =>
     request<Record<string, unknown>>(`/hitl/${reportId}/apply`, {
       method: "POST",
