@@ -15,6 +15,7 @@ from uuid import uuid4
 
 from ama.ai_query_helper import OpenAIAuthError, OpenAIQueryError, OpenAIRateLimitError, query_openai_json
 from ama.dbt_migration.agent_prompts import get_agent_prompt
+from ama.dbt_migration.paths import find_model_sql_path, model_sql_path_for_write
 from ama.dbt_migration.models import (
     CheckpointBArtifact,
     CheckpointBHistoryItem,
@@ -189,7 +190,7 @@ def _looks_like_select_sql(sql: str) -> bool:
 def _apply_corrected_sql(dbt_project_dir: Path, model_name: str, corrected_sql: str) -> bool:
     if not _looks_like_select_sql(corrected_sql):
         return False
-    sql_path = dbt_project_dir / "models" / f"{model_name}.sql"
+    sql_path = model_sql_path_for_write(dbt_project_dir=dbt_project_dir, model_name=model_name)
     try:
         sql_path.parent.mkdir(parents=True, exist_ok=True)
         sql_path.write_text(corrected_sql, encoding="utf-8")
@@ -323,6 +324,7 @@ def execute_models_with_fix_loop(
     dlq_dir: Path,
     checkpoint_dir: Path,
     patch_callback: Callable[[str, str, int], None] | None = None,
+    bootstrap_model_fn: Callable[[str], None] | None = None,
 ) -> ExecutionResult:
     started = time.perf_counter()
     run_id = uuid4()
@@ -340,8 +342,8 @@ def execute_models_with_fix_loop(
         fix_fallback = False
         auth_error = False
         rate_limit_error = False
-        sql_path = dbt_project_dir / "models" / f"{model_name}.sql"
-        if sql_path.is_file():
+        sql_path = find_model_sql_path(dbt_project_dir=dbt_project_dir, model_name=model_name)
+        if sql_path is not None and sql_path.is_file():
             try:
                 original_sql = sql_path.read_text(encoding="utf-8")
             except OSError:
@@ -418,6 +420,11 @@ def execute_models_with_fix_loop(
                         )
                         if corrected_sql and _apply_corrected_sql(dbt_project_dir, model_name, corrected_sql):
                             original_sql = corrected_sql
+                            if bootstrap_model_fn is not None:
+                                try:
+                                    bootstrap_model_fn(model_name)
+                                except Exception:
+                                    pass
                         else:
                             fix_fallback = True
                             logger.warning(
@@ -537,7 +544,7 @@ def approve_checkpoint_b_sql(
 ) -> tuple[int, str]:
     if not fixed_sql_path.is_file():
         return 1, f"fixed SQL not found: {fixed_sql_path}"
-    sql_target = dbt_project_dir / "models" / f"{model_name}.sql"
+    sql_target = model_sql_path_for_write(dbt_project_dir=dbt_project_dir, model_name=model_name)
     try:
         content = fixed_sql_path.read_text(encoding="utf-8")
         sql_target.parent.mkdir(parents=True, exist_ok=True)

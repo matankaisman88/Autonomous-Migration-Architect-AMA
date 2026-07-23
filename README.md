@@ -28,6 +28,8 @@ docker compose up --build
 
 Extraction is **read-only** — AMA never issues DDL/DML against the source database.
 
+**Scope:** AMA produces migration **metadata and dbt artifacts** (inventory, waves, model SQL, local DuckDB validation). It does **not** bulk-replicate production table data into Snowflake/BigQuery/etc.; that cutover is your target-platform deployment and load process.
+
 See [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) and [docs/SQLSERVER.md](docs/SQLSERVER.md).
 
 ## Local dev / testing without a live DB

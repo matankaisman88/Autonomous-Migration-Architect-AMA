@@ -38,7 +38,7 @@ def get_output_dir(report_id: str) -> Path:
     raw = os.environ.get("AMA_OUTPUT_DIR", "").strip()
     if raw:
         return Path(raw).expanduser().resolve()
-    return (get_dbt_project_dir() / "models").resolve()
+    return (get_dbt_project_dir() / "models" / "ama_generated").resolve()
 
 
 def get_checkpoint_dir() -> Path:

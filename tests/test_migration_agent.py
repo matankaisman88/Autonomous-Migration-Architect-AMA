@@ -384,6 +384,137 @@ def test_extract_source_columns_from_cast_syntax() -> None:
     assert "email" in cols
 
 
+def test_collect_source_columns_unions_checkpoint_sql_with_ddl(tmp_path: Path) -> None:
+    ddl_dir = tmp_path / "ddl"
+    ddl_dir.mkdir()
+    (ddl_dir / "finance_invoices.json").write_text(
+        json.dumps({"columns": ["invoice_id", "vat_rate", "vat_amount", "amount", "status"]}),
+        encoding="utf-8",
+    )
+    report_path = tmp_path / "ama_live_report.json"
+    report_path.write_text("{}", encoding="utf-8")
+    report = {"importance_ddl": [{"source_table": "finance.invoices", "column": "amount"}]}
+
+    class _Art:
+        def __init__(self) -> None:
+            self.table_key = "finance.invoices"
+            self.schema_yml = "version: 2\nmodels:\n  - name: finance_invoices\n    columns:\n      - name: invoice_id\n"
+            self.sql = (
+                "SELECT invoice_id::VARCHAR, vat_rate::DECIMAL, vat_amount::DECIMAL "
+                "FROM finance.invoices"
+            )
+
+    cols_map = agent_tools.collect_source_columns_for_artifacts(
+        artifacts=[_Art()],
+        report=report,
+        report_path=report_path,
+    )
+    cols = cols_map.get("finance.invoices") or []
+    assert "amount" in cols
+    assert "vat_rate" in cols
+    assert "invoice_id" in cols
+
+
+def test_bootstrap_batch_creates_full_finance_invoices_table(tmp_path: Path) -> None:
+    ddl_dir = tmp_path / "ddl"
+    ddl_dir.mkdir()
+    (ddl_dir / "finance_invoices.json").write_text(
+        json.dumps(
+            {
+                "columns": [
+                    "invoice_id",
+                    "order_id",
+                    "amount",
+                    "net_amount",
+                    "vat_amount",
+                    "vat_rate",
+                    "status",
+                    "due_date",
+                    "created_at",
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    report_path = tmp_path / "ama_live_report.json"
+    report_path.write_text("{}", encoding="utf-8")
+
+    class _Art:
+        table_key = "finance.invoices"
+        schema_yml = ""
+        sql = (
+            "SELECT invoice_id::VARCHAR, vat_rate::DECIMAL, vat_amount::DECIMAL "
+            "FROM finance.invoices"
+        )
+
+    created = agent_tools.bootstrap_duckdb_sources_for_artifacts(
+        dbt_project_dir=tmp_path,
+        artifacts=[_Art()],
+        report={"importance_ddl": [{"source_table": "finance.invoices", "column": "amount"}]},
+        report_path=report_path,
+    )
+    assert created >= 1
+    import duckdb
+
+    con = duckdb.connect(str(tmp_path / "target" / "duckdb.db"))
+    try:
+        names = {
+            str(r[0])
+            for r in con.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_schema = 'finance' AND table_name = 'invoices'"
+            ).fetchall()
+        }
+        assert "vat_rate" in names
+        assert "invoice_id" in names
+    finally:
+        con.close()
+
+
+def test_resolve_bootstrap_columns_merges_sparse_importance_with_ddl(tmp_path: Path) -> None:
+    ddl_dir = tmp_path / "ddl"
+    ddl_dir.mkdir()
+    (ddl_dir / "finance_invoices.json").write_text(
+        json.dumps(
+            {
+                "columns": [
+                    "invoice_id",
+                    "order_id",
+                    "amount",
+                    "net_amount",
+                    "vat_amount",
+                    "vat_rate",
+                    "status",
+                    "due_date",
+                    "created_at",
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    report_path = tmp_path / "ama_live_report.json"
+    report_path.write_text("{}", encoding="utf-8")
+    report = {
+        "importance_ddl": [
+            {"source_table": "finance.invoices", "column": "amount"},
+            {"source_table": "finance.invoices", "column": "status"},
+        ]
+    }
+    sql = (
+        "SELECT invoice_id::VARCHAR, vat_rate::DECIMAL, vat_amount::DECIMAL "
+        "FROM finance.invoices"
+    )
+    cols = agent_tools._resolve_bootstrap_columns(
+        report=report,
+        report_path=report_path,
+        table_key="finance.invoices",
+        sql_text=sql,
+    )
+    assert "amount" in cols
+    assert "vat_rate" in cols
+    assert "invoice_id" in cols
+
+
 def test_resolve_bootstrap_columns_from_live_data_ddl() -> None:
     report_path = ROOT / "live_data" / "test-conn" / "ama_live_report.json"
     if not report_path.is_file():

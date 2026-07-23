@@ -7,7 +7,11 @@
 
 ## What AMA is
 
-AMA (**Autonomous Migration Architect**) is an internal tool for planning and executing legacy-to-cloud database migrations. It connects to real source systems (primarily SQL Server), extracts DDL and SQL activity, builds a scored migration inventory, and supports human-governed dbt model generation.
+AMA (**Autonomous Migration Architect**) is an internal tool for **planning** legacy-to-cloud database migrations. It connects to real source systems (primarily SQL Server), extracts **metadata** (DDL and SQL activity), builds a scored migration inventory, and supports human-governed **dbt model generation**.
+
+**What AMA does:** read-only source extract, scoring, wave planning, dbt `.sql` / `schema.yml` artifacts, and **local DuckDB validation** (stub sources + `dbt run`/`dbt test` on the dev machine).
+
+**What AMA does not do:** bulk-copy production rows into a target warehouse. Real data cutover is a separate step — deploy the approved dbt project to your target platform and run your organization's load/replication strategy there.
 
 The primary interface is the **React dashboard** (`http://localhost:3000` with Docker, or `http://localhost:5173` via `npm run dev` in `frontend/`). A legacy **Streamlit** dashboard (`ama-dashboard`) is still available for some workflows.
 
@@ -288,7 +292,7 @@ Checkpoint-A is a **mandatory review gate** before dbt files are executed:
 - Flags **review_required** tables before you trust the batch
 - Blocks disk writes and dbt runs until explicitly approved (API/CLI/Streamlit)
 
-Wave-ordered **execution** (run dbt on wave 1, gate, then wave 2; Checkpoint-B fix loop; DLQ) only happens when you pass `--approve-checkpoint-a --run-dbt` on the CLI or set those flags via the API. The React Cockpit page does not expose approve/run controls yet.
+Wave-ordered **execution** (run dbt on wave 1, gate, then wave 2; Checkpoint-B fix loop; DLQ) happens when you check **Run dbt after writing files** in the React Cockpit UI, or pass `--approve-checkpoint-a --run-dbt` on the CLI.
 
 Optional API field `wave_id_filter` limits generation to one planner wave; the React UI does not expose this — use CLI/API if you need wave-scoped generation.
 
@@ -311,6 +315,8 @@ Use Cockpit when you want many draft models upfront for review. Use Tables/Bulk 
 5. Click **Approve & Write Files** (or **Approve & Run dbt**).
 
 After approval, model files are written under `dbt_project/models/ama_generated/`. If dbt execution was requested, progress appears as **Execution: RUNNING** until finished.
+
+**Local validation only:** when dbt runs from Cockpit (or Tables/Bulk), AMA bootstraps **empty stub tables** in `dbt_project/target/duckdb.db` so model SQL can compile and tests can run. Column lists are merged from report DDL, live extract JSON, `schema.yml`, and model SQL — stubs are never shrunk on re-bootstrap. This validates transformation logic locally; it does **not** load source production data.
 
 **API:** `POST /cockpit/checkpoint-a/job/{job_id}/approve` with `{ "run_execution": false | true }`.
 
@@ -467,7 +473,7 @@ pip install -e .
 ama-dashboard --report-path path/to/your_report.json
 ```
 
-Opens at `http://localhost:8501`. Streamlit includes richer Cockpit/Agent UX (wave tracker, mapping tables, fix-loop diffs) that the React app is still catching up to. Use React for day-to-day ops; use Streamlit for deep Checkpoint-A/B review when needed.
+Opens at `http://localhost:8501`. Streamlit still includes richer Agent UX (wave tracker, mapping tables, fix-loop diffs). React covers day-to-day ops including Cockpit Checkpoint-A approve + optional dbt run; use Streamlit for deep Checkpoint-B fix-loop review when needed.
 
 | Tab | Use |
 | --- | --- |
@@ -548,7 +554,9 @@ flowchart LR
 | **No plan output?** | Ingest with `--discovery-mode` so `discovery.inventory` is populated. |
 | **Empty SQL logs after live extract?** | Query Store may be empty — widen dates, run workloads, or seed with `tools/kfar_test_queries.sql` on dev DB. |
 | **Approve showed degraded passthrough?** | Proposed SQL failed local dbt validation; a bare `SELECT *` was written instead. Review the warning on **Tables** — do not treat as a completed migration. |
-| **React vs Streamlit?** | React is the primary internal UI; Streamlit retains fuller Cockpit/Agent checkpoint UX. |
+| **Does AMA move production data?** | No. AMA extracts metadata, writes dbt models, and optionally runs dbt against local DuckDB stubs. Target warehouse loading is outside AMA. |
+| **Cockpit dbt run failed on missing column?** | Usually a stub/bootstrap mismatch — restart the API after code updates (`docker compose up --build`), re-approve with **Run dbt** so stubs are rebuilt from merged DDL/schema columns. |
+| **React vs Streamlit?** | React is the primary internal UI (including Cockpit approve); Streamlit retains fuller Agent / Checkpoint-B fix-loop UX. |
 | **Report path in Docker?** | Host: `C:/.../live_data/foo/ama_live_report.json` · Container: `/app/live_data/foo/ama_live_report.json` |
 
 ---

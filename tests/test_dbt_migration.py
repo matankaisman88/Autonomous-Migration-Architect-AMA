@@ -20,13 +20,15 @@ from ama.dbt_migration.models import (
     RunnerFinalStatus,
     TargetDialect,
 )
+from ama.dbt_migration.paths import find_model_sql_path, model_sql_path_for_write
 from ama.dbt_migration.runner import (
+    _apply_corrected_sql,
     approve_checkpoint_b_sql,
     execute_models_with_fix_loop,
     reject_checkpoint_b_to_dlq,
     run_dbt_with_fix_loop,
 )
-from ama.dbt_migration.service import _orchestrate_waves_with_gating
+from ama.dbt_migration.service import _bootstrap_duckdb_for_model, _orchestrate_waves_with_gating
 from ama.dbt_migration.service import apply_ai_fix_from_checkpoint
 from ama.dbt_migration.service import (
     analyze_model_risk_and_scenarios,
@@ -38,6 +40,74 @@ from ama.dbt_migration.service import (
 from ama.dbt_migration import service as dbt_service
 from ama.dbt_migration.sql_transpile import validate_target_dialect
 from ama.dbt_migration.cockpit_agents import data_gen_agent
+
+
+def test_find_model_sql_path_prefers_ama_generated(tmp_path: Path) -> None:
+    legacy = tmp_path / "models" / "dbo_orders.sql"
+    generated = tmp_path / "models" / "ama_generated" / "dbo_orders.sql"
+    legacy.parent.mkdir(parents=True)
+    generated.parent.mkdir(parents=True)
+    legacy.write_text("legacy", encoding="utf-8")
+    generated.write_text("generated", encoding="utf-8")
+    chosen = find_model_sql_path(dbt_project_dir=tmp_path, model_name="dbo_orders")
+    assert chosen == generated
+
+
+def test_apply_corrected_sql_writes_ama_generated_when_legacy_exists(tmp_path: Path) -> None:
+    legacy = tmp_path / "models" / "dbo_orders.sql"
+    generated = tmp_path / "models" / "ama_generated" / "dbo_orders.sql"
+    legacy.parent.mkdir(parents=True)
+    generated.parent.mkdir(parents=True)
+    legacy.write_text("legacy", encoding="utf-8")
+    generated.write_text("select 1", encoding="utf-8")
+    assert _apply_corrected_sql(tmp_path, "dbo_orders", "select 2 as id from dbo.orders")
+    assert generated.read_text(encoding="utf-8") == "select 2 as id from dbo.orders"
+    assert legacy.read_text(encoding="utf-8") == "legacy"
+
+
+def test_model_sql_path_for_write_defaults_to_ama_generated(tmp_path: Path) -> None:
+    path = model_sql_path_for_write(dbt_project_dir=tmp_path, model_name="dbo_orders")
+    assert path == tmp_path / "models" / "ama_generated" / "dbo_orders.sql"
+
+
+def test_bootstrap_duckdb_creates_source_schema(tmp_path: Path) -> None:
+    models_dir = tmp_path / "models" / "ama_generated"
+    models_dir.mkdir(parents=True)
+    (models_dir / "dbo_customers.sql").write_text(
+        "select customer_id::VARCHAR from dbo.customers",
+        encoding="utf-8",
+    )
+    report_path = tmp_path / "report.json"
+    report_path.write_text(
+        json.dumps(
+            {
+                "importance_ddl": [
+                    {"source_table": "dbo.customers", "column": "customer_id"},
+                    {"source_table": "dbo.customers", "column": "customer_name"},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    _bootstrap_duckdb_for_model(
+        dbt_project_dir=tmp_path,
+        model_name="dbo_customers",
+        report=json.loads(report_path.read_text(encoding="utf-8")),
+        report_path=report_path,
+        model_meta={"dbo_customers": {"table_key": "dbo.customers", "schema_yml": ""}},
+    )
+    import duckdb
+
+    con = duckdb.connect(str(tmp_path / "target" / "duckdb.db"))
+    try:
+        row = con.execute(
+            'SELECT column_name FROM information_schema.columns WHERE table_schema = \'dbo\' AND table_name = \'customers\''
+        ).fetchall()
+        cols = {str(r[0]) for r in row}
+        assert "customer_id" in cols
+        assert "customer_name" in cols
+    finally:
+        con.close()
 
 
 def test_validate_target_dialect_accepts_duckdb() -> None:
@@ -408,10 +478,10 @@ def test_approve_checkpoint_b_resets_and_runs_model(tmp_path, monkeypatch) -> No
         ),
         encoding="utf-8",
     )
-    models_dir = tmp_path / "models"
+    models_dir = tmp_path / "models" / "ama_generated"
     models_dir.mkdir(parents=True, exist_ok=True)
     fixed_sql = tmp_path / "fixed.sql"
-    fixed_sql.write_text("select 1 as id", encoding="utf-8")
+    fixed_sql.write_text("select 1 as id from dbo.orders", encoding="utf-8")
     calls = {"n": 0}
 
     def _ok(*_args, **_kwargs):
@@ -428,7 +498,7 @@ def test_approve_checkpoint_b_resets_and_runs_model(tmp_path, monkeypatch) -> No
     assert rc == 0
     assert calls["n"] == 1
     assert not checkpoint_file.exists()
-    assert (models_dir / f"{model_name}.sql").read_text(encoding="utf-8") == "select 1 as id"
+    assert (models_dir / f"{model_name}.sql").read_text(encoding="utf-8") == "select 1 as id from dbo.orders"
 
 
 def test_reject_checkpoint_b_routes_to_dlq(tmp_path) -> None:

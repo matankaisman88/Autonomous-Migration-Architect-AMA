@@ -483,6 +483,9 @@ Key API paths the React client calls:
 | Load report | `POST /report/load` |
 | Per-table approve | `POST /migration/{report_id}/approve` |
 | Bulk evaluate / run | `POST /scale/{report_id}/evaluate`, bulk WebSocket job |
+| Cockpit Checkpoint-A start | `POST /cockpit/{report_id}/checkpoint-a/start` |
+| Cockpit job poll | `GET /cockpit/checkpoint-a/job/{job_id}` |
+| Cockpit approve + optional dbt | `POST /cockpit/checkpoint-a/job/{job_id}/approve` |
 | Live extraction | `POST /api/live/start` |
 
 ### Per-table approve outcomes
@@ -564,7 +567,7 @@ The dashboard execution path now includes automatic safeguards for common local 
 - **Legacy schema YAML sanitizer**: before dbt run/test, generated `*.schema.yml` files are repaired when unquoted `description` payloads would break YAML parsing.
 - **Generated SQL sanitizer**: trailing semicolons in model SQL files are removed before dbt execution to avoid parser errors in wrapped adapter DDL contexts.
 - **DuckDB lock retry**: transient `duckdb.db` lock failures are retried with bounded backoff instead of failing immediately.
-- **Missing source auto-bootstrap**: for local DuckDB execution, missing `schema.table` source relations referenced by generated SQL are created best-effort (with inferred source columns) to keep validation flow moving.
+- **Missing source auto-bootstrap**: for local DuckDB execution, missing `schema.table` source relations referenced by generated SQL are created best-effort so `dbt run`/`dbt test` can proceed. Column lists are merged from report DDL, `live_data/<connection>/ddl/*.json`, `schema.yml`, and model SQL; existing stub columns are never dropped on re-bootstrap. Cockpit batch execution pre-bootstraps all Checkpoint-A models before the first wave. Generated models are written to and executed from `dbt_project/models/ama_generated/`. This validates SQL locally only — it does not load production data.
 - **Bulk migration visibility**: background bulk jobs are pre-registered (`queued`/`running`/`done`/`failed`), polled automatically in the UI, and completion state is reflected as migrated-table status.
 
 ### Legacy Notes

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ama.dbt_migration.generator import generate_model_artifact
-from ama.dbt_migration.models import TargetDialect
+from ama.dbt_migration.models import CheckpointAArtifact, TargetDialect
 from ama.dbt_migration.sql_self_heal import validate_sql_with_sqlglot
 from ama.dbt_migration.runner import _run_command, _run_fix_agent
 from ama.dbt_migration.sql_transpile import validate_target_dialect
@@ -323,22 +323,178 @@ def _resolve_bootstrap_columns(
     """
     Resolve real DDL column names for DuckDB source bootstrap (approve-time validation).
 
-    Priority: report importance_ddl / columns array → DDL manifest → live_data/ddl JSON →
-    schema.yml (primary table only) → SQL parse → synthetic ds_col_* fallback.
+    Merges all available sources (union) so log-sparse importance_ddl does not omit columns
+    that appear in manifest DDL, schema.yml, or the model SQL.
     """
-    cols: list[str] = []
+    merged: list[str] = []
+
+    def _add(items: list[str]) -> None:
+        for col in items:
+            name = str(col).strip()
+            if name and name not in merged:
+                merged.append(name)
+
     if report is not None:
-        cols = _extract_columns_for_table(report, table_key)
-        if not cols and report_path is not None:
+        _add(_extract_columns_for_table(report, table_key))
+        if report_path is not None:
             manifest_cols = _load_manifest_table_columns(report, report_path)
-            cols = manifest_cols.get(table_key, [])
-    if not cols and report_path is not None:
-        cols = _ddl_columns_from_live_data_artifacts(report_path, table_key)
-    if not cols and schema_yml:
-        cols = _columns_from_schema_yml(schema_yml)
-    if not cols and sql_text:
-        cols = _extract_source_columns(sql_text)
-    return cols
+            _add(manifest_cols.get(table_key, []))
+    if report_path is not None:
+        _add(_ddl_columns_from_live_data_artifacts(report_path, table_key))
+    if schema_yml:
+        _add(_columns_from_schema_yml(schema_yml))
+    if sql_text:
+        _add(_extract_source_columns(sql_text))
+    return merged
+
+
+    return merged
+
+
+def _duckdb_table_columns(con: Any, schema_name: str, table_name: str) -> list[str]:
+    try:
+        rows = con.execute(
+            """
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = ? AND table_name = ?
+            ORDER BY ordinal_position
+            """,
+            [schema_name, table_name],
+        ).fetchall()
+        return [str(r[0]) for r in rows if r and r[0]]
+    except Exception:
+        return []
+
+
+def _merge_column_names(*groups: list[str]) -> list[str]:
+    merged: list[str] = []
+    for group in groups:
+        for col in group:
+            name = str(col).strip()
+            if name and name not in merged:
+                merged.append(name)
+    return merged
+
+
+def collect_source_columns_for_artifacts(
+    *,
+    artifacts: list[Any],
+    report: dict[str, Any] | None,
+    report_path: Path | None,
+) -> dict[str, list[str]]:
+    """
+    Union source-table columns referenced across a batch of generated model artifacts.
+
+    Uses Checkpoint-A SQL + schema.yml plus report/manifest DDL so bootstrap tables include
+    every column any model in the batch may SELECT — not only columns seen in SQL logs.
+    """
+    per_source: dict[str, list[str]] = {}
+
+    def _add(table_key: str, cols: list[str]) -> None:
+        if table_key not in per_source:
+            per_source[table_key] = []
+        for col in cols:
+            if col and col not in per_source[table_key]:
+                per_source[table_key].append(col)
+
+    for artifact in artifacts:
+        sql = str(getattr(artifact, "sql", "") or "")
+        table_key = str(getattr(artifact, "table_key", "") or "").strip()
+        schema_yml = str(getattr(artifact, "schema_yml", "") or "")
+        for schema_name, table_name in _extract_source_relations(sql):
+            rel_key = f"{schema_name}.{table_name}"
+            use_schema = schema_yml if table_key and rel_key == table_key else None
+            _add(
+                rel_key,
+                _resolve_bootstrap_columns(
+                    report=report,
+                    report_path=report_path,
+                    table_key=rel_key,
+                    schema_yml=use_schema,
+                    sql_text=sql,
+                ),
+            )
+        if table_key:
+            _add(table_key, _columns_from_schema_yml(schema_yml))
+            _add(
+                table_key,
+                _resolve_bootstrap_columns(
+                    report=report,
+                    report_path=report_path,
+                    table_key=table_key,
+                    schema_yml=schema_yml,
+                    sql_text=sql,
+                ),
+            )
+    return per_source
+
+
+def bootstrap_duckdb_sources_for_artifacts(
+    *,
+    dbt_project_dir: Path,
+    artifacts: list[Any],
+    report: dict[str, Any] | None = None,
+    report_path: Path | None = None,
+) -> int:
+    """Create/refresh DuckDB stub source tables for all relations referenced by a model batch."""
+    source_columns = collect_source_columns_for_artifacts(
+        artifacts=artifacts,
+        report=report,
+        report_path=report_path,
+    )
+    if not source_columns:
+        return 0
+    target_dir = dbt_project_dir / "target"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    db_path = target_dir / "duckdb.db"
+    try:
+        import duckdb  # type: ignore
+    except Exception:
+        return 0
+    created = 0
+    try:
+        con = duckdb.connect(str(db_path))
+    except Exception:
+        return 0
+    try:
+        for table_key, columns in source_columns.items():
+            if "." in table_key:
+                schema_name, table_name = table_key.split(".", 1)
+            else:
+                schema_name, table_name = "dbo", table_key
+            merged = _merge_column_names(
+                columns,
+                _duckdb_table_columns(con, schema_name, table_name),
+            )
+            if not merged:
+                merged = [f"ds_col_{i}" for i in range(1, 11)]
+            col_def = ", ".join(f'"{c}" VARCHAR' for c in merged)
+            try:
+                con.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"')
+                con.execute(f'DROP TABLE IF EXISTS "{schema_name}"."{table_name}"')
+                con.execute(f'CREATE TABLE "{schema_name}"."{table_name}" ({col_def})')
+                created += 1
+            except Exception:
+                continue
+    finally:
+        con.close()
+    return created
+
+
+def bootstrap_duckdb_sources_for_checkpoint(
+    *,
+    dbt_project_dir: Path,
+    checkpoint: CheckpointAArtifact,
+    report: dict[str, Any] | None = None,
+    report_path: Path | None = None,
+) -> int:
+    return bootstrap_duckdb_sources_for_artifacts(
+        dbt_project_dir=dbt_project_dir,
+        artifacts=checkpoint.generated_models,
+        report=report,
+        report_path=report_path,
+    )
 
 
 def _load_manifest_table_columns(
@@ -878,6 +1034,8 @@ def _ensure_duckdb_sources_for_model(
                 schema_yml=use_schema_yml,
                 sql_text=sql_text,
             )
+            existing = _duckdb_table_columns(con, schema_name, table_name)
+            columns = _merge_column_names(columns, existing)
             if not columns:
                 columns = [f"ds_col_{i}" for i in range(1, 11)]
             col_def = ", ".join(f'"{c}" VARCHAR' for c in columns)
@@ -894,12 +1052,9 @@ def _ensure_duckdb_sources_for_model(
 
 
 def _find_model_sql_path(*, dbt_project_dir: Path, model_name: str) -> Path | None:
-    models_dir = dbt_project_dir / "models"
-    if not models_dir.is_dir():
-        return None
-    for p in models_dir.rglob(f"{model_name}.sql"):
-        return p
-    return None
+    from ama.dbt_migration.paths import find_model_sql_path as _find
+
+    return _find(dbt_project_dir=dbt_project_dir, model_name=model_name)
 
 
 def _extract_source_relations(sql: str) -> list[tuple[str, str]]:

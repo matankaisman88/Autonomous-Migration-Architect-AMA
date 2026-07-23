@@ -218,6 +218,41 @@ def poll_generate_dbt_checkpoint_a_job(
     return job, None
 
 
+def _model_bootstrap_meta_from_checkpoint(checkpoint: CheckpointAArtifact | None) -> dict[str, dict[str, str]]:
+    if checkpoint is None:
+        return {}
+    out: dict[str, dict[str, str]] = {}
+    for artifact in checkpoint.generated_models:
+        out[artifact.model_name] = {
+            "table_key": artifact.table_key,
+            "schema_yml": artifact.schema_yml,
+        }
+    return out
+
+
+def _bootstrap_duckdb_for_model(
+    *,
+    dbt_project_dir: Path,
+    model_name: str,
+    report: dict[str, Any] | None,
+    report_path: Path | None,
+    model_meta: dict[str, dict[str, str]],
+) -> None:
+    if report is None and report_path is None:
+        return
+    from ama.migration_agent.agent_tools import _ensure_duckdb_sources_for_model
+
+    meta = model_meta.get(model_name) or {}
+    _ensure_duckdb_sources_for_model(
+        dbt_project_dir=dbt_project_dir,
+        model_name=model_name,
+        report=report,
+        report_path=report_path,
+        primary_table_key=meta.get("table_key") or None,
+        schema_yml=meta.get("schema_yml") or None,
+    )
+
+
 def _execute_approved_checkpoint_models(
     *,
     checkpoint: CheckpointAArtifact,
@@ -230,6 +265,14 @@ def _execute_approved_checkpoint_models(
     max_fix_attempts: int = 3,
 ) -> dict[str, Any]:
     report = json.loads(report_path.read_text(encoding="utf-8"))
+    from ama.migration_agent.agent_tools import bootstrap_duckdb_sources_for_checkpoint
+
+    bootstrap_duckdb_sources_for_checkpoint(
+        dbt_project_dir=dbt_project_dir,
+        checkpoint=checkpoint,
+        report=report,
+        report_path=report_path,
+    )
     table_to_model = {a.table_key: a.model_name for a in checkpoint.generated_models}
     wave_to_tables = _build_wave_to_tables(report)
     wave_to_model_names: dict[int, list[str]] = {}
@@ -248,6 +291,9 @@ def _execute_approved_checkpoint_models(
         checkpoint_dir=checkpoint_dir,
         bypass_wave=bypass_wave,
         stop_on_first_error=stop_on_first_error,
+        report=report,
+        report_path=report_path,
+        model_meta=_model_bootstrap_meta_from_checkpoint(checkpoint),
     )
     failed = [name for name, st in model_state.items() if st in {"HITL_REQUIRED", "FAILED", "REJECTED"}]
     if blocked and failed:
@@ -503,19 +549,41 @@ def _orchestrate_waves_with_gating(
     checkpoint_dir: Path,
     bypass_wave: int | None,
     stop_on_first_error: bool,
+    report: dict[str, Any] | None = None,
+    report_path: Path | None = None,
+    model_meta: dict[str, dict[str, str]] | None = None,
 ) -> tuple[dict[str, str], list[dict[str, object]], bool]:
     model_state: dict[str, str] = {}
     wave_telemetry: list[dict[str, object]] = []
     blocked = False
+    meta = model_meta or {}
     for wave_id in sorted(wave_to_model_names.keys()):
         model_names = wave_to_model_names.get(wave_id) or []
         for model_name in model_names:
+            _bootstrap_duckdb_for_model(
+                dbt_project_dir=dbt_project_dir,
+                model_name=model_name,
+                report=report,
+                report_path=report_path,
+                model_meta=meta,
+            )
+
+            def _bootstrap_one(name: str) -> None:
+                _bootstrap_duckdb_for_model(
+                    dbt_project_dir=dbt_project_dir,
+                    model_name=name,
+                    report=report,
+                    report_path=report_path,
+                    model_meta=meta,
+                )
+
             res = execute_models_with_fix_loop(
                 dbt_project_dir=dbt_project_dir,
                 model_names=[model_name],
                 max_attempts=max_fix_attempts,
                 dlq_dir=dlq_dir,
                 checkpoint_dir=checkpoint_dir,
+                bootstrap_model_fn=_bootstrap_one,
             )
             st = res.model_results[0].state.value if res.model_results else "FAILED"
             model_state[model_name] = st
@@ -720,6 +788,15 @@ def run_generate_dbt(
     if not wave_to_model_names:
         wave_to_model_names = {0: [a.model_name for a in artifacts]}
 
+    from ama.migration_agent.agent_tools import bootstrap_duckdb_sources_for_artifacts
+
+    bootstrap_duckdb_sources_for_artifacts(
+        dbt_project_dir=dbt_project_dir,
+        artifacts=artifacts,
+        report=report,
+        report_path=report_path,
+    )
+
     model_state, telemetry, blocked = _orchestrate_waves_with_gating(
         wave_to_model_names=wave_to_model_names,
         dbt_project_dir=dbt_project_dir,
@@ -728,6 +805,12 @@ def run_generate_dbt(
         checkpoint_dir=checkpoint_dir,
         bypass_wave=bypass_wave,
         stop_on_first_error=stop_on_first_error,
+        report=report,
+        report_path=report_path,
+        model_meta={
+            a.model_name: {"table_key": a.table_key, "schema_yml": a.schema_yml}
+            for a in artifacts
+        },
     )
     state.wave_telemetry = telemetry
     failed = [name for name, st in model_state.items() if st in {"HITL_REQUIRED", "FAILED", "REJECTED"}]
