@@ -37,6 +37,31 @@ from ama.mcp.extraction import split_tsql_batch  # noqa: E402
 _GO_BATCH_RE = re.compile(r"^\s*GO\s*(?:\r?\n|$)", re.I | re.M)
 
 
+def _strip_leading_sql_comments(sql: str) -> str:
+    """Drop SSMS-style leading /* */ and -- line comments."""
+    body = sql.strip()
+    while body:
+        if body.startswith("/*"):
+            end = body.find("*/")
+            if end == -1:
+                break
+            body = body[end + 2 :].lstrip()
+            continue
+        if body.startswith("--"):
+            nl = body.find("\n")
+            if nl == -1:
+                return ""
+            body = body[nl + 1 :].lstrip()
+            continue
+        break
+    return body
+
+
+def _is_benchmark_select(sql: str) -> bool:
+    head = _strip_leading_sql_comments(sql).upper()
+    return head.startswith("SELECT") or head.startswith("WITH")
+
+
 def _load_queries(sql_path: Path) -> list[str]:
     text = sql_path.read_text(encoding="utf-8")
     batches = _GO_BATCH_RE.split(text)
@@ -50,7 +75,7 @@ def _load_queries(sql_path: Path) -> list[str]:
         if not chunk:
             continue
         for stmt in split_tsql_batch(chunk):
-            if stmt.strip().upper().startswith("SELECT") or stmt.strip().upper().startswith("WITH"):
+            if _is_benchmark_select(stmt):
                 queries.append(stmt.strip())
     return queries
 

@@ -449,15 +449,21 @@ def _write_git_sql(git_root: Path) -> None:
         "INNER JOIN dbo.orders o ON s.order_id = o.order_id;\n",
         encoding="utf-8",
     )
+    # hebrew_invoice_bridge.sql is the executable Legacy Bridge DDL (Views +
+    # Synonyms). Do not overwrite it with a SELECT stub — apply via:
+    #   python tools/apply_hebrew_bridge.py
+    # after setup_dev_mssql.py has created the English base tables.
     legacy = git_root / "legacy" / "hebrew_invoice_bridge.sql"
     legacy.parent.mkdir(parents=True, exist_ok=True)
-    legacy.write_text(
-        "-- Bridge legacy Hebrew billing to finance.invoices\n"
-        "SELECT h.[חשבונית], h.[סכום], i.invoice_id\n"
-        "FROM legacy_hebrew.חשבוניות h\n"
-        "LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id;\n",
-        encoding="utf-8",
-    )
+    if not legacy.is_file():
+        legacy.write_text(
+            "-- Placeholder: replace with full Legacy Bridge DDL "
+            "(see tools/apply_hebrew_bridge.py).\n"
+            "SELECT h.[חשבונית], h.[סכום], i.invoice_id\n"
+            "FROM legacy_hebrew.[חשבוניות] h\n"
+            "LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id;\n",
+            encoding="utf-8",
+        )
 
 
 def _write_comms(comms_dir: Path) -> None:

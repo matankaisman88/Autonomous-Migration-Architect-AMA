@@ -606,15 +606,22 @@ def main() -> None:
     # Seed into SQL Server so the demo has usable data.
     _seed_tables(db_conn=target_conn, table_columns=table_columns)
 
+    # Hebrew Views/Synonyms over English tables (Live + Self-Healing demo).
+    bridge_script = ROOT / "tools" / "apply_hebrew_bridge.py"
+    if bridge_script.is_file():
+        _log("SQL", "Applying Legacy Hebrew bridge (Views + Synonyms).")
+        _run([sys.executable, str(bridge_script)])
+
     # The generated connection string is consumed by the API container, where
     # `localhost` does NOT refer to the SQL Server container.
     final_conn = _update_env_file(sa_password=sa_password, server=api_server_host)
     _log("ENV", f"API container connection string (AMA_DB_CONNECTION_STRING):\n{_redact_connection_string(final_conn)}")
     _log(
         "HINT",
-        "To populate Query Store for Live extraction: "
+        "To populate Query Store for Live extraction (incl. Hebrew legacy SQL): "
         "python tools/generate_kfar_benchmark.py --count 1000 && "
-        "python tools/execute_kfar_benchmark.py",
+        "python tools/execute_kfar_benchmark.py  "
+        "(re-apply bridge alone: python tools/apply_hebrew_bridge.py)",
     )
 
 

@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
 Generate distinct, syntactically valid T-SQL benchmark queries for the local
-``kfar_supply`` dev database (six English DDL tables seeded by ``setup_dev_mssql.py``).
+``kfar_supply`` dev database (six English DDL tables seeded by ``setup_dev_mssql.py``,
+plus Legacy Hebrew Views/Synonyms from ``hebrew_invoice_bridge.sql``).
 
-Only uses columns from ``src/ama/kfar_supply/spec.py`` / ``sample_data/kfar_supply/ddl/``.
+Uses columns from ``src/ama/kfar_supply/spec.py`` / ``sample_data/kfar_supply/ddl/``,
+and Hebrew identifiers from the Legacy Bridge (for Live Self-Healing / translation).
 Queries are optionally validated against SQL Server via ``MSSQL_CONNECTION_STRING``.
 
 Run from repo root::
 
+    python tools/apply_hebrew_bridge.py            # once after setup_dev_mssql
     python tools/generate_kfar_benchmark.py --count 1000
     python tools/execute_kfar_benchmark.py          # populate Query Store for Live extraction
     python tools/generate_kfar_benchmark.py --count 1000 --jsonl-out live_data/kfar_benchmark/sql_logs/prod.jsonl
@@ -512,6 +515,61 @@ def tpl_cross_join_aggregate(idx: int, rng: random.Random) -> str:
     ).strip()
 
 
+# ---------------------------------------------------------------------------
+# Legacy Hebrew bridge templates (requires hebrew_invoice_bridge.sql applied)
+# ---------------------------------------------------------------------------
+
+
+def tpl_hebrew_invoice_bridge(idx: int, rng: random.Random) -> str:
+    """Hebrew view columns + join to modern finance.invoices (Self-Healing / translation)."""
+    min_amt = idx % 200
+    return textwrap.dedent(
+        f"""
+        SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+        FROM legacy_hebrew.[חשבוניות] h
+        LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+        WHERE h.[סכום] IS NOT NULL
+          AND COALESCE(h.[סכום], 0) >= {min_amt}
+          AND (h.[סטטוס] = N'{INVOICE_STATUSES[idx % len(INVOICE_STATUSES)]}'
+               OR i.status = N'{INVOICE_STATUSES[(idx + 1) % len(INVOICE_STATUSES)]}')
+        """
+    ).strip()
+
+
+def tpl_hebrew_multi_view_join(idx: int, rng: random.Random) -> str:
+    year = 2020 + (idx % 7)
+    return textwrap.dedent(
+        f"""
+        SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+               h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+        FROM legacy_hebrew.[לקוחות] c
+        INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+        LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+        LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+        WHERE YEAR(o.[תאריך_יצירה]) = {year}
+          AND o.[סכום] > {idx % 100}
+          AND (s.[סטטוס_משלוח] = N'{SHIPMENT_STATUSES[idx % len(SHIPMENT_STATUSES)]}'
+               OR s.[מזהה_משלוח] IS NULL)
+        """
+    ).strip()
+
+
+def tpl_hebrew_payments_lines(idx: int, rng: random.Random) -> str:
+    return textwrap.dedent(
+        f"""
+        SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+               p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+        FROM legacy_hebrew.[שורות_הזמנה] ol
+        INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+        LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+        WHERE ol.[כמות] >= {(idx % 5) + 1}
+          AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + {idx % 25}
+          AND (p.[סטטוס_תשלום] = N'{PAYMENT_STATUSES[idx % len(PAYMENT_STATUSES)]}'
+               OR p.[תשלום] IS NULL)
+        """
+    ).strip()
+
+
 TEMPLATE_FNS: tuple[Callable[[int, random.Random], str], ...] = (
     tpl_cte_payment_balance,
     tpl_correlated_exists_shipment,
@@ -529,6 +587,9 @@ TEMPLATE_FNS: tuple[Callable[[int, random.Random], str], ...] = (
     tpl_full_outer_chain,
     tpl_single_table_scan,
     tpl_cross_join_aggregate,
+    tpl_hebrew_invoice_bridge,
+    tpl_hebrew_multi_view_join,
+    tpl_hebrew_payments_lines,
 )
 
 

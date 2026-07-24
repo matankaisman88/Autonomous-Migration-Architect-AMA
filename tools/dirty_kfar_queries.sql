@@ -12,6 +12,7 @@ GO
 
 
 -- Query 1
+/* ama-bench-q00001 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
            COALESCE(o.amount, 25) AS order_amt,
@@ -52,6 +53,7 @@ AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 0
 GO
 
 -- Query 2
+/* ama-bench-q00002 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
            COALESCE(o.amount, 292) AS order_amt,
@@ -92,6 +94,7 @@ AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 1
 GO
 
 -- Query 3
+/* ama-bench-q00003 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
            COALESCE(COALESCE(o.amount, 532), 554) AS order_amt,
@@ -132,6 +135,7 @@ AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 2
 GO
 
 -- Query 4
+/* ama-bench-q00004 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
            CASE WHEN COALESCE(COALESCE(o.amount, 427), 499) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 427), 499) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 427), 499) END AS order_amt,
@@ -172,6 +176,7 @@ AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 3
 GO
 
 -- Query 5
+/* ama-bench-q00005 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
            CASE WHEN COALESCE(o.amount, 409) IS NULL THEN 0 WHEN COALESCE(o.amount, 409) < 0 THEN 0 ELSE COALESCE(o.amount, 409) END AS order_amt,
@@ -212,6 +217,7 @@ AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 4
 GO
 
 -- Query 6
+/* ama-bench-q00006 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
            COALESCE(COALESCE(o.amount, 64), 440) AS order_amt,
@@ -252,6 +258,7 @@ AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 5
 GO
 
 -- Query 7
+/* ama-bench-q00007 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
@@ -278,6 +285,7 @@ WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
 GO
 
 -- Query 8
+/* ama-bench-q00008 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
@@ -304,6 +312,7 @@ WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
 GO
 
 -- Query 9
+/* ama-bench-q00009 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
@@ -330,6 +339,7 @@ WHERE c.customer_name LIKE N'%Netanya%'
 GO
 
 -- Query 10
+/* ama-bench-q00010 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
@@ -356,6 +366,7 @@ WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
 GO
 
 -- Query 11
+/* ama-bench-q00011 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
@@ -382,6 +393,7 @@ WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
 GO
 
 -- Query 12
+/* ama-bench-q00012 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
@@ -408,6 +420,7 @@ WHERE c.customer_name LIKE N'%Jerusalem%'
 GO
 
 -- Query 13
+/* ama-bench-q00013 */
 SELECT o.order_id, o.customer_id, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.customer_id
@@ -424,6 +437,7 @@ WHERE o.order_id >= 62
 GO
 
 -- Query 14
+/* ama-bench-q00014 */
 SELECT o.order_id, o.status, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.status
@@ -440,6 +454,7 @@ WHERE o.order_id >= 63
 GO
 
 -- Query 15
+/* ama-bench-q00015 */
 SELECT o.order_id, o.status, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.status
@@ -456,6 +471,7 @@ WHERE o.order_id >= 64
 GO
 
 -- Query 16
+/* ama-bench-q00016 */
 SELECT o.order_id, o.customer_id, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.customer_id
@@ -472,6 +488,7 @@ WHERE o.order_id >= 65
 GO
 
 -- Query 17
+/* ama-bench-q00017 */
 SELECT o.order_id, o.customer_id, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.customer_id
@@ -488,6 +505,7 @@ WHERE o.order_id >= 66
 GO
 
 -- Query 18
+/* ama-bench-q00018 */
 SELECT o.order_id, o.currency, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.currency
@@ -504,6 +522,7 @@ WHERE o.order_id >= 67
 GO
 
 -- Query 19
+/* ama-bench-q00019 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
        SUM(COALESCE(COALESCE(o.amount, 640), 658)) AS gross
@@ -518,6 +537,7 @@ HAVING COUNT(DISTINCT o.order_id) >= 1
 GO
 
 -- Query 20
+/* ama-bench-q00020 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
        SUM(CASE WHEN COALESCE(COALESCE(o.amount, 540), 62) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 540), 62) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 540), 62) END) AS gross
@@ -532,6 +552,7 @@ HAVING COUNT(DISTINCT o.order_id) >= 2
 GO
 
 -- Query 21
+/* ama-bench-q00021 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
        SUM(CASE WHEN COALESCE(o.amount, 185) IS NULL THEN 0 WHEN COALESCE(o.amount, 185) < 0 THEN 0 ELSE COALESCE(o.amount, 185) END) AS gross
@@ -546,6 +567,7 @@ HAVING COUNT(DISTINCT o.order_id) >= 3
 GO
 
 -- Query 22
+/* ama-bench-q00022 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
        SUM(CASE WHEN COALESCE(o.amount, 391) IS NULL THEN 0 WHEN COALESCE(o.amount, 391) < 0 THEN 0 ELSE COALESCE(o.amount, 391) END) AS gross
@@ -560,6 +582,7 @@ HAVING COUNT(DISTINCT o.order_id) >= 1
 GO
 
 -- Query 23
+/* ama-bench-q00023 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
        SUM(COALESCE(o.amount, 982)) AS gross
@@ -574,6 +597,7 @@ HAVING COUNT(DISTINCT o.order_id) >= 2
 GO
 
 -- Query 24
+/* ama-bench-q00024 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
        SUM(CASE WHEN COALESCE(o.amount, 30) IS NULL THEN 0 WHEN COALESCE(o.amount, 30) < 0 THEN 0 ELSE COALESCE(o.amount, 30) END) AS gross
@@ -588,6 +612,7 @@ HAVING COUNT(DISTINCT o.order_id) >= 3
 GO
 
 -- Query 25
+/* ama-bench-q00025 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
@@ -604,6 +629,7 @@ WHERE ABS(o.amount - la.ext_price) >= 5
 GO
 
 -- Query 26
+/* ama-bench-q00026 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
@@ -620,6 +646,7 @@ WHERE ABS(o.amount - la.ext_price) >= 6
 GO
 
 -- Query 27
+/* ama-bench-q00027 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
@@ -636,6 +663,7 @@ WHERE ABS(o.amount - la.ext_price) >= 7
 GO
 
 -- Query 28
+/* ama-bench-q00028 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
@@ -652,6 +680,7 @@ WHERE ABS(o.amount - la.ext_price) >= 8
 GO
 
 -- Query 29
+/* ama-bench-q00029 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
@@ -668,6 +697,7 @@ WHERE ABS(o.amount - la.ext_price) >= 9
 GO
 
 -- Query 30
+/* ama-bench-q00030 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
@@ -684,6 +714,7 @@ WHERE ABS(o.amount - la.ext_price) >= 10
 GO
 
 -- Query 31
+/* ama-bench-q00031 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
@@ -697,6 +728,7 @@ WHERE i.status = N'void'
 GO
 
 -- Query 32
+/* ama-bench-q00032 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
@@ -710,6 +742,7 @@ WHERE i.status = N'posted'
 GO
 
 -- Query 33
+/* ama-bench-q00033 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
@@ -723,6 +756,7 @@ WHERE i.status = N'void'
 GO
 
 -- Query 34
+/* ama-bench-q00034 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
@@ -736,6 +770,7 @@ WHERE i.status = N'posted'
 GO
 
 -- Query 35
+/* ama-bench-q00035 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
@@ -749,6 +784,7 @@ WHERE i.status = N'active'
 GO
 
 -- Query 36
+/* ama-bench-q00036 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
@@ -762,6 +798,7 @@ WHERE i.status = N'active'
 GO
 
 -- Query 37
+/* ama-bench-q00037 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 1 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
@@ -774,6 +811,7 @@ WHERE c.city LIKE N'%Tel Aviv%'
 GO
 
 -- Query 38
+/* ama-bench-q00038 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 0 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
@@ -786,6 +824,7 @@ WHERE UPPER(c.city) LIKE UPPER(N'%Haifa%')
 GO
 
 -- Query 39
+/* ama-bench-q00039 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 1 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
@@ -798,6 +837,7 @@ WHERE c.city LIKE N'%Beer Sheva%'
 GO
 
 -- Query 40
+/* ama-bench-q00040 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 0 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
@@ -810,6 +850,7 @@ WHERE c.city LIKE N'%Jerusalem%'
 GO
 
 -- Query 41
+/* ama-bench-q00041 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 1 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
@@ -822,6 +863,7 @@ WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
 GO
 
 -- Query 42
+/* ama-bench-q00042 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 0 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
@@ -834,6 +876,7 @@ WHERE c.city LIKE N'%Netanya%'
 GO
 
 -- Query 43
+/* ama-bench-q00043 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -857,6 +900,7 @@ WHERE o.sales_rep_id IS NOT NULL
 GO
 
 -- Query 44
+/* ama-bench-q00044 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -880,6 +924,7 @@ WHERE o.sales_rep_id IS NOT NULL
 GO
 
 -- Query 45
+/* ama-bench-q00045 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -903,6 +948,7 @@ WHERE o.sales_rep_id IS NOT NULL
 GO
 
 -- Query 46
+/* ama-bench-q00046 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -926,6 +972,7 @@ WHERE o.sales_rep_id IS NOT NULL
 GO
 
 -- Query 47
+/* ama-bench-q00047 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -949,6 +996,7 @@ WHERE o.sales_rep_id IS NOT NULL
 GO
 
 -- Query 48
+/* ama-bench-q00048 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -972,6 +1020,7 @@ WHERE o.sales_rep_id IS NOT NULL
 GO
 
 -- Query 49
+/* ama-bench-q00049 */
 SELECT p.payment_id, p.invoice_id, p.amount,
        p.paid_at, p.payment_status, p.currency,
        i.status AS invoice_status
@@ -983,6 +1032,7 @@ WHERE p.currency = N'GBP'
 GO
 
 -- Query 50
+/* ama-bench-q00050 */
 SELECT p.payment_id, p.invoice_id, p.amount,
        p.paid_at, p.payment_status, p.currency,
        i.status AS invoice_status
@@ -994,6 +1044,7 @@ WHERE p.currency = N'USD'
 GO
 
 -- Query 51
+/* ama-bench-q00051 */
 SELECT p.payment_id, p.invoice_id, p.amount,
        p.paid_at, p.payment_status, p.currency,
        i.status AS invoice_status
@@ -1005,6 +1056,7 @@ WHERE p.currency = N'ILS'
 GO
 
 -- Query 52
+/* ama-bench-q00052 */
 SELECT p.payment_id, p.invoice_id, p.amount,
        p.paid_at, p.payment_status, p.currency,
        i.status AS invoice_status
@@ -1016,6 +1068,7 @@ WHERE p.currency = N'EUR'
 GO
 
 -- Query 53
+/* ama-bench-q00053 */
 SELECT p.payment_id, p.invoice_id, p.amount,
        p.paid_at, p.payment_status, p.currency,
        i.status AS invoice_status
@@ -1027,6 +1080,7 @@ WHERE p.currency = N'GBP'
 GO
 
 -- Query 54
+/* ama-bench-q00054 */
 SELECT p.payment_id, p.invoice_id, p.amount,
        p.paid_at, p.payment_status, p.currency,
        i.status AS invoice_status
@@ -1038,6 +1092,7 @@ WHERE p.currency = N'USD'
 GO
 
 -- Query 55
+/* ama-bench-q00055 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -1069,6 +1124,7 @@ WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 4
 GO
 
 -- Query 56
+/* ama-bench-q00056 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -1100,6 +1156,7 @@ WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 5
 GO
 
 -- Query 57
+/* ama-bench-q00057 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -1131,6 +1188,7 @@ WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 6
 GO
 
 -- Query 58
+/* ama-bench-q00058 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -1162,6 +1220,7 @@ WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 7
 GO
 
 -- Query 59
+/* ama-bench-q00059 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -1193,6 +1252,7 @@ WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 8
 GO
 
 -- Query 60
+/* ama-bench-q00060 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -1224,6 +1284,7 @@ WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 9
 GO
 
 -- Query 61
+/* ama-bench-q00061 */
 SELECT ol.line_id, ol.order_id, ol.product_id,
        ol.quantity, ol.unit_price,
        DENSE_RANK() OVER (
@@ -1240,6 +1301,7 @@ WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
 GO
 
 -- Query 62
+/* ama-bench-q00062 */
 SELECT ol.line_id, ol.order_id, ol.product_id,
        ol.quantity, ol.unit_price,
        DENSE_RANK() OVER (
@@ -1256,6 +1318,7 @@ WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
 GO
 
 -- Query 63
+/* ama-bench-q00063 */
 SELECT ol.line_id, ol.order_id, ol.product_id,
        ol.quantity, ol.unit_price,
        DENSE_RANK() OVER (
@@ -1272,6 +1335,7 @@ WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
 GO
 
 -- Query 64
+/* ama-bench-q00064 */
 SELECT ol.line_id, ol.order_id, ol.product_id,
        ol.quantity, ol.unit_price,
        DENSE_RANK() OVER (
@@ -1288,6 +1352,7 @@ WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
 GO
 
 -- Query 65
+/* ama-bench-q00065 */
 SELECT ol.line_id, ol.order_id, ol.product_id,
        ol.quantity, ol.unit_price,
        DENSE_RANK() OVER (
@@ -1304,6 +1369,7 @@ WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
 GO
 
 -- Query 66
+/* ama-bench-q00066 */
 SELECT ol.line_id, ol.order_id, ol.product_id,
        ol.quantity, ol.unit_price,
        DENSE_RANK() OVER (
@@ -1320,6 +1386,7 @@ WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
 GO
 
 -- Query 67
+/* ama-bench-q00067 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
 WHERE o.amount > 422
@@ -1340,6 +1407,7 @@ WHERE o.amount > 422
 GO
 
 -- Query 68
+/* ama-bench-q00068 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
 WHERE o.amount > 423
@@ -1360,6 +1428,7 @@ WHERE o.amount > 423
 GO
 
 -- Query 69
+/* ama-bench-q00069 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
 WHERE o.amount > 424
@@ -1380,6 +1449,7 @@ WHERE o.amount > 424
 GO
 
 -- Query 70
+/* ama-bench-q00070 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
 WHERE o.amount > 425
@@ -1400,6 +1470,7 @@ WHERE o.amount > 425
 GO
 
 -- Query 71
+/* ama-bench-q00071 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
 WHERE o.amount > 426
@@ -1420,6 +1491,7 @@ WHERE o.amount > 426
 GO
 
 -- Query 72
+/* ama-bench-q00072 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
 WHERE o.amount > 427
@@ -1440,6 +1512,7 @@ WHERE o.amount > 427
 GO
 
 -- Query 73
+/* ama-bench-q00073 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
@@ -1451,6 +1524,7 @@ WHERE (o.currency = N'GBP' OR o.currency IS NULL)
 GO
 
 -- Query 74
+/* ama-bench-q00074 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
@@ -1462,6 +1536,7 @@ WHERE (o.currency = N'USD' OR o.currency IS NULL)
 GO
 
 -- Query 75
+/* ama-bench-q00075 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
@@ -1473,6 +1548,7 @@ WHERE (o.currency = N'ILS' OR o.currency IS NULL)
 GO
 
 -- Query 76
+/* ama-bench-q00076 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
@@ -1484,6 +1560,7 @@ WHERE (o.currency = N'EUR' OR o.currency IS NULL)
 GO
 
 -- Query 77
+/* ama-bench-q00077 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
@@ -1495,6 +1572,7 @@ WHERE (o.currency = N'GBP' OR o.currency IS NULL)
 GO
 
 -- Query 78
+/* ama-bench-q00078 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
@@ -1506,6 +1584,7 @@ WHERE (o.currency = N'USD' OR o.currency IS NULL)
 GO
 
 -- Query 79
+/* ama-bench-q00079 */
 SELECT ol.line_id, ol.order_id
 FROM dbo.order_lines ol
 WHERE ol.line_id >= 434
@@ -1513,6 +1592,7 @@ WHERE ol.line_id >= 434
 GO
 
 -- Query 80
+/* ama-bench-q00080 */
 SELECT i.net_amount, i.vat_amount
 FROM finance.invoices i
 WHERE i.invoice_id >= 435
@@ -1520,6 +1600,7 @@ WHERE i.invoice_id >= 435
 GO
 
 -- Query 81
+/* ama-bench-q00081 */
 SELECT p.payment_status, p.currency
 FROM finance.payments p
 WHERE p.payment_id >= 436
@@ -1527,6 +1608,7 @@ WHERE p.payment_id >= 436
 GO
 
 -- Query 82
+/* ama-bench-q00082 */
 SELECT s.warehouse_id, s.shipment_id
 FROM logistics.shipments s
 WHERE s.shipment_id >= 437
@@ -1534,6 +1616,7 @@ WHERE s.shipment_id >= 437
 GO
 
 -- Query 83
+/* ama-bench-q00083 */
 SELECT c.is_active, c.created_at
 FROM dbo.customers c
 WHERE c.customer_id >= 438
@@ -1541,6 +1624,7 @@ WHERE c.customer_id >= 438
 GO
 
 -- Query 84
+/* ama-bench-q00084 */
 SELECT o.sales_rep_id, o.order_id
 FROM dbo.orders o
 WHERE o.order_id >= 439
@@ -1548,6 +1632,7 @@ WHERE o.order_id >= 439
 GO
 
 -- Query 85
+/* ama-bench-q00085 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -1560,6 +1645,7 @@ WHERE o.currency = N'ILS'
 GO
 
 -- Query 86
+/* ama-bench-q00086 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -1572,6 +1658,7 @@ WHERE o.currency = N'EUR'
 GO
 
 -- Query 87
+/* ama-bench-q00087 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -1584,6 +1671,7 @@ WHERE o.currency = N'GBP'
 GO
 
 -- Query 88
+/* ama-bench-q00088 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -1596,6 +1684,7 @@ WHERE o.currency = N'USD'
 GO
 
 -- Query 89
+/* ama-bench-q00089 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -1608,6 +1697,7 @@ WHERE o.currency = N'ILS'
 GO
 
 -- Query 90
+/* ama-bench-q00090 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -1620,1673 +1710,238 @@ WHERE o.currency = N'EUR'
 GO
 
 -- Query 91
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 303), 49) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2026
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 496
+/* ama-bench-q00091 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 96
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
 GO
 
 -- Query 92
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 196), 768) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2020'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 497
+/* ama-bench-q00092 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 97
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
 GO
 
 -- Query 93
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 29), 479) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 29), 479) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 29), 479) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2021
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 498
+/* ama-bench-q00093 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 98
+  AND (h.[סטטוס] = N'paid'
+       OR i.status = N'void')
 GO
 
 -- Query 94
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 5), 479) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 5), 479) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 5), 479) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2022
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 499
+/* ama-bench-q00094 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 99
+  AND (h.[סטטוס] = N'void'
+       OR i.status = N'active')
 GO
 
 -- Query 95
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 115), 166) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 115), 166) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 115), 166) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2023
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 0
+/* ama-bench-q00095 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 100
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
 GO
 
 -- Query 96
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 92) IS NULL THEN 0 WHEN COALESCE(o.amount, 92) < 0 THEN 0 ELSE COALESCE(o.amount, 92) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 1
+/* ama-bench-q00096 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 101
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
 GO
 
 -- Query 97
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'completed', N'active', N'pending')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Jerusalem%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
+/* ama-bench-q00097 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2022
+  AND o.[סכום] > 27
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
 GO
 
 -- Query 98
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'open')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
+/* ama-bench-q00098 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2023
+  AND o.[סכום] > 28
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
 GO
 
 -- Query 99
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'completed') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
+/* ama-bench-q00099 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2024
+  AND o.[סכום] > 29
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
 GO
 
 -- Query 100
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Netanya%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'in_transit'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
+/* ama-bench-q00100 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2025
+  AND o.[סכום] > 30
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
 GO
 
 -- Query 101
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'cancelled', N'pending', N'open')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Netanya%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
+/* ama-bench-q00101 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2026
+  AND o.[סכום] > 31
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
 GO
 
 -- Query 102
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
+/* ama-bench-q00102 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2020
+  AND o.[סכום] > 32
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
 GO
 
 -- Query 103
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 558
-  AND o.status IN (N'shipped', N'open', N'active')
+/* ama-bench-q00103 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 8
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
 GO
 
 -- Query 104
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 559
-  AND o.status = N'shipped'
+/* ama-bench-q00104 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 9
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
 GO
 
 -- Query 105
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 560
-  AND o.status = N'completed'
+/* ama-bench-q00105 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 1
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 10
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
 GO
 
 -- Query 106
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 561
-  AND o.status = N'active'
+/* ama-bench-q00106 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 2
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 11
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
 GO
 
 -- Query 107
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 562
-  AND o.status IN (N'pending', N'completed')
+/* ama-bench-q00107 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 12
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
 GO
 
 -- Query 108
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 563
-  AND o.status IN (N'shipped', N'active', N'completed')
+/* ama-bench-q00108 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 13
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
 GO
 
 -- Query 109
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 347), 867) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 347), 867) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 347), 867) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 89
-GO
-
--- Query 110
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 238), 969)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 90
-GO
-
--- Query 111
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 379)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 91
-GO
-
--- Query 112
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 224)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 92
-GO
-
--- Query 113
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 352), 796)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 93
-GO
-
--- Query 114
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 943)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 94
-GO
-
--- Query 115
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 1651
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 1
-   OR o.discount IS NOT NULL
-GO
-
--- Query 116
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 1652
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 2
-   OR o.discount IS NOT NULL
-GO
-
--- Query 117
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 1653
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 3
-   OR o.discount IS NOT NULL
-GO
-
--- Query 118
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 1654
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 4
-   OR o.discount IS NOT NULL
-GO
-
--- Query 119
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 1655
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 5
-   OR o.discount IS NOT NULL
-GO
-
--- Query 120
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 1656
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 6
-   OR o.discount IS NOT NULL
-GO
-
--- Query 121
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted', N'active', N'void')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 82
-  AND DATEPART(year, i.due_date) = 2021
-GO
-
--- Query 122
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 83
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
-GO
-
--- Query 123
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted', N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 84
-  AND DATEPART(year, i.due_date) = 2023
-GO
-
--- Query 124
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'paid'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 85
-  AND YEAR(i.due_date) = 2024
-GO
-
--- Query 125
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'void'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 86
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
-GO
-
--- Query 126
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'void'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 87
-  AND YEAR(i.due_date) = 2026
-GO
-
--- Query 127
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 128
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Beer Sheva%'
-  AND (c.country_code = N'GB'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 129
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Beer Sheva%'
-  AND (c.country_code = N'sample'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 130
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Jerusalem%')
-  AND (c.country_code = N'IL'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 131
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 5
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'open'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.07
-  )
-GO
-
--- Query 132
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 6
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'shipped', N'cancelled')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.08
-  )
-GO
-
--- Query 133
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 7
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'shipped', N'active', N'pending')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.09
-  )
-GO
-
--- Query 134
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 8
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'shipped'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.01
-  )
-GO
-
--- Query 135
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 9
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'shipped'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.02
-  )
-GO
-
--- Query 136
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 10
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'open', N'completed', N'active')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.03
-  )
-GO
-
--- Query 137
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'GBP'
-  AND p.payment_status = N'failed'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2025-01-01'
-GO
-
--- Query 138
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'USD'
-  AND p.payment_status = N'active'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2026-01-01'
-GO
-
--- Query 139
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'ILS'
-  AND p.payment_status = N'posted'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2020-01-01'
-GO
-
--- Query 140
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'EUR'
-  AND p.payment_status = N'pending'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2021-01-01'
-GO
-
--- Query 141
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'GBP'
-  AND p.payment_status = N'failed'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2022-01-01'
-GO
-
--- Query 142
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'USD'
-  AND p.payment_status = N'active'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2023-01-01'
-GO
-
--- Query 143
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2022
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 7
-GO
-
--- Query 144
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2023
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 8
-GO
-
--- Query 145
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 9
-GO
-
--- Query 146
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 10
-GO
-
--- Query 147
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 11
-GO
-
--- Query 148
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2022
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 12
-GO
-
--- Query 149
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 6 = 3
-GO
-
--- Query 150
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 8 = 7
-GO
-
--- Query 151
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 2 = 0
-GO
-
--- Query 152
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 3 = 1
-GO
-
--- Query 153
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 4 = 2
-GO
-
--- Query 154
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 918
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 68
-  )
-GO
-
--- Query 155
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 919
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 69
-  )
-GO
-
--- Query 156
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 920
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 70
-  )
-GO
-
--- Query 157
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 921
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 71
-  )
-GO
-
--- Query 158
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 922
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 72
-  )
-GO
-
--- Query 159
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 923
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 73
-  )
-GO
-
--- Query 160
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2023
-GO
-
--- Query 161
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2024
-GO
-
--- Query 162
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2025'
-GO
-
--- Query 163
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2026
-GO
-
--- Query 164
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2020
-GO
-
--- Query 165
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2021
-GO
-
--- Query 166
-SELECT c.email, c.city
-FROM dbo.customers c
-WHERE c.customer_id >= 930
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 167
-SELECT o.amount, o.created_at
-FROM dbo.orders o
-WHERE o.order_id >= 931
-  AND o.status IN (N'completed')
-GO
-
--- Query 168
-SELECT ol.order_id, ol.product_id
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 932
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 169
-SELECT i.status, i.due_date
-FROM finance.invoices i
-WHERE i.invoice_id >= 933
-  AND i.status = N'completed'
-GO
-
--- Query 170
-SELECT p.payment_status, p.currency
-FROM finance.payments p
-WHERE p.payment_id >= 934
-  AND p.payment_id IS NOT NULL
-GO
-
--- Query 171
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 935
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 172
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 11
-GO
-
--- Query 173
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 12
-GO
-
--- Query 174
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 13
-GO
-
--- Query 175
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 14
-GO
-
--- Query 176
+/* ama-bench-q00109 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 647) IS NULL THEN 0 WHEN COALESCE(o.amount, 647) < 0 THEN 0 ELSE COALESCE(o.amount, 647) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2025
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 492
-GO
-
--- Query 177
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 143), 269) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 143), 269) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 143), 269) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2026
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 493
-GO
-
--- Query 178
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 712), 748) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2020
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 494
-GO
-
--- Query 179
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 450) AS order_amt,
+           CASE WHEN COALESCE(COALESCE(o.amount, 347), 867) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 347), 867) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 347), 867) END AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
@@ -3320,13 +1975,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 495
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 89
 GO
 
--- Query 180
+-- Query 110
+/* ama-bench-q00110 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 72) IS NULL THEN 0 WHEN COALESCE(o.amount, 72) < 0 THEN 0 ELSE COALESCE(o.amount, 72) END AS order_amt,
+           COALESCE(COALESCE(o.amount, 238), 969) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND YEAR(o.created_at) = 2022
@@ -3360,13 +2016,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 496
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 90
 GO
 
--- Query 181
+-- Query 111
+/* ama-bench-q00111 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 194) AS order_amt,
+           COALESCE(o.amount, 379) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND YEAR(o.created_at) = 2023
@@ -3400,1313 +2057,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 497
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 91
 GO
 
--- Query 182
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'open') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 183
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'cancelled') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Netanya%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 184
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'open') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Jerusalem%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 185
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'cancelled') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'in_transit'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 186
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'completed') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 187
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'cancelled') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Jerusalem%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 188
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 54
-  AND o.status = N'active'
-GO
-
--- Query 189
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 55
-  AND o.status = N'shipped'
-GO
-
--- Query 190
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 56
-  AND o.status IN (N'pending', N'completed', N'shipped')
-GO
-
--- Query 191
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 57
-  AND o.status = N'cancelled'
-GO
-
--- Query 192
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 58
-  AND o.status IN (N'open', N'active', N'shipped')
-GO
-
--- Query 193
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 59
-  AND o.status IN (N'open', N'cancelled')
-GO
-
--- Query 194
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 159), 261)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 85
-GO
-
--- Query 195
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 531) IS NULL THEN 0 WHEN COALESCE(o.amount, 531) < 0 THEN 0 ELSE COALESCE(o.amount, 531) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 86
-GO
-
--- Query 196
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 319), 893) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 319), 893) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 319), 893) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 87
-GO
-
--- Query 197
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 747), 578) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 747), 578) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 747), 578) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 88
-GO
-
--- Query 198
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 949)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 89
-GO
-
--- Query 199
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 103) IS NULL THEN 0 WHEN COALESCE(o.amount, 103) < 0 THEN 0 ELSE COALESCE(o.amount, 103) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 90
-GO
-
--- Query 200
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2147
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 22
-   OR o.discount IS NOT NULL
-GO
-
--- Query 201
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2148
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 23
-   OR o.discount IS NOT NULL
-GO
-
--- Query 202
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2149
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 24
-   OR o.discount IS NOT NULL
-GO
-
--- Query 203
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2150
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 0
-   OR o.discount IS NOT NULL
-GO
-
--- Query 204
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2151
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 1
-   OR o.discount IS NOT NULL
-GO
-
--- Query 205
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2152
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 2
-   OR o.discount IS NOT NULL
-GO
-
--- Query 206
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted', N'active')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 178
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2021'
-GO
-
--- Query 207
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'void'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 179
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
-GO
-
--- Query 208
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'active'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 180
-  AND DATEPART(year, i.due_date) = 2023
-GO
-
--- Query 209
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'void'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 181
-  AND YEAR(i.due_date) = 2024
-GO
-
--- Query 210
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'paid'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 182
-  AND YEAR(i.due_date) = 2025
-GO
-
--- Query 211
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted', N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 183
-  AND YEAR(i.due_date) = 2026
-GO
-
--- Query 212
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Netanya%'
-  AND (c.country_code = N'GB'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 213
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Haifa%'
-  AND (c.country_code = N'IL'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 214
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 215
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 216
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
-  AND (c.country_code = N'GB'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 217
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 1
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'open')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.08
-  )
-GO
-
--- Query 218
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 2
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'shipped'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.09
-  )
-GO
-
--- Query 219
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 3
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'completed', N'shipped')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.01
-  )
-GO
-
--- Query 220
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 4
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'cancelled', N'shipped')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.02
-  )
-GO
-
--- Query 221
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 5
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'open'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.03
-  )
-GO
-
--- Query 222
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 6
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'active', N'cancelled')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.04
-  )
-GO
-
--- Query 223
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'GBP'
-  AND p.payment_status = N'failed'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2024-01-01'
-GO
-
--- Query 224
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'USD'
-  AND p.payment_status = N'active'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2025-01-01'
-GO
-
--- Query 225
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'ILS'
-  AND p.payment_status = N'posted'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2026-01-01'
-GO
-
--- Query 226
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'EUR'
-  AND p.payment_status = N'pending'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2020-01-01'
-GO
-
--- Query 227
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'GBP'
-  AND p.payment_status = N'failed'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2021-01-01'
-GO
-
--- Query 228
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'USD'
-  AND p.payment_status = N'active'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2022-01-01'
-GO
-
--- Query 229
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2023
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 10
-GO
-
--- Query 230
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 11
-GO
-
--- Query 231
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2025
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 12
-GO
-
--- Query 232
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2021
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 13
-GO
-
--- Query 233
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2022
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 14
-GO
-
--- Query 234
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2023
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 15
-GO
-
--- Query 235
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 5 = 3
-GO
-
--- Query 236
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 6 = 2
-GO
-
--- Query 237
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 8 = 0
-GO
-
--- Query 238
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 3 = 0
-GO
-
--- Query 239
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1414
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 64
-  )
-GO
-
--- Query 240
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1415
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 65
-  )
-GO
-
--- Query 241
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1416
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 66
-  )
-GO
-
--- Query 242
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1417
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 67
-  )
-GO
-
--- Query 243
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1418
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 68
-  )
-GO
-
--- Query 244
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1419
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 69
-  )
-GO
-
--- Query 245
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2022
-GO
-
--- Query 246
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2023
-GO
-
--- Query 247
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2024'
-GO
-
--- Query 248
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2025
-GO
-
--- Query 249
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2026'
-GO
-
--- Query 250
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2020'
-GO
-
--- Query 251
-SELECT p.payment_status, p.currency
-FROM finance.payments p
-WHERE p.payment_id >= 426
-  AND p.payment_id IS NOT NULL
-GO
-
--- Query 252
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 427
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 253
-SELECT c.country_code, c.phone
-FROM dbo.customers c
-WHERE c.customer_id >= 428
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 254
-SELECT o.discount, o.currency
-FROM dbo.orders o
-WHERE o.order_id >= 429
-  AND o.status IN (N'open')
-GO
-
--- Query 255
-SELECT ol.product_id, ol.quantity
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 430
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 256
-SELECT i.invoice_id, i.order_id
-FROM finance.invoices i
-WHERE i.invoice_id >= 431
-  AND i.status = N'completed'
-GO
-
--- Query 257
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 7
-GO
-
--- Query 258
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 8
-GO
-
--- Query 259
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 9
-GO
-
--- Query 260
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 10
-GO
-
--- Query 261
+-- Query 112
+/* ama-bench-q00112 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 477) IS NULL THEN 0 WHEN COALESCE(o.amount, 477) < 0 THEN 0 ELSE COALESCE(o.amount, 477) END AS order_amt,
+           COALESCE(o.amount, 224) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND YEAR(o.created_at) = 2024
@@ -4740,1567 +2098,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 488
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 92
 GO
 
--- Query 262
+-- Query 113
+/* ama-bench-q00113 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 211) IS NULL THEN 0 WHEN COALESCE(o.amount, 211) < 0 THEN 0 ELSE COALESCE(o.amount, 211) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 489
-GO
-
--- Query 263
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 301) IS NULL THEN 0 WHEN COALESCE(o.amount, 301) < 0 THEN 0 ELSE COALESCE(o.amount, 301) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2026
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 490
-GO
-
--- Query 264
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 953) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2020
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 491
-GO
-
--- Query 265
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 628), 157) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2021
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 492
-GO
-
--- Query 266
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 819), 932) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2022
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 493
-GO
-
--- Query 267
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 268
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'pending', N'shipped')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 269
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'pending', N'completed', N'cancelled')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 270
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'open') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'in_transit'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 271
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'pending', N'completed', N'shipped')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 272
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'completed') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Jerusalem%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 273
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 550
-  AND o.status IN (N'open', N'active', N'pending')
-GO
-
--- Query 274
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 551
-  AND o.status = N'active'
-GO
-
--- Query 275
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 552
-  AND o.status = N'cancelled'
-GO
-
--- Query 276
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 553
-  AND o.status = N'active'
-GO
-
--- Query 277
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 554
-  AND o.status IN (N'shipped', N'open', N'completed')
-GO
-
--- Query 278
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 555
-  AND o.status = N'cancelled'
-GO
-
--- Query 279
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 867)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 81
-GO
-
--- Query 280
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 995) IS NULL THEN 0 WHEN COALESCE(o.amount, 995) < 0 THEN 0 ELSE COALESCE(o.amount, 995) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 82
-GO
-
--- Query 281
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 258), 795)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 83
-GO
-
--- Query 282
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 169), 134) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 169), 134) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 169), 134) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 84
-GO
-
--- Query 283
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 961), 413)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 85
-GO
-
--- Query 284
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 596)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 86
-GO
-
--- Query 285
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2643
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 18
-   OR o.discount IS NOT NULL
-GO
-
--- Query 286
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2644
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 19
-   OR o.discount IS NOT NULL
-GO
-
--- Query 287
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2645
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 20
-   OR o.discount IS NOT NULL
-GO
-
--- Query 288
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2646
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 21
-   OR o.discount IS NOT NULL
-GO
-
--- Query 289
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2647
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 22
-   OR o.discount IS NOT NULL
-GO
-
--- Query 290
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 2648
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 23
-   OR o.discount IS NOT NULL
-GO
-
--- Query 291
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'active')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 74
-  AND DATEPART(year, i.due_date) = 2021
-GO
-
--- Query 292
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'open'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 75
-  AND YEAR(i.due_date) = 2022
-GO
-
--- Query 293
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'void', N'open')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 76
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2023'
-GO
-
--- Query 294
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'paid', N'active', N'posted')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 77
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2024'
-GO
-
--- Query 295
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'void'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 78
-  AND DATEPART(year, i.due_date) = 2025
-GO
-
--- Query 296
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'paid'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 79
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2026'
-GO
-
--- Query 297
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
-  AND (c.country_code = N'sample'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 298
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Netanya%'
-  AND (c.country_code = N'IL'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 299
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Haifa%'
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 300
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Jerusalem%')
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 301
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Tel Aviv%'
-  AND (c.country_code = N'GB'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 302
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Haifa%')
-  AND (c.country_code = N'sample'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 303
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 17
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'active'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.09
-  )
-GO
-
--- Query 304
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 18
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'active'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.01
-  )
-GO
-
--- Query 305
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 19
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'cancelled'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.02
-  )
-GO
-
--- Query 306
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 20
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'pending'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.03
-  )
-GO
-
--- Query 307
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 1
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'shipped'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.04
-  )
-GO
-
--- Query 308
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 2
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'shipped', N'completed')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.05
-  )
-GO
-
--- Query 309
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'ILS'
-  AND p.payment_status = N'posted'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2025-01-01'
-GO
-
--- Query 310
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'EUR'
-  AND p.payment_status = N'pending'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2026-01-01'
-GO
-
--- Query 311
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'GBP'
-  AND p.payment_status = N'failed'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2020-01-01'
-GO
-
--- Query 312
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'USD'
-  AND p.payment_status = N'active'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2021-01-01'
-GO
-
--- Query 313
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 13
-GO
-
--- Query 314
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 14
-GO
-
--- Query 315
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2021
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 15
-GO
-
--- Query 316
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2022
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 16
-GO
-
--- Query 317
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 0
-GO
-
--- Query 318
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 1
-GO
-
--- Query 319
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 5 = 0
-GO
-
--- Query 320
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 6 = 1
-GO
-
--- Query 321
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 8 = 1
-GO
-
--- Query 322
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1910
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 60
-  )
-GO
-
--- Query 323
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1911
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 61
-  )
-GO
-
--- Query 324
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1912
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 62
-  )
-GO
-
--- Query 325
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1913
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 63
-  )
-GO
-
--- Query 326
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1914
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 64
-  )
-GO
-
--- Query 327
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 1915
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 65
-  )
-GO
-
--- Query 328
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2021
-GO
-
--- Query 329
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2022
-GO
-
--- Query 330
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2023
-GO
-
--- Query 331
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2024
-GO
-
--- Query 332
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2025'
-GO
-
--- Query 333
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2026'
-GO
-
--- Query 334
-SELECT ol.unit_price, ol.discount
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 922
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 335
-SELECT i.status, i.due_date
-FROM finance.invoices i
-WHERE i.invoice_id >= 923
-  AND i.status = N'completed'
-GO
-
--- Query 336
-SELECT p.payment_status, p.currency
-FROM finance.payments p
-WHERE p.payment_id >= 924
-  AND p.payment_id IS NOT NULL
-GO
-
--- Query 337
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 925
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 338
-SELECT c.is_active, c.created_at
-FROM dbo.customers c
-WHERE c.customer_id >= 926
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 339
-SELECT o.sales_rep_id, o.order_id
-FROM dbo.orders o
-WHERE o.order_id >= 927
-  AND o.status = N'cancelled'
-GO
-
--- Query 340
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 3
-GO
-
--- Query 341
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 4
-GO
-
--- Query 342
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 5
-GO
-
--- Query 343
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 6
-GO
-
--- Query 344
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 327) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 484
-GO
-
--- Query 345
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 949) IS NULL THEN 0 WHEN COALESCE(o.amount, 949) < 0 THEN 0 ELSE COALESCE(o.amount, 949) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2024
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 485
-GO
-
--- Query 346
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 848), 183) AS order_amt,
+           COALESCE(COALESCE(o.amount, 352), 796) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND DATEPART(year, o.created_at) = 2025
@@ -6334,13 +2139,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 486
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 93
 GO
 
--- Query 347
+-- Query 114
+/* ama-bench-q00114 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 495), 945) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 495), 945) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 495), 945) END AS order_amt,
+           COALESCE(o.amount, 943) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND YEAR(o.created_at) = 2026
@@ -6374,122 +2180,17 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 487
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 94
 GO
 
--- Query 348
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 394), 380) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2020
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 488
-GO
-
--- Query 349
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 339) IS NULL THEN 0 WHEN COALESCE(o.amount, 339) < 0 THEN 0 ELSE COALESCE(o.amount, 339) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2021
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 489
-GO
-
--- Query 350
+-- Query 115
+/* ama-bench-q00115 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'completed') AS order_cnt
+          AND o2.status IN (N'active', N'cancelled', N'open')) AS order_cnt
 FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 351
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'active') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
+WHERE c.customer_name LIKE N'%Jerusalem%'
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -6509,13 +2210,41 @@ WHERE c.customer_name LIKE N'%Beer Sheva%'
   )
 GO
 
--- Query 352
+-- Query 116
+/* ama-bench-q00116 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'cancelled', N'pending', N'completed')) AS order_cnt
+          AND o2.status IN (N'completed', N'active', N'shipped')) AS order_cnt
 FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
+WHERE c.customer_name LIKE N'%Netanya%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 117
+/* ama-bench-q00117 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'open') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -6535,13 +2264,14 @@ WHERE c.customer_name LIKE N'%Tel Aviv%'
   )
 GO
 
--- Query 353
+-- Query 118
+/* ama-bench-q00118 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
+          AND o2.status IN (N'completed', N'open', N'shipped')) AS order_cnt
 FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -6561,13 +2291,14 @@ WHERE c.customer_name LIKE N'%Tel Aviv%'
   )
 GO
 
--- Query 354
+-- Query 119
+/* ama-bench-q00119 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'cancelled') AS order_cnt
+          AND o2.status IN (N'shipped', N'cancelled')) AS order_cnt
 FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Haifa%'
+WHERE c.customer_name LIKE N'%Tel Aviv%'
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -6587,23 +2318,35 @@ WHERE c.customer_name LIKE N'%Haifa%'
   )
 GO
 
--- Query 355
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 46
-  AND o.status = N'shipped'
+-- Query 120
+/* ama-bench-q00120 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'shipped') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
 GO
 
--- Query 356
+-- Query 121
+/* ama-bench-q00121 */
 SELECT o.order_id, o.currency, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.currency
@@ -6615,43 +2358,12 @@ SELECT o.order_id, o.currency, o.amount, o.created_at,
            ORDER BY o.amount DESC, o.order_id
        ) AS rn
 FROM dbo.orders o
-WHERE o.order_id >= 47
-  AND o.status IN (N'open', N'active', N'pending')
+WHERE o.order_id >= 651
+  AND o.status = N'active'
 GO
 
--- Query 357
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 48
-  AND o.status = N'shipped'
-GO
-
--- Query 358
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 49
-  AND o.status IN (N'open')
-GO
-
--- Query 359
+-- Query 122
+/* ama-bench-q00122 */
 SELECT o.order_id, o.status, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.status
@@ -6663,11 +2375,63 @@ SELECT o.order_id, o.status, o.amount, o.created_at,
            ORDER BY o.amount DESC, o.order_id
        ) AS rn
 FROM dbo.orders o
-WHERE o.order_id >= 50
-  AND o.status = N'open'
+WHERE o.order_id >= 652
+  AND o.status = N'shipped'
 GO
 
--- Query 360
+-- Query 123
+/* ama-bench-q00123 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 653
+  AND o.status = N'pending'
+GO
+
+-- Query 124
+/* ama-bench-q00124 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 654
+  AND o.status = N'pending'
+GO
+
+-- Query 125
+/* ama-bench-q00125 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 655
+  AND o.status IN (N'cancelled', N'active')
+GO
+
+-- Query 126
+/* ama-bench-q00126 */
 SELECT o.order_id, o.currency, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.currency
@@ -6679,181 +2443,108 @@ SELECT o.order_id, o.currency, o.amount, o.created_at,
            ORDER BY o.amount DESC, o.order_id
        ) AS rn
 FROM dbo.orders o
-WHERE o.order_id >= 51
-  AND o.status = N'open'
+WHERE o.order_id >= 656
+  AND o.status = N'pending'
 GO
 
--- Query 361
+-- Query 127
+/* ama-bench-q00127 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 855) IS NULL THEN 0 WHEN COALESCE(o.amount, 855) < 0 THEN 0 ELSE COALESCE(o.amount, 855) END) AS gross
+       SUM(COALESCE(COALESCE(o.amount, 772), 44)) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
   AND (c.country_code = N'US'
        OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 77
+   AND SUM(o.amount) >= 82
 GO
 
--- Query 362
+-- Query 128
+/* ama-bench-q00128 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 230), 125)) AS gross
+       SUM(CASE WHEN COALESCE(o.amount, 509) IS NULL THEN 0 WHEN COALESCE(o.amount, 509) < 0 THEN 0 ELSE COALESCE(o.amount, 509) END) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
   AND (c.country_code = N'DE'
        OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 78
+   AND SUM(o.amount) >= 83
 GO
 
--- Query 363
+-- Query 129
+/* ama-bench-q00129 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 36)) AS gross
+       SUM(COALESCE(COALESCE(o.amount, 771), 364)) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
   AND (c.country_code = N'GB'
        OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 79
+   AND SUM(o.amount) >= 84
 GO
 
--- Query 364
+-- Query 130
+/* ama-bench-q00130 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 827), 456)) AS gross
+       SUM(CASE WHEN COALESCE(o.amount, 531) IS NULL THEN 0 WHEN COALESCE(o.amount, 531) < 0 THEN 0 ELSE COALESCE(o.amount, 531) END) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
   AND (c.country_code = N'sample'
        OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 80
+   AND SUM(o.amount) >= 85
 GO
 
--- Query 365
+-- Query 131
+/* ama-bench-q00131 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 850), 881) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 850), 881) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 850), 881) END) AS gross
+       SUM(COALESCE(o.amount, 451)) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
   AND (c.country_code = N'IL'
        OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 81
+   AND SUM(o.amount) >= 86
 GO
 
--- Query 366
+-- Query 132
+/* ama-bench-q00132 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 53)) AS gross
+       SUM(COALESCE(COALESCE(o.amount, 895), 302)) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
   AND (c.country_code = N'US'
        OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 82
+   AND SUM(o.amount) >= 87
 GO
 
--- Query 367
+-- Query 133
+/* ama-bench-q00133 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 3139
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 14
-   OR o.discount IS NOT NULL
-GO
-
--- Query 368
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3140
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 15
-   OR o.discount IS NOT NULL
-GO
-
--- Query 369
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3141
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 16
-   OR o.discount IS NOT NULL
-GO
-
--- Query 370
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3142
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 17
-   OR o.discount IS NOT NULL
-GO
-
--- Query 371
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3143
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 18
-   OR o.discount IS NOT NULL
-GO
-
--- Query 372
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3144
+    WHERE ol.product_id = 1744
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -6863,46 +2554,93 @@ WHERE ABS(o.amount - la.ext_price) >= 19
    OR o.discount IS NOT NULL
 GO
 
--- Query 373
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'open', N'void', N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 170
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2021'
+-- Query 134
+/* ama-bench-q00134 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 1745
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 20
+   OR o.discount IS NOT NULL
 GO
 
--- Query 374
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'void', N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 171
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
+-- Query 135
+/* ama-bench-q00135 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 1746
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 21
+   OR o.discount IS NOT NULL
 GO
 
--- Query 375
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'open'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 172
-  AND YEAR(i.due_date) = 2023
+-- Query 136
+/* ama-bench-q00136 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 1747
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 22
+   OR o.discount IS NOT NULL
 GO
 
--- Query 376
+-- Query 137
+/* ama-bench-q00137 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 1748
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 23
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 138
+/* ama-bench-q00138 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 1749
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 24
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 139
+/* ama-bench-q00139 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
@@ -6911,200 +2649,134 @@ WHERE i.status IN (N'void')
   AND i.amount - COALESCE((
         SELECT SUM(p3.amount) FROM finance.payments p3
         WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 173
-  AND DATEPART(year, i.due_date) = 2024
-GO
-
--- Query 377
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted', N'open', N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 174
-  AND YEAR(i.due_date) = 2025
-GO
-
--- Query 378
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
   ), 0) >= 175
   AND YEAR(i.due_date) = 2026
 GO
 
--- Query 379
+-- Query 140
+/* ama-bench-q00140 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 176
+  AND YEAR(i.due_date) = 2019
+GO
+
+-- Query 141
+/* ama-bench-q00141 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'open', N'void')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 177
+  AND YEAR(i.due_date) = 2020
+GO
+
+-- Query 142
+/* ama-bench-q00142 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 178
+  AND YEAR(i.due_date) = 2021
+GO
+
+-- Query 143
+/* ama-bench-q00143 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'active'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 179
+  AND YEAR(i.due_date) = 2022
+GO
+
+-- Query 144
+/* ama-bench-q00144 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'paid')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 180
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2023'
+GO
+
+-- Query 145
+/* ama-bench-q00145 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Beer Sheva%'
+  AND (c.country_code = N'IL'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 146
+/* ama-bench-q00146 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Beer Sheva%'
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 147
+/* ama-bench-q00147 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
+  AND (c.country_code = N'GB'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 148
+/* ama-bench-q00148 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 0 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
             ELSE N'N' END AS active_flag
 FROM dbo.customers c
 WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 380
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Haifa%'
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 381
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Tel Aviv%'
-  AND (c.country_code = N'GB'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 382
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Netanya%'
   AND (c.country_code = N'sample'
        OR c.email LIKE N'%@%')
   AND 1=1
 GO
 
--- Query 383
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 13
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'completed'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.01
-  )
-GO
-
--- Query 384
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 14
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'pending'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.02
-  )
-GO
-
--- Query 385
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 15
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'cancelled'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.03
-  )
-GO
-
--- Query 386
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 16
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'active'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.04
-  )
-GO
-
--- Query 387
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 17
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'active')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.05
-  )
-GO
-
--- Query 388
+-- Query 149
+/* ama-bench-q00149 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -7119,7 +2791,127 @@ SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
 INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
 WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'completed', N'cancelled')
+  AND o.status IN (N'completed')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.01
+  )
+GO
+
+-- Query 150
+/* ama-bench-q00150 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 19
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.02
+  )
+GO
+
+-- Query 151
+/* ama-bench-q00151 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 20
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.03
+  )
+GO
+
+-- Query 152
+/* ama-bench-q00152 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 1
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'pending'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.04
+  )
+GO
+
+-- Query 153
+/* ama-bench-q00153 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 2
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'active'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.05
+  )
+GO
+
+-- Query 154
+/* ama-bench-q00154 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 3
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
   AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -7127,7 +2919,8 @@ WHERE o.sales_rep_id IS NOT NULL
   )
 GO
 
--- Query 389
+-- Query 155
+/* ama-bench-q00155 */
 SELECT p.payment_id, p.invoice_id, p.amount,
        p.paid_at, p.payment_status, p.currency,
        i.status AS invoice_status
@@ -7135,25 +2928,15 @@ FROM finance.payments p
 INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
 WHERE p.currency = N'ILS'
   AND p.payment_status = N'posted'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2024-01-01'
-GO
-
--- Query 390
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'EUR'
-  AND p.payment_status = N'pending'
   AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2025-01-01'
 GO
 
--- Query 391
+-- Query 156
+/* ama-bench-q00156 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
+    WHERE TRY_CAST(c.is_active AS INT) = 1
 ),
 o_base AS (
     SELECT o.order_id, o.customer_id, o.amount,
@@ -7177,20 +2960,21 @@ FROM c_base cb
 INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
 LEFT JOIN fin ON fin.order_id = ob.order_id
 LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 16
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 15
 GO
 
--- Query 392
+-- Query 157
+/* ama-bench-q00157 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
+    WHERE TRY_CAST(c.is_active AS INT) = 0
 ),
 o_base AS (
     SELECT o.order_id, o.customer_id, o.amount,
            o.created_at
     FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
+    WHERE DATEPART(year, o.created_at) = 2021
 ),
 fin AS (
     SELECT i.order_id, SUM(i.net_amount) AS inv_net
@@ -7208,14 +2992,15 @@ FROM c_base cb
 INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
 LEFT JOIN fin ON fin.order_id = ob.order_id
 LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 0
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 16
 GO
 
--- Query 393
+-- Query 158
+/* ama-bench-q00158 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
+    WHERE TRY_CAST(c.is_active AS INT) = 1
 ),
 o_base AS (
     SELECT o.order_id, o.customer_id, o.amount,
@@ -7239,10 +3024,43 @@ FROM c_base cb
 INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
 LEFT JOIN fin ON fin.order_id = ob.order_id
 LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 0
+GO
+
+-- Query 159
+/* ama-bench-q00159 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2023
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
 WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 1
 GO
 
--- Query 394
+-- Query 160
+/* ama-bench-q00160 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -7252,7 +3070,7 @@ o_base AS (
     SELECT o.order_id, o.customer_id, o.amount,
            o.created_at
     FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
+    WHERE DATEPART(year, o.created_at) = 2024
 ),
 fin AS (
     SELECT i.order_id, SUM(i.net_amount) AS inv_net
@@ -7273,7 +3091,8 @@ LEFT JOIN logi ON logi.order_id = ob.order_id
 WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 2
 GO
 
--- Query 395
+-- Query 161
+/* ama-bench-q00161 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -7283,7 +3102,7 @@ o_base AS (
     SELECT o.order_id, o.customer_id, o.amount,
            o.created_at
     FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2024
+    WHERE YEAR(o.created_at) = 2025
 ),
 fin AS (
     SELECT i.order_id, SUM(i.net_amount) AS inv_net
@@ -7304,70 +3123,8 @@ LEFT JOIN logi ON logi.order_id = ob.order_id
 WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 3
 GO
 
--- Query 396
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 4
-GO
-
--- Query 397
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 5 = 2
-GO
-
--- Query 398
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 6 = 0
-GO
-
--- Query 399
+-- Query 162
+/* ama-bench-q00162 */
 SELECT ol.line_id, ol.order_id, ol.product_id,
        ol.quantity, ol.unit_price,
        DENSE_RANK() OVER (
@@ -7383,110 +3140,45 @@ WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
   AND ol.order_id % 8 = 2
 GO
 
--- Query 400
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2406
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 56
-  )
+-- Query 163
+/* ama-bench-q00163 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 5 = 4
 GO
 
--- Query 401
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2407
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 57
-  )
+-- Query 164
+/* ama-bench-q00164 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 6 = 5
 GO
 
--- Query 402
+-- Query 165
+/* ama-bench-q00165 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
-WHERE o.amount > 2408
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 58
-  )
-GO
-
--- Query 403
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2409
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 59
-  )
-GO
-
--- Query 404
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2410
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 60
-  )
-GO
-
--- Query 405
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2411
+WHERE o.amount > 1011
   AND NOT EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -7503,7 +3195,125 @@ WHERE o.amount > 2411
   )
 GO
 
--- Query 406
+-- Query 166
+/* ama-bench-q00166 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1012
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 62
+  )
+GO
+
+-- Query 167
+/* ama-bench-q00167 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1013
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 63
+  )
+GO
+
+-- Query 168
+/* ama-bench-q00168 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1014
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 64
+  )
+GO
+
+-- Query 169
+/* ama-bench-q00169 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1015
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 65
+  )
+GO
+
+-- Query 170
+/* ama-bench-q00170 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1016
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 66
+  )
+GO
+
+-- Query 171
+/* ama-bench-q00171 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'USD' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2025
+GO
+
+-- Query 172
+/* ama-bench-q00172 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
@@ -7511,75 +3321,71 @@ FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
 FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
 FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
 WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2022
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2026'
 GO
 
--- Query 407
+-- Query 173
+/* ama-bench-q00173 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
 FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
 FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
 FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
+WHERE (o.currency = N'ILS' OR o.currency IS NULL)
   AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2023'
 GO
 
--- Query 408
-SELECT c.email, c.city
-FROM dbo.customers c
-WHERE c.customer_id >= 418
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 409
-SELECT o.amount, o.created_at
-FROM dbo.orders o
-WHERE o.order_id >= 419
-  AND o.status = N'cancelled'
-GO
-
--- Query 410
-SELECT ol.discount, ol.net_amount
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 420
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 411
-SELECT i.invoice_id, i.order_id
+-- Query 174
+/* ama-bench-q00174 */
+SELECT i.status, i.due_date
 FROM finance.invoices i
-WHERE i.invoice_id >= 421
-  AND i.status IN (N'pending')
+WHERE i.invoice_id >= 23
+  AND i.status = N'open'
 GO
 
--- Query 412
+-- Query 175
+/* ama-bench-q00175 */
 SELECT p.payment_status, p.currency
 FROM finance.payments p
-WHERE p.payment_id >= 422
+WHERE p.payment_id >= 24
   AND p.payment_id IS NOT NULL
 GO
 
--- Query 413
+-- Query 176
+/* ama-bench-q00176 */
 SELECT s.warehouse_id, s.shipment_id
 FROM logistics.shipments s
-WHERE s.shipment_id >= 423
+WHERE s.shipment_id >= 25
   AND s.shipment_id IS NOT NULL
 GO
 
--- Query 414
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
+-- Query 177
+/* ama-bench-q00177 */
+SELECT c.email, c.city
 FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 49
+WHERE c.customer_id >= 26
+  AND c.customer_id IS NOT NULL
 GO
 
--- Query 415
+-- Query 178
+/* ama-bench-q00178 */
+SELECT o.amount, o.created_at
+FROM dbo.orders o
+WHERE o.order_id >= 27
+  AND o.status = N'completed'
+GO
+
+-- Query 179
+/* ama-bench-q00179 */
+SELECT ol.net_amount, ol.line_id
+FROM dbo.order_lines ol
+WHERE ol.line_id >= 28
+  AND ol.line_id IS NOT NULL
+GO
+
+-- Query 180
+/* ama-bench-q00180 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -7588,10 +3394,11 @@ INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
 INNER JOIN finance.invoices i ON o.order_id = i.order_id
 INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
 WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 0
+  AND p.amount <= i.amount + 4
 GO
 
--- Query 416
+-- Query 181
+/* ama-bench-q00181 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -7600,10 +3407,11 @@ INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
 INNER JOIN finance.invoices i ON o.order_id = i.order_id
 INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
 WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 1
+  AND p.amount <= i.amount + 5
 GO
 
--- Query 417
+-- Query 182
+/* ama-bench-q00182 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -7612,13 +3420,281 @@ INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
 INNER JOIN finance.invoices i ON o.order_id = i.order_id
 INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
 WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 2
+  AND p.amount <= i.amount + 6
 GO
 
--- Query 418
+-- Query 183
+/* ama-bench-q00183 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 7
+GO
+
+-- Query 184
+/* ama-bench-q00184 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'EUR'
+  AND p.amount <= i.amount + 8
+GO
+
+-- Query 185
+/* ama-bench-q00185 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'GBP'
+  AND p.amount <= i.amount + 9
+GO
+
+-- Query 186
+/* ama-bench-q00186 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 85
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
+GO
+
+-- Query 187
+/* ama-bench-q00187 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 86
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
+GO
+
+-- Query 188
+/* ama-bench-q00188 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 87
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
+GO
+
+-- Query 189
+/* ama-bench-q00189 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 88
+  AND (h.[סטטוס] = N'paid'
+       OR i.status = N'void')
+GO
+
+-- Query 190
+/* ama-bench-q00190 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 89
+  AND (h.[סטטוס] = N'void'
+       OR i.status = N'active')
+GO
+
+-- Query 191
+/* ama-bench-q00191 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 90
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
+GO
+
+-- Query 192
+/* ama-bench-q00192 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2023
+  AND o.[סכום] > 16
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 193
+/* ama-bench-q00193 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2024
+  AND o.[סכום] > 17
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 194
+/* ama-bench-q00194 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2025
+  AND o.[סכום] > 18
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 195
+/* ama-bench-q00195 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2026
+  AND o.[סכום] > 19
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 196
+/* ama-bench-q00196 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2020
+  AND o.[סכום] > 20
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 197
+/* ama-bench-q00197 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2021
+  AND o.[סכום] > 21
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 198
+/* ama-bench-q00198 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 22
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 199
+/* ama-bench-q00199 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 23
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 200
+/* ama-bench-q00200 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 24
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 201
+/* ama-bench-q00201 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 1
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 0
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 202
+/* ama-bench-q00202 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 2
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 1
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 203
+/* ama-bench-q00203 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 2
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 204
+/* ama-bench-q00204 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 29), 419) AS order_amt,
+           CASE WHEN COALESCE(COALESCE(o.amount, 652), 315) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 652), 315) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 652), 315) END AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND YEAR(o.created_at) = 2022
@@ -7652,1501 +3728,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 480
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 178
 GO
 
--- Query 419
+-- Query 205
+/* ama-bench-q00205 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 289) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 481
-GO
-
--- Query 420
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 92) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 482
-GO
-
--- Query 421
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 842), 163) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2025
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 483
-GO
-
--- Query 422
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 414) IS NULL THEN 0 WHEN COALESCE(o.amount, 414) < 0 THEN 0 ELSE COALESCE(o.amount, 414) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2026
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 484
-GO
-
--- Query 423
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 989) IS NULL THEN 0 WHEN COALESCE(o.amount, 989) < 0 THEN 0 ELSE COALESCE(o.amount, 989) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2020'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 485
-GO
-
--- Query 424
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'open', N'cancelled', N'completed')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 425
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'open', N'pending')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 426
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active', N'shipped')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Jerusalem%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 427
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'pending')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Netanya%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'in_transit'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 428
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'active') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 429
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'cancelled') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 430
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 542
-  AND o.status = N'completed'
-GO
-
--- Query 431
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 543
-  AND o.status = N'active'
-GO
-
--- Query 432
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 544
-  AND o.status IN (N'cancelled')
-GO
-
--- Query 433
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 545
-  AND o.status = N'pending'
-GO
-
--- Query 434
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 546
-  AND o.status IN (N'completed')
-GO
-
--- Query 435
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 547
-  AND o.status = N'cancelled'
-GO
-
--- Query 436
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 408), 32)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 73
-GO
-
--- Query 437
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 668), 810)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 74
-GO
-
--- Query 438
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 196) IS NULL THEN 0 WHEN COALESCE(o.amount, 196) < 0 THEN 0 ELSE COALESCE(o.amount, 196) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 75
-GO
-
--- Query 439
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 653), 854)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 76
-GO
-
--- Query 440
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 443), 718) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 443), 718) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 443), 718) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 77
-GO
-
--- Query 441
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 127), 671) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 127), 671) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 127), 671) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 78
-GO
-
--- Query 442
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3635
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 10
-   OR o.discount IS NOT NULL
-GO
-
--- Query 443
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3636
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 11
-   OR o.discount IS NOT NULL
-GO
-
--- Query 444
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3637
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 12
-   OR o.discount IS NOT NULL
-GO
-
--- Query 445
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3638
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 13
-   OR o.discount IS NOT NULL
-GO
-
--- Query 446
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3639
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 14
-   OR o.discount IS NOT NULL
-GO
-
--- Query 447
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 3640
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 15
-   OR o.discount IS NOT NULL
-GO
-
--- Query 448
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'open', N'active', N'void')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 66
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2021'
-GO
-
--- Query 449
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'open', N'posted', N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 67
-  AND YEAR(i.due_date) = 2022
-GO
-
--- Query 450
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'open', N'paid', N'posted')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 68
-  AND DATEPART(year, i.due_date) = 2023
-GO
-
--- Query 451
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted', N'void')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 69
-  AND DATEPART(year, i.due_date) = 2024
-GO
-
--- Query 452
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted', N'void')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 70
-  AND DATEPART(year, i.due_date) = 2025
-GO
-
--- Query 453
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'posted'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 71
-  AND YEAR(i.due_date) = 2026
-GO
-
--- Query 454
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 455
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 456
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
-  AND (c.country_code = N'GB'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 457
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Beer Sheva%'
-  AND (c.country_code = N'sample'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 458
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Haifa%')
-  AND (c.country_code = N'IL'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 459
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Jerusalem%'
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 460
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 9
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'shipped')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.02
-  )
-GO
-
--- Query 461
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 10
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'completed'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.03
-  )
-GO
-
--- Query 462
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 11
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'pending', N'cancelled')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.04
-  )
-GO
-
--- Query 463
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 12
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'pending'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.05
-  )
-GO
-
--- Query 464
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 13
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'completed'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.06
-  )
-GO
-
--- Query 465
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 14
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'completed'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.07
-  )
-GO
-
--- Query 466
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'ILS'
-  AND p.payment_status = N'posted'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2023-01-01'
-GO
-
--- Query 467
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'EUR'
-  AND p.payment_status = N'pending'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2024-01-01'
-GO
-
--- Query 468
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2021
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 2
-GO
-
--- Query 469
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 3
-GO
-
--- Query 470
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2023
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 4
-GO
-
--- Query 471
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 5
-GO
-
--- Query 472
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 6
-GO
-
--- Query 473
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2021
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 7
-GO
-
--- Query 474
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 4 = 3
-GO
-
--- Query 475
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 5 = 4
-GO
-
--- Query 476
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 6 = 5
-GO
-
--- Query 477
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2902
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 52
-  )
-GO
-
--- Query 478
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2903
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 53
-  )
-GO
-
--- Query 479
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2904
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 54
-  )
-GO
-
--- Query 480
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2905
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 55
-  )
-GO
-
--- Query 481
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2906
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 56
-  )
-GO
-
--- Query 482
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 2907
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 57
-  )
-GO
-
--- Query 483
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2021'
-GO
-
--- Query 484
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2022
-GO
-
--- Query 485
-SELECT p.payment_status, p.currency
-FROM finance.payments p
-WHERE p.payment_id >= 914
-  AND p.payment_id IS NOT NULL
-GO
-
--- Query 486
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 915
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 487
-SELECT c.country_code, c.phone
-FROM dbo.customers c
-WHERE c.customer_id >= 916
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 488
-SELECT o.discount, o.currency
-FROM dbo.orders o
-WHERE o.order_id >= 917
-  AND o.status IN (N'pending', N'active', N'completed')
-GO
-
--- Query 489
-SELECT ol.net_amount, ol.line_id
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 918
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 490
-SELECT i.net_amount, i.vat_amount
-FROM finance.invoices i
-WHERE i.invoice_id >= 919
-  AND i.status = N'open'
-GO
-
--- Query 491
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 45
-GO
-
--- Query 492
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 46
-GO
-
--- Query 493
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 47
-GO
-
--- Query 494
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 48
-GO
-
--- Query 495
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 185), 284) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2021
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 476
-GO
-
--- Query 496
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 395), 801) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 395), 801) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 395), 801) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 477
-GO
-
--- Query 497
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 906), 469) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 906), 469) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 906), 469) END AS order_amt,
+           CASE WHEN COALESCE(o.amount, 997) IS NULL THEN 0 WHEN COALESCE(o.amount, 997) < 0 THEN 0 ELSE COALESCE(o.amount, 997) END AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND DATEPART(year, o.created_at) = 2023
@@ -9180,1523 +3769,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 478
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 179
 GO
 
--- Query 498
+-- Query 206
+/* ama-bench-q00206 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 923) IS NULL THEN 0 WHEN COALESCE(o.amount, 923) < 0 THEN 0 ELSE COALESCE(o.amount, 923) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2024
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 479
-GO
-
--- Query 499
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 158), 834) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 158), 834) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 158), 834) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2025
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 480
-GO
-
--- Query 500
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 854), 754) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2026
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 481
-GO
-
--- Query 501
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'completed', N'cancelled')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Haifa%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 502
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'open') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 503
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'completed', N'active', N'cancelled')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 504
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'open')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'in_transit'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 505
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'open', N'shipped')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 506
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'cancelled')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Haifa%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 507
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 38
-  AND o.status IN (N'completed', N'pending')
-GO
-
--- Query 508
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 39
-  AND o.status IN (N'shipped', N'cancelled', N'pending')
-GO
-
--- Query 509
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 40
-  AND o.status IN (N'active', N'cancelled', N'completed')
-GO
-
--- Query 510
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 41
-  AND o.status IN (N'cancelled', N'active')
-GO
-
--- Query 511
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 42
-  AND o.status IN (N'active')
-GO
-
--- Query 512
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 43
-  AND o.status IN (N'active')
-GO
-
--- Query 513
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 26), 440) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 26), 440) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 26), 440) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 69
-GO
-
--- Query 514
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 960) IS NULL THEN 0 WHEN COALESCE(o.amount, 960) < 0 THEN 0 ELSE COALESCE(o.amount, 960) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 70
-GO
-
--- Query 515
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 437) IS NULL THEN 0 WHEN COALESCE(o.amount, 437) < 0 THEN 0 ELSE COALESCE(o.amount, 437) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 71
-GO
-
--- Query 516
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 282)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 72
-GO
-
--- Query 517
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 995), 93) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 995), 93) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 995), 93) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 73
-GO
-
--- Query 518
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 376), 323) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 376), 323) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 376), 323) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 74
-GO
-
--- Query 519
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4131
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 6
-   OR o.discount IS NOT NULL
-GO
-
--- Query 520
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4132
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 7
-   OR o.discount IS NOT NULL
-GO
-
--- Query 521
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4133
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 8
-   OR o.discount IS NOT NULL
-GO
-
--- Query 522
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4134
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 9
-   OR o.discount IS NOT NULL
-GO
-
--- Query 523
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4135
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 10
-   OR o.discount IS NOT NULL
-GO
-
--- Query 524
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4136
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 11
-   OR o.discount IS NOT NULL
-GO
-
--- Query 525
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'posted'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 162
-  AND DATEPART(year, i.due_date) = 2021
-GO
-
--- Query 526
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'paid'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 163
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
-GO
-
--- Query 527
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'open', N'active', N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 164
-  AND DATEPART(year, i.due_date) = 2023
-GO
-
--- Query 528
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'posted'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 165
-  AND DATEPART(year, i.due_date) = 2024
-GO
-
--- Query 529
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'void', N'active', N'open')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 166
-  AND YEAR(i.due_date) = 2025
-GO
-
--- Query 530
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 167
-  AND DATEPART(year, i.due_date) = 2026
-GO
-
--- Query 531
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Jerusalem%')
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 532
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Netanya%'
-  AND (c.country_code = N'GB'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 533
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Haifa%')
-  AND (c.country_code = N'sample'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 534
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
-  AND (c.country_code = N'IL'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 535
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Netanya%'
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 536
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Beer Sheva%'
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 537
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 5
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'cancelled'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.03
-  )
-GO
-
--- Query 538
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 6
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'shipped'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.04
-  )
-GO
-
--- Query 539
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 7
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'completed'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.05
-  )
-GO
-
--- Query 540
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 8
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'open'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.06
-  )
-GO
-
--- Query 541
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 9
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'pending', N'completed')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.07
-  )
-GO
-
--- Query 542
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 10
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'cancelled'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.08
-  )
-GO
-
--- Query 543
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'ILS'
-  AND p.payment_status = N'posted'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2022-01-01'
-GO
-
--- Query 544
-SELECT p.payment_id, p.invoice_id, p.amount,
-       p.paid_at, p.payment_status, p.currency,
-       i.status AS invoice_status
-FROM finance.payments p
-INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
-WHERE p.currency = N'EUR'
-  AND p.payment_status = N'pending'
-  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2023-01-01'
-GO
-
--- Query 545
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 5
-GO
-
--- Query 546
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2023
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 6
-GO
-
--- Query 547
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 7
-GO
-
--- Query 548
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 8
-GO
-
--- Query 549
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2021
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 9
-GO
-
--- Query 550
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2022
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 10
-GO
-
--- Query 551
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 8 = 5
-GO
-
--- Query 552
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 4 = 0
-GO
-
--- Query 553
-SELECT ol.line_id, ol.order_id, ol.product_id,
-       ol.quantity, ol.unit_price,
-       DENSE_RANK() OVER (
-           PARTITION BY ol.order_id
-           ORDER BY ol.net_amount DESC
-       ) AS line_rank,
-       SUM(ol.quantity) OVER (
-           PARTITION BY ol.product_id
-           ORDER BY ol.order_id
-       ) AS prod_running_qty
-FROM dbo.order_lines ol
-WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
-  AND ol.order_id % 6 = 4
-GO
-
--- Query 554
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3398
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 48
-  )
-GO
-
--- Query 555
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3399
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 49
-  )
-GO
-
--- Query 556
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3400
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 50
-  )
-GO
-
--- Query 557
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3401
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 51
-  )
-GO
-
--- Query 558
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3402
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 52
-  )
-GO
-
--- Query 559
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3403
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 53
-  )
-GO
-
--- Query 560
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2025
-GO
-
--- Query 561
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2026
-GO
-
--- Query 562
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2020'
-GO
-
--- Query 563
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2021
-GO
-
--- Query 564
-SELECT ol.order_id, ol.product_id
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 410
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 565
-SELECT i.invoice_id, i.order_id
-FROM finance.invoices i
-WHERE i.invoice_id >= 411
-  AND i.status = N'pending'
-GO
-
--- Query 566
-SELECT p.payment_status, p.currency
-FROM finance.payments p
-WHERE p.payment_id >= 412
-  AND p.payment_id IS NOT NULL
-GO
-
--- Query 567
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 413
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 568
-SELECT c.is_active, c.created_at
-FROM dbo.customers c
-WHERE c.customer_id >= 414
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 569
-SELECT o.sales_rep_id, o.order_id
-FROM dbo.orders o
-WHERE o.order_id >= 415
-  AND o.status = N'cancelled'
-GO
-
--- Query 570
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 41
-GO
-
--- Query 571
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 42
-GO
-
--- Query 572
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 43
-GO
-
--- Query 573
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 44
-GO
-
--- Query 574
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 243) IS NULL THEN 0 WHEN COALESCE(o.amount, 243) < 0 THEN 0 ELSE COALESCE(o.amount, 243) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2020
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 472
-GO
-
--- Query 575
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 489), 695) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2021
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 473
-GO
-
--- Query 576
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 753), 260) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2022
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 474
-GO
-
--- Query 577
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 654), 387) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 475
-GO
-
--- Query 578
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 806) IS NULL THEN 0 WHEN COALESCE(o.amount, 806) < 0 THEN 0 ELSE COALESCE(o.amount, 806) END AS order_amt,
+           COALESCE(COALESCE(o.amount, 419), 670) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND YEAR(o.created_at) = 2024
@@ -10730,16 +3810,17 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 476
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 180
 GO
 
--- Query 579
+-- Query 207
+/* ama-bench-q00207 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 434), 877) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 434), 877) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 434), 877) END AS order_amt,
+           CASE WHEN COALESCE(COALESCE(o.amount, 525), 587) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 525), 587) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 525), 587) END AS order_amt,
            o.created_at
     FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2025
 ),
 invoice_roll AS (
     SELECT i.order_id,
@@ -10770,1138 +3851,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 477
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 181
 GO
 
--- Query 580
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'shipped') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 581
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active', N'pending')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 582
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'open') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 583
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'in_transit'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 584
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'active') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Jerusalem%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 585
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'pending', N'active', N'completed')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 586
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 534
-  AND o.status IN (N'shipped', N'active')
-GO
-
--- Query 587
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 535
-  AND o.status = N'completed'
-GO
-
--- Query 588
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 536
-  AND o.status IN (N'completed', N'cancelled')
-GO
-
--- Query 589
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 537
-  AND o.status IN (N'shipped', N'pending')
-GO
-
--- Query 590
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 538
-  AND o.status IN (N'completed', N'active')
-GO
-
--- Query 591
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 539
-  AND o.status = N'open'
-GO
-
--- Query 592
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 247)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 65
-GO
-
--- Query 593
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 184), 368) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 184), 368) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 184), 368) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 66
-GO
-
--- Query 594
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 189)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 67
-GO
-
--- Query 595
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 236)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 68
-GO
-
--- Query 596
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 477)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 69
-GO
-
--- Query 597
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 687) IS NULL THEN 0 WHEN COALESCE(o.amount, 687) < 0 THEN 0 ELSE COALESCE(o.amount, 687) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 70
-GO
-
--- Query 598
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4627
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 2
-   OR o.discount IS NOT NULL
-GO
-
--- Query 599
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4628
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 3
-   OR o.discount IS NOT NULL
-GO
-
--- Query 600
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4629
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 4
-   OR o.discount IS NOT NULL
-GO
-
--- Query 601
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4630
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 5
-   OR o.discount IS NOT NULL
-GO
-
--- Query 602
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4631
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 6
-   OR o.discount IS NOT NULL
-GO
-
--- Query 603
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 4632
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 7
-   OR o.discount IS NOT NULL
-GO
-
--- Query 604
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'open'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 58
-  AND DATEPART(year, i.due_date) = 2021
-GO
-
--- Query 605
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'posted'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 59
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
-GO
-
--- Query 606
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'void', N'open', N'active')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 60
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2023'
-GO
-
--- Query 607
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 61
-  AND DATEPART(year, i.due_date) = 2024
-GO
-
--- Query 608
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'open'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 62
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
-GO
-
--- Query 609
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'paid'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 63
-  AND YEAR(i.due_date) = 2026
-GO
-
--- Query 610
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
-  AND (c.country_code = N'GB'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 611
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Tel Aviv%')
-  AND (c.country_code = N'sample'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 612
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Tel Aviv%'
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 613
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Beer Sheva%'
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 614
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 1
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'pending'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.04
-  )
-GO
-
--- Query 615
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 2
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'completed'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.05
-  )
-GO
-
--- Query 616
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 3
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'active', N'pending')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.06
-  )
-GO
-
--- Query 617
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 4
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'pending', N'active', N'completed')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.07
-  )
-GO
-
--- Query 618
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 5
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'open', N'active', N'cancelled')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.08
-  )
-GO
-
--- Query 619
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 6
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'cancelled'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.09
-  )
-GO
-
--- Query 620
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 8
-GO
-
--- Query 621
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 9
-GO
-
--- Query 622
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2025
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 10
-GO
-
--- Query 623
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2021
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 11
-GO
-
--- Query 624
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2022
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 12
-GO
-
--- Query 625
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 13
-GO
-
--- Query 626
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3894
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 44
-  )
-GO
-
--- Query 627
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3895
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 45
-  )
-GO
-
--- Query 628
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3896
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 46
-  )
-GO
-
--- Query 629
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3897
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 47
-  )
-GO
-
--- Query 630
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3898
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 48
-  )
-GO
-
--- Query 631
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 3899
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 49
-  )
-GO
-
--- Query 632
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2024
-GO
-
--- Query 633
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2026'
-GO
-
--- Query 634
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2020'
-GO
-
--- Query 635
-SELECT c.email, c.city
-FROM dbo.customers c
-WHERE c.customer_id >= 906
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 636
-SELECT o.amount, o.created_at
-FROM dbo.orders o
-WHERE o.order_id >= 907
-  AND o.status = N'completed'
-GO
-
--- Query 637
-SELECT ol.product_id, ol.quantity
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 908
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 638
-SELECT i.net_amount, i.vat_amount
-FROM finance.invoices i
-WHERE i.invoice_id >= 909
-  AND i.status IN (N'completed', N'shipped', N'active')
-GO
-
--- Query 639
-SELECT p.payment_status, p.currency
-FROM finance.payments p
-WHERE p.payment_id >= 910
-  AND p.payment_id IS NOT NULL
-GO
-
--- Query 640
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 911
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 641
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 37
-GO
-
--- Query 642
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 38
-GO
-
--- Query 643
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 39
-GO
-
--- Query 644
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 40
-GO
-
--- Query 645
+-- Query 208
+/* ama-bench-q00208 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 884) IS NULL THEN 0 WHEN COALESCE(o.amount, 884) < 0 THEN 0 ELSE COALESCE(o.amount, 884) END AS order_amt,
+           COALESCE(o.amount, 136) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND DATEPART(year, o.created_at) = 2026
@@ -11935,1428 +3892,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 468
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 182
 GO
 
--- Query 646
+-- Query 209
+/* ama-bench-q00209 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 414) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2020
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 469
-GO
-
--- Query 647
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 593) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 470
-GO
-
--- Query 648
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 378) IS NULL THEN 0 WHEN COALESCE(o.amount, 378) < 0 THEN 0 ELSE COALESCE(o.amount, 378) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2022
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 471
-GO
-
--- Query 649
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 629), 969) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 472
-GO
-
--- Query 650
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 312), 16) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2024
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 473
-GO
-
--- Query 651
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'completed', N'cancelled', N'pending')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Jerusalem%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 652
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active', N'completed', N'open')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Netanya%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 653
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'shipped') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 654
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Haifa%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'in_transit'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 655
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'shipped') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 656
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'completed') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 657
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 30
-  AND o.status = N'completed'
-GO
-
--- Query 658
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 31
-  AND o.status = N'open'
-GO
-
--- Query 659
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 32
-  AND o.status = N'active'
-GO
-
--- Query 660
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 33
-  AND o.status = N'shipped'
-GO
-
--- Query 661
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 34
-  AND o.status = N'cancelled'
-GO
-
--- Query 662
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 35
-  AND o.status = N'shipped'
-GO
-
--- Query 663
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 160), 729) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 160), 729) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 160), 729) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 61
-GO
-
--- Query 664
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 492)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 62
-GO
-
--- Query 665
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 143)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 63
-GO
-
--- Query 666
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 888), 737)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 64
-GO
-
--- Query 667
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 686), 37) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 686), 37) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 686), 37) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 65
-GO
-
--- Query 668
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 907), 20)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 66
-GO
-
--- Query 669
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 5123
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 23
-   OR o.discount IS NOT NULL
-GO
-
--- Query 670
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 5124
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 24
-   OR o.discount IS NOT NULL
-GO
-
--- Query 671
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 5125
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 0
-   OR o.discount IS NOT NULL
-GO
-
--- Query 672
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 5126
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 1
-   OR o.discount IS NOT NULL
-GO
-
--- Query 673
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 5127
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 2
-   OR o.discount IS NOT NULL
-GO
-
--- Query 674
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 5128
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 3
-   OR o.discount IS NOT NULL
-GO
-
--- Query 675
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'void')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 154
-  AND YEAR(i.due_date) = 2021
-GO
-
--- Query 676
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'open', N'posted')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 155
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
-GO
-
--- Query 677
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'open'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 156
-  AND YEAR(i.due_date) = 2023
-GO
-
--- Query 678
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'void'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 157
-  AND DATEPART(year, i.due_date) = 2024
-GO
-
--- Query 679
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'open'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 158
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
-GO
-
--- Query 680
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'open', N'posted')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 159
-  AND YEAR(i.due_date) = 2026
-GO
-
--- Query 681
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Jerusalem%')
-  AND (c.country_code = N'sample'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 682
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Jerusalem%'
-  AND (c.country_code = N'IL'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 683
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Haifa%'
-  AND (c.country_code = N'GB'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 684
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 17
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'completed'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.05
-  )
-GO
-
--- Query 685
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 18
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'shipped', N'pending', N'active')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.06
-  )
-GO
-
--- Query 686
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 19
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'completed'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.07
-  )
-GO
-
--- Query 687
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 20
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'completed'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.08
-  )
-GO
-
--- Query 688
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 1
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'open'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.09
-  )
-GO
-
--- Query 689
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 2
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'active')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.01
-  )
-GO
-
--- Query 690
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 11
-GO
-
--- Query 691
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2025
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 12
-GO
-
--- Query 692
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 13
-GO
-
--- Query 693
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 14
-GO
-
--- Query 694
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2023
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 15
-GO
-
--- Query 695
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 16
-GO
-
--- Query 696
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 4390
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 40
-  )
-GO
-
--- Query 697
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 4391
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 41
-  )
-GO
-
--- Query 698
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 4392
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 42
-  )
-GO
-
--- Query 699
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 4393
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 43
-  )
-GO
-
--- Query 700
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 4394
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 44
-  )
-GO
-
--- Query 701
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 4395
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 45
-  )
-GO
-
--- Query 702
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2024
-GO
-
--- Query 703
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2025
-GO
-
--- Query 704
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2026
-GO
-
--- Query 705
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2020
-GO
-
--- Query 706
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2021'
-GO
-
--- Query 707
-SELECT p.payment_status, p.currency
-FROM finance.payments p
-WHERE p.payment_id >= 402
-  AND p.payment_id IS NOT NULL
-GO
-
--- Query 708
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 403
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 709
-SELECT c.country_code, c.phone
-FROM dbo.customers c
-WHERE c.customer_id >= 404
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 710
-SELECT o.discount, o.currency
-FROM dbo.orders o
-WHERE o.order_id >= 405
-  AND o.status = N'completed'
-GO
-
--- Query 711
-SELECT ol.quantity, ol.unit_price
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 406
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 712
-SELECT i.status, i.due_date
-FROM finance.invoices i
-WHERE i.invoice_id >= 407
-  AND i.status = N'completed'
-GO
-
--- Query 713
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 33
-GO
-
--- Query 714
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 34
-GO
-
--- Query 715
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 35
-GO
-
--- Query 716
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 36
-GO
-
--- Query 717
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 212), 707) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2025
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 464
-GO
-
--- Query 718
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 952) IS NULL THEN 0 WHEN COALESCE(o.amount, 952) < 0 THEN 0 ELSE COALESCE(o.amount, 952) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2026
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 465
-GO
-
--- Query 719
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 281), 662) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 281), 662) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 281), 662) END AS order_amt,
+           COALESCE(COALESCE(o.amount, 666), 331) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2020'
@@ -13390,13 +3933,1716 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 466
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 183
 GO
 
--- Query 720
+-- Query 210
+/* ama-bench-q00210 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'completed', N'active', N'pending')) AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Beer Sheva%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 211
+/* ama-bench-q00211 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'completed', N'shipped')) AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Jerusalem%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 212
+/* ama-bench-q00212 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'open', N'cancelled', N'shipped')) AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Tel Aviv%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 213
+/* ama-bench-q00213 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'cancelled') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Beer Sheva%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 214
+/* ama-bench-q00214 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'pending', N'open')) AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Tel Aviv%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 215
+/* ama-bench-q00215 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'shipped') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Jerusalem%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 216
+/* ama-bench-q00216 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 240
+  AND o.status = N'cancelled'
+GO
+
+-- Query 217
+/* ama-bench-q00217 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 241
+  AND o.status = N'active'
+GO
+
+-- Query 218
+/* ama-bench-q00218 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 242
+  AND o.status IN (N'open')
+GO
+
+-- Query 219
+/* ama-bench-q00219 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 243
+  AND o.status = N'cancelled'
+GO
+
+-- Query 220
+/* ama-bench-q00220 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 244
+  AND o.status = N'cancelled'
+GO
+
+-- Query 221
+/* ama-bench-q00221 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 245
+  AND o.status = N'open'
+GO
+
+-- Query 222
+/* ama-bench-q00222 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(COALESCE(o.amount, 214), 683)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 71
+GO
+
+-- Query 223
+/* ama-bench-q00223 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(COALESCE(o.amount, 49), 431)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'US'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 72
+GO
+
+-- Query 224
+/* ama-bench-q00224 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(COALESCE(o.amount, 259), 392)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 73
+GO
+
+-- Query 225
+/* ama-bench-q00225 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 913) IS NULL THEN 0 WHEN COALESCE(o.amount, 913) < 0 THEN 0 ELSE COALESCE(o.amount, 913) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 74
+GO
+
+-- Query 226
+/* ama-bench-q00226 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 326), 105) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 326), 105) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 326), 105) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 75
+GO
+
+-- Query 227
+/* ama-bench-q00227 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(COALESCE(o.amount, 998), 462)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 76
+GO
+
+-- Query 228
+/* ama-bench-q00228 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 2333
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 8
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 229
+/* ama-bench-q00229 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 2334
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 9
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 230
+/* ama-bench-q00230 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 2335
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 10
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 231
+/* ama-bench-q00231 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 2336
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 11
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 232
+/* ama-bench-q00232 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 2337
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 12
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 233
+/* ama-bench-q00233 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 2338
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 13
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 234
+/* ama-bench-q00234 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 164
+  AND DATEPART(year, i.due_date) = 2023
+GO
+
+-- Query 235
+/* ama-bench-q00235 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'paid')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 165
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2024'
+GO
+
+-- Query 236
+/* ama-bench-q00236 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'posted', N'active')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 166
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
+GO
+
+-- Query 237
+/* ama-bench-q00237 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'void'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 167
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2026'
+GO
+
+-- Query 238
+/* ama-bench-q00238 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'void'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 168
+  AND YEAR(i.due_date) = 2019
+GO
+
+-- Query 239
+/* ama-bench-q00239 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'open'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 169
+  AND DATEPART(year, i.due_date) = 2020
+GO
+
+-- Query 240
+/* ama-bench-q00240 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Haifa%'
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 241
+/* ama-bench-q00241 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Netanya%'
+  AND (c.country_code = N'US'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 242
+/* ama-bench-q00242 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Haifa%'
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 243
+/* ama-bench-q00243 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Tel Aviv%'
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 244
+/* ama-bench-q00244 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 7
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'shipped'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.05
+  )
+GO
+
+-- Query 245
+/* ama-bench-q00245 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 8
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'shipped'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.06
+  )
+GO
+
+-- Query 246
+/* ama-bench-q00246 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 9
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'completed'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.07
+  )
+GO
+
+-- Query 247
+/* ama-bench-q00247 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 10
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'open')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.08
+  )
+GO
+
+-- Query 248
+/* ama-bench-q00248 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 11
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'completed'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.09
+  )
+GO
+
+-- Query 249
+/* ama-bench-q00249 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 12
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'completed'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.01
+  )
+GO
+
+-- Query 250
+/* ama-bench-q00250 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'EUR'
+  AND p.payment_status = N'pending'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2026-01-01'
+GO
+
+-- Query 251
+/* ama-bench-q00251 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2024
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 9
+GO
+
+-- Query 252
+/* ama-bench-q00252 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 10
+GO
+
+-- Query 253
+/* ama-bench-q00253 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2021
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 11
+GO
+
+-- Query 254
+/* ama-bench-q00254 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 12
+GO
+
+-- Query 255
+/* ama-bench-q00255 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2023
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 13
+GO
+
+-- Query 256
+/* ama-bench-q00256 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2024
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 14
+GO
+
+-- Query 257
+/* ama-bench-q00257 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 5 = 2
+GO
+
+-- Query 258
+/* ama-bench-q00258 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1600
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 50
+  )
+GO
+
+-- Query 259
+/* ama-bench-q00259 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1601
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 51
+  )
+GO
+
+-- Query 260
+/* ama-bench-q00260 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1602
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 52
+  )
+GO
+
+-- Query 261
+/* ama-bench-q00261 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1603
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 53
+  )
+GO
+
+-- Query 262
+/* ama-bench-q00262 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1604
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 54
+  )
+GO
+
+-- Query 263
+/* ama-bench-q00263 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1605
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 55
+  )
+GO
+
+-- Query 264
+/* ama-bench-q00264 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'EUR' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2020
+GO
+
+-- Query 265
+/* ama-bench-q00265 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'GBP' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2021
+GO
+
+-- Query 266
+/* ama-bench-q00266 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'USD' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2022
+GO
+
+-- Query 267
+/* ama-bench-q00267 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'ILS' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2023
+GO
+
+-- Query 268
+/* ama-bench-q00268 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'EUR' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2024
+GO
+
+-- Query 269
+/* ama-bench-q00269 */
+SELECT p.payment_status, p.currency
+FROM finance.payments p
+WHERE p.payment_id >= 612
+  AND p.payment_id IS NOT NULL
+GO
+
+-- Query 270
+/* ama-bench-q00270 */
+SELECT s.warehouse_id, s.shipment_id
+FROM logistics.shipments s
+WHERE s.shipment_id >= 613
+  AND s.shipment_id IS NOT NULL
+GO
+
+-- Query 271
+/* ama-bench-q00271 */
+SELECT c.is_active, c.created_at
+FROM dbo.customers c
+WHERE c.customer_id >= 614
+  AND c.customer_id IS NOT NULL
+GO
+
+-- Query 272
+/* ama-bench-q00272 */
+SELECT o.sales_rep_id, o.order_id
+FROM dbo.orders o
+WHERE o.order_id >= 615
+  AND o.status = N'shipped'
+GO
+
+-- Query 273
+/* ama-bench-q00273 */
+SELECT ol.net_amount, ol.line_id
+FROM dbo.order_lines ol
+WHERE ol.line_id >= 616
+  AND ol.line_id IS NOT NULL
+GO
+
+-- Query 274
+/* ama-bench-q00274 */
+SELECT i.status, i.due_date
+FROM finance.invoices i
+WHERE i.invoice_id >= 617
+  AND i.status IN (N'pending', N'cancelled')
+GO
+
+-- Query 275
+/* ama-bench-q00275 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'GBP'
+  AND p.amount <= i.amount + 43
+GO
+
+-- Query 276
+/* ama-bench-q00276 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'USD'
+  AND p.amount <= i.amount + 44
+GO
+
+-- Query 277
+/* ama-bench-q00277 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 45
+GO
+
+-- Query 278
+/* ama-bench-q00278 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'EUR'
+  AND p.amount <= i.amount + 46
+GO
+
+-- Query 279
+/* ama-bench-q00279 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'GBP'
+  AND p.amount <= i.amount + 47
+GO
+
+-- Query 280
+/* ama-bench-q00280 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'USD'
+  AND p.amount <= i.amount + 48
+GO
+
+-- Query 281
+/* ama-bench-q00281 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 74
+  AND (h.[סטטוס] = N'void'
+       OR i.status = N'active')
+GO
+
+-- Query 282
+/* ama-bench-q00282 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 75
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
+GO
+
+-- Query 283
+/* ama-bench-q00283 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 76
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
+GO
+
+-- Query 284
+/* ama-bench-q00284 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 77
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
+GO
+
+-- Query 285
+/* ama-bench-q00285 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 78
+  AND (h.[סטטוס] = N'paid'
+       OR i.status = N'void')
+GO
+
+-- Query 286
+/* ama-bench-q00286 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 79
+  AND (h.[סטטוס] = N'void'
+       OR i.status = N'active')
+GO
+
+-- Query 287
+/* ama-bench-q00287 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2024
+  AND o.[סכום] > 5
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 288
+/* ama-bench-q00288 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2025
+  AND o.[סכום] > 6
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 289
+/* ama-bench-q00289 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2026
+  AND o.[סכום] > 7
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 290
+/* ama-bench-q00290 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2020
+  AND o.[סכום] > 8
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 291
+/* ama-bench-q00291 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2021
+  AND o.[סכום] > 9
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 292
+/* ama-bench-q00292 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2022
+  AND o.[סכום] > 10
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 293
+/* ama-bench-q00293 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 2
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 11
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 294
+/* ama-bench-q00294 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 12
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 295
+/* ama-bench-q00295 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 13
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 296
+/* ama-bench-q00296 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 14
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 297
+/* ama-bench-q00297 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 1
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 15
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 298
+/* ama-bench-q00298 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 2
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 16
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 299
+/* ama-bench-q00299 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 974) IS NULL THEN 0 WHEN COALESCE(o.amount, 974) < 0 THEN 0 ELSE COALESCE(o.amount, 974) END AS order_amt,
+           COALESCE(COALESCE(o.amount, 561), 840) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2023
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 267
+GO
+
+-- Query 300
+/* ama-bench-q00300 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(o.amount, 721) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2024
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 268
+GO
+
+-- Query 301
+/* ama-bench-q00301 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 878), 728) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 269
+GO
+
+-- Query 302
+/* ama-bench-q00302 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 789), 415) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 789), 415) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 789), 415) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2026
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 270
+GO
+
+-- Query 303
+/* ama-bench-q00303 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 707), 407) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 707), 407) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 707), 407) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2020'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 271
+GO
+
+-- Query 304
+/* ama-bench-q00304 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(o.amount, 379) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND YEAR(o.created_at) = 2021
@@ -13430,174 +5676,17 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 467
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 272
 GO
 
--- Query 721
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 585), 190) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 468
-GO
-
--- Query 722
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 644) IS NULL THEN 0 WHEN COALESCE(o.amount, 644) < 0 THEN 0 ELSE COALESCE(o.amount, 644) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2023
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 469
-GO
-
--- Query 723
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'completed')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 724
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 725
+-- Query 305
+/* ama-bench-q00305 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
           AND o2.status = N'open') AS order_cnt
 FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Netanya%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 726
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active', N'pending')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
+WHERE c.customer_name LIKE N'%Tel Aviv%'
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -13617,13 +5706,14 @@ WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
   )
 GO
 
--- Query 727
+-- Query 306
+/* ama-bench-q00306 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'completed', N'open')) AS order_cnt
+          AND o2.status IN (N'open', N'cancelled', N'completed')) AS order_cnt
 FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
+WHERE c.customer_name LIKE N'%Haifa%'
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -13643,13 +5733,14 @@ WHERE c.customer_name LIKE N'%Tel Aviv%'
   )
 GO
 
--- Query 728
+-- Query 307
+/* ama-bench-q00307 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'shipped') AS order_cnt
+          AND o2.status = N'open') AS order_cnt
 FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -13669,39 +5760,89 @@ WHERE c.customer_name LIKE N'%Beer Sheva%'
   )
 GO
 
--- Query 729
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 526
-  AND o.status = N'completed'
+-- Query 308
+/* ama-bench-q00308 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'cancelled') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Jerusalem%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
 GO
 
--- Query 730
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 527
-  AND o.status IN (N'open', N'cancelled')
+-- Query 309
+/* ama-bench-q00309 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'shipped') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
 GO
 
--- Query 731
+-- Query 310
+/* ama-bench-q00310 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'shipped') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 311
+/* ama-bench-q00311 */
 SELECT o.order_id, o.currency, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.currency
@@ -13713,43 +5854,80 @@ SELECT o.order_id, o.currency, o.amount, o.created_at,
            ORDER BY o.amount DESC, o.order_id
        ) AS rn
 FROM dbo.orders o
-WHERE o.order_id >= 528
-  AND o.status = N'active'
+WHERE o.order_id >= 829
+  AND o.status IN (N'completed')
 GO
 
--- Query 732
-SELECT o.order_id, o.status, o.amount, o.created_at,
+-- Query 312
+/* ama-bench-q00312 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
        SUM(o.amount) OVER (
-           PARTITION BY o.status
+           PARTITION BY o.currency
            ORDER BY o.created_at
            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
        ) AS run_amt,
        DENSE_RANK() OVER (
-           PARTITION BY o.status
+           PARTITION BY o.currency
            ORDER BY o.amount DESC, o.order_id
        ) AS rn
 FROM dbo.orders o
-WHERE o.order_id >= 529
-  AND o.status IN (N'cancelled', N'open', N'completed')
-GO
-
--- Query 733
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 530
+WHERE o.order_id >= 830
   AND o.status = N'pending'
 GO
 
--- Query 734
+-- Query 313
+/* ama-bench-q00313 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 831
+  AND o.status = N'cancelled'
+GO
+
+-- Query 314
+/* ama-bench-q00314 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 832
+  AND o.status IN (N'pending')
+GO
+
+-- Query 315
+/* ama-bench-q00315 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 833
+  AND o.status = N'active'
+GO
+
+-- Query 316
+/* ama-bench-q00316 */
 SELECT o.order_id, o.currency, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.currency
@@ -13761,56 +5939,15 @@ SELECT o.order_id, o.currency, o.amount, o.created_at,
            ORDER BY o.amount DESC, o.order_id
        ) AS rn
 FROM dbo.orders o
-WHERE o.order_id >= 531
-  AND o.status IN (N'cancelled', N'shipped')
+WHERE o.order_id >= 834
+  AND o.status = N'active'
 GO
 
--- Query 735
+-- Query 317
+/* ama-bench-q00317 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 222) IS NULL THEN 0 WHEN COALESCE(o.amount, 222) < 0 THEN 0 ELSE COALESCE(o.amount, 222) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 57
-GO
-
--- Query 736
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 767), 644)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 58
-GO
-
--- Query 737
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 186)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 59
-GO
-
--- Query 738
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 159)) AS gross
+       SUM(CASE WHEN COALESCE(o.amount, 60) IS NULL THEN 0 WHEN COALESCE(o.amount, 60) < 0 THEN 0 ELSE COALESCE(o.amount, 60) END) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
@@ -13821,10 +5958,11 @@ HAVING COUNT(DISTINCT o.order_id) >= 1
    AND SUM(o.amount) >= 60
 GO
 
--- Query 739
+-- Query 318
+/* ama-bench-q00318 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 445)) AS gross
+       SUM(CASE WHEN COALESCE(o.amount, 899) IS NULL THEN 0 WHEN COALESCE(o.amount, 899) < 0 THEN 0 ELSE COALESCE(o.amount, 899) END) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
@@ -13835,10 +5973,11 @@ HAVING COUNT(DISTINCT o.order_id) >= 2
    AND SUM(o.amount) >= 61
 GO
 
--- Query 740
+-- Query 319
+/* ama-bench-q00319 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 354)) AS gross
+       SUM(COALESCE(COALESCE(o.amount, 433), 133)) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
@@ -13849,61 +5988,59 @@ HAVING COUNT(DISTINCT o.order_id) >= 3
    AND SUM(o.amount) >= 62
 GO
 
--- Query 741
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 5619
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+-- Query 320
+/* ama-bench-q00320 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(o.amount, 801)) AS gross
 FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 19
-   OR o.discount IS NOT NULL
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 63
 GO
 
--- Query 742
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 5620
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+-- Query 321
+/* ama-bench-q00321 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(o.amount, 424)) AS gross
 FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 20
-   OR o.discount IS NOT NULL
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 64
 GO
 
--- Query 743
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 5621
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+-- Query 322
+/* ama-bench-q00322 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(o.amount, 182)) AS gross
 FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 21
-   OR o.discount IS NOT NULL
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 65
 GO
 
--- Query 744
+-- Query 323
+/* ama-bench-q00323 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 5622
+    WHERE ol.product_id = 2922
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -13913,13 +6050,14 @@ WHERE ABS(o.amount - la.ext_price) >= 22
    OR o.discount IS NOT NULL
 GO
 
--- Query 745
+-- Query 324
+/* ama-bench-q00324 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 5623
+    WHERE ol.product_id = 2923
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -13929,13 +6067,14 @@ WHERE ABS(o.amount - la.ext_price) >= 23
    OR o.discount IS NOT NULL
 GO
 
--- Query 746
+-- Query 325
+/* ama-bench-q00325 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 5624
+    WHERE ol.product_id = 2924
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -13945,33 +6084,59 @@ WHERE ABS(o.amount - la.ext_price) >= 24
    OR o.discount IS NOT NULL
 GO
 
--- Query 747
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'paid'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 50
-  AND DATEPART(year, i.due_date) = 2021
+-- Query 326
+/* ama-bench-q00326 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 2925
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 0
+   OR o.discount IS NOT NULL
 GO
 
--- Query 748
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'active', N'posted', N'paid')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 51
-  AND DATEPART(year, i.due_date) = 2022
+-- Query 327
+/* ama-bench-q00327 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 2926
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 1
+   OR o.discount IS NOT NULL
 GO
 
--- Query 749
+-- Query 328
+/* ama-bench-q00328 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 2927
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 2
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 329
+/* ama-bench-q00329 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
@@ -13980,11 +6145,12 @@ WHERE i.status = N'active'
   AND i.amount - COALESCE((
         SELECT SUM(p3.amount) FROM finance.payments p3
         WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 52
-  AND YEAR(i.due_date) = 2023
+  ), 0) >= 153
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2020'
 GO
 
--- Query 750
+-- Query 330
+/* ama-bench-q00330 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
@@ -13993,166 +6159,146 @@ WHERE i.status = N'posted'
   AND i.amount - COALESCE((
         SELECT SUM(p3.amount) FROM finance.payments p3
         WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 53
+  ), 0) >= 154
+  AND YEAR(i.due_date) = 2021
+GO
+
+-- Query 331
+/* ama-bench-q00331 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'active')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 155
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
+GO
+
+-- Query 332
+/* ama-bench-q00332 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'active'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 156
+  AND DATEPART(year, i.due_date) = 2023
+GO
+
+-- Query 333
+/* ama-bench-q00333 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'posted')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 157
   AND CONVERT(VARCHAR(4), i.due_date, 120) = '2024'
 GO
 
--- Query 751
+-- Query 334
+/* ama-bench-q00334 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
 FROM finance.invoices i
-WHERE i.status IN (N'void', N'active')
+WHERE i.status = N'posted'
   AND i.amount - COALESCE((
         SELECT SUM(p3.amount) FROM finance.payments p3
         WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 54
-  AND DATEPART(year, i.due_date) = 2025
+  ), 0) >= 158
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
 GO
 
--- Query 752
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'open'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 55
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2026'
-GO
-
--- Query 753
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Netanya%'
-  AND (c.country_code = N'IL'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 754
+-- Query 335
+/* ama-bench-q00335 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 0 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
             ELSE N'N' END AS active_flag
 FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Haifa%')
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 755
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Jerusalem%'
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 756
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Jerusalem%'
+WHERE UPPER(c.city) LIKE UPPER(N'%Tel Aviv%')
   AND (c.country_code = N'GB'
        OR c.email LIKE N'%@%')
   AND 1=1
 GO
 
--- Query 757
+-- Query 336
+/* ama-bench-q00336 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Tel Aviv%'
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 337
+/* ama-bench-q00337 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 0 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
             ELSE N'N' END AS active_flag
 FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
+WHERE c.city LIKE N'%Jerusalem%'
   AND (c.country_code = N'IL'
        OR c.email LIKE N'%@%')
   AND 1=1
 GO
 
--- Query 758
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 13
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'open'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.06
-  )
+-- Query 338
+/* ama-bench-q00338 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
+  AND (c.country_code = N'US'
+       OR c.email LIKE N'%@%')
+  AND 1=1
 GO
 
--- Query 759
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 14
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'pending'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.07
-  )
+-- Query 339
+/* ama-bench-q00339 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Jerusalem%')
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
 GO
 
--- Query 760
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 15
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'cancelled'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.08
-  )
+-- Query 340
+/* ama-bench-q00340 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Haifa%')
+  AND (c.country_code = N'GB'
+       OR c.email LIKE N'%@%')
+  AND 1=1
 GO
 
--- Query 761
+-- Query 341
+/* ama-bench-q00341 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -14167,7 +6313,7 @@ SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
 INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
 WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'shipped'
+  AND o.status = N'completed'
   AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -14175,7 +6321,8 @@ WHERE o.sales_rep_id IS NOT NULL
   )
 GO
 
--- Query 762
+-- Query 342
+/* ama-bench-q00342 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -14190,7 +6337,7 @@ SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
 INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
 WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'cancelled'
+  AND o.status = N'active'
   AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -14198,7 +6345,8 @@ WHERE o.sales_rep_id IS NOT NULL
   )
 GO
 
--- Query 763
+-- Query 343
+/* ama-bench-q00343 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -14213,7 +6361,7 @@ SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
 INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
 WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'pending'
+  AND o.status = N'completed'
   AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -14221,519 +6369,159 @@ WHERE o.sales_rep_id IS NOT NULL
   )
 GO
 
--- Query 764
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2025
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+-- Query 344
+/* ama-bench-q00344 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
     FROM logistics.shipments s
-    GROUP BY s.order_id
+    WHERE s.warehouse_id = 19
 )
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 14
-GO
-
--- Query 765
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2021
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 15
-GO
-
--- Query 766
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2022
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 16
-GO
-
--- Query 767
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2023
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 0
-GO
-
--- Query 768
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 1
-GO
-
--- Query 769
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2025
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 2
-GO
-
--- Query 770
-SELECT o.order_id, o.customer_id, o.amount
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
-WHERE o.amount > 4886
-  AND NOT EXISTS (
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'cancelled', N'pending', N'completed')
+  AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 36
+        AND i.vat_rate >= 0.03
   )
 GO
 
--- Query 771
-SELECT o.order_id, o.customer_id, o.amount
+-- Query 345
+/* ama-bench-q00345 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 20
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
-WHERE o.amount > 4887
-  AND NOT EXISTS (
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'pending'
+  AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 37
+        AND i.vat_rate >= 0.04
   )
 GO
 
--- Query 772
-SELECT o.order_id, o.customer_id, o.amount
+-- Query 346
+/* ama-bench-q00346 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 1
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
-WHERE o.amount > 4888
-  AND NOT EXISTS (
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 38
+        AND i.vat_rate >= 0.05
   )
 GO
 
--- Query 773
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 4889
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 39
-  )
-GO
-
--- Query 774
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 4890
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 40
-  )
-GO
-
--- Query 775
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 4891
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 41
-  )
-GO
-
--- Query 776
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2022
-GO
-
--- Query 777
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2023
-GO
-
--- Query 778
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2026
-GO
-
--- Query 779
-SELECT ol.discount, ol.net_amount
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 898
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 780
-SELECT i.net_amount, i.vat_amount
-FROM finance.invoices i
-WHERE i.invoice_id >= 899
-  AND i.status IN (N'cancelled')
-GO
-
--- Query 781
-SELECT p.payment_status, p.currency
+-- Query 347
+/* ama-bench-q00347 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
 FROM finance.payments p
-WHERE p.payment_id >= 900
-  AND p.payment_id IS NOT NULL
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'GBP'
+  AND p.payment_status = N'failed'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2020-01-01'
 GO
 
--- Query 782
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 901
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 783
-SELECT c.is_active, c.created_at
-FROM dbo.customers c
-WHERE c.customer_id >= 902
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 784
-SELECT o.sales_rep_id, o.order_id
-FROM dbo.orders o
-WHERE o.order_id >= 903
-  AND o.status = N'open'
-GO
-
--- Query 785
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 29
-GO
-
--- Query 786
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 30
-GO
-
--- Query 787
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 31
-GO
-
--- Query 788
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 32
-GO
-
--- Query 789
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 889), 875) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 889), 875) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 889), 875) END AS order_amt,
+-- Query 348
+/* ama-bench-q00348 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
            o.created_at
     FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
+    WHERE YEAR(o.created_at) = 2023
 ),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
     FROM finance.invoices i
     GROUP BY i.order_id
 ),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
 )
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 460
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 3
 GO
 
--- Query 790
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 785) AS order_amt,
+-- Query 349
+/* ama-bench-q00349 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
            o.created_at
     FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2025
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
 ),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
     FROM finance.invoices i
     GROUP BY i.order_id
 ),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
 )
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 461
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 4
 GO
 
--- Query 791
+-- Query 350
+/* ama-bench-q00350 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 917), 281) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 917), 281) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 917), 281) END AS order_amt,
+           CASE WHEN COALESCE(o.amount, 552) IS NULL THEN 0 WHEN COALESCE(o.amount, 552) < 0 THEN 0 ELSE COALESCE(o.amount, 552) END AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2026'
@@ -14767,16 +6555,17 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 462
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 104
 GO
 
--- Query 792
+-- Query 351
+/* ama-bench-q00351 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 193) IS NULL THEN 0 WHEN COALESCE(o.amount, 193) < 0 THEN 0 ELSE COALESCE(o.amount, 193) END AS order_amt,
+           COALESCE(o.amount, 647) AS order_amt,
            o.created_at
     FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2020
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2020'
 ),
 invoice_roll AS (
     SELECT i.order_id,
@@ -14807,16 +6596,17 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 463
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 105
 GO
 
--- Query 793
+-- Query 352
+/* ama-bench-q00352 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 772) AS order_amt,
+           CASE WHEN COALESCE(COALESCE(o.amount, 4), 131) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 4), 131) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 4), 131) END AS order_amt,
            o.created_at
     FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2021
 ),
 invoice_roll AS (
     SELECT i.order_id,
@@ -14847,2504 +6637,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 464
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 106
 GO
 
--- Query 794
+-- Query 353
+/* ama-bench-q00353 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 352) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 465
-GO
-
--- Query 795
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'pending', N'cancelled', N'open')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 796
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active', N'shipped')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 797
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'pending')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 798
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active', N'open', N'cancelled')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'in_transit'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 799
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'cancelled') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 800
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'open') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 801
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 22
-  AND o.status = N'open'
-GO
-
--- Query 802
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 23
-  AND o.status = N'pending'
-GO
-
--- Query 803
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 24
-  AND o.status IN (N'open', N'shipped', N'active')
-GO
-
--- Query 804
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 25
-  AND o.status IN (N'completed', N'shipped', N'pending')
-GO
-
--- Query 805
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 26
-  AND o.status IN (N'pending', N'cancelled')
-GO
-
--- Query 806
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 27
-  AND o.status IN (N'pending', N'cancelled', N'active')
-GO
-
--- Query 807
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 931) IS NULL THEN 0 WHEN COALESCE(o.amount, 931) < 0 THEN 0 ELSE COALESCE(o.amount, 931) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 53
-GO
-
--- Query 808
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 439), 944) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 439), 944) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 439), 944) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 54
-GO
-
--- Query 809
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 325), 161)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 55
-GO
-
--- Query 810
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 235)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 56
-GO
-
--- Query 811
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 964), 646)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 57
-GO
-
--- Query 812
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 457) IS NULL THEN 0 WHEN COALESCE(o.amount, 457) < 0 THEN 0 ELSE COALESCE(o.amount, 457) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 58
-GO
-
--- Query 813
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6115
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 15
-   OR o.discount IS NOT NULL
-GO
-
--- Query 814
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6116
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 16
-   OR o.discount IS NOT NULL
-GO
-
--- Query 815
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6117
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 17
-   OR o.discount IS NOT NULL
-GO
-
--- Query 816
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6118
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 18
-   OR o.discount IS NOT NULL
-GO
-
--- Query 817
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6119
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 19
-   OR o.discount IS NOT NULL
-GO
-
--- Query 818
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6120
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 20
-   OR o.discount IS NOT NULL
-GO
-
--- Query 819
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'void'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 146
-  AND DATEPART(year, i.due_date) = 2021
-GO
-
--- Query 820
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'posted'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 147
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
-GO
-
--- Query 821
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'active'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 148
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2023'
-GO
-
--- Query 822
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'active'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 149
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2024'
-GO
-
--- Query 823
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'void'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 150
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
-GO
-
--- Query 824
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'posted', N'paid', N'open')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 151
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2026'
-GO
-
--- Query 825
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Jerusalem%'
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 826
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
-  AND (c.country_code = N'sample'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 827
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE c.city LIKE N'%Beer Sheva%'
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 828
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 9
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'shipped', N'open', N'pending')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.07
-  )
-GO
-
--- Query 829
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 10
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'pending')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.08
-  )
-GO
-
--- Query 830
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 11
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'pending'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.09
-  )
-GO
-
--- Query 831
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 12
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'shipped'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.01
-  )
-GO
-
--- Query 832
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 13
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'active', N'cancelled')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.02
-  )
-GO
-
--- Query 833
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 14
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'open'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.03
-  )
-GO
-
--- Query 834
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2021
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 0
-GO
-
--- Query 835
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2022
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 1
-GO
-
--- Query 836
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2023
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 2
-GO
-
--- Query 837
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 3
-GO
-
--- Query 838
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2025
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 4
-GO
-
--- Query 839
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 5
-GO
-
--- Query 840
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 382
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 32
-  )
-GO
-
--- Query 841
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 383
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 33
-  )
-GO
-
--- Query 842
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 384
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 34
-  )
-GO
-
--- Query 843
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 385
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 35
-  )
-GO
-
--- Query 844
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 386
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 36
-  )
-GO
-
--- Query 845
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 387
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 37
-  )
-GO
-
--- Query 846
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2023'
-GO
-
--- Query 847
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2024'
-GO
-
--- Query 848
-SELECT c.email, c.city
-FROM dbo.customers c
-WHERE c.customer_id >= 394
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 849
-SELECT o.amount, o.created_at
-FROM dbo.orders o
-WHERE o.order_id >= 395
-  AND o.status IN (N'shipped')
-GO
-
--- Query 850
-SELECT ol.net_amount, ol.line_id
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 396
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 851
-SELECT i.status, i.due_date
-FROM finance.invoices i
-WHERE i.invoice_id >= 397
-  AND i.status IN (N'completed', N'pending', N'cancelled')
-GO
-
--- Query 852
-SELECT p.payment_status, p.currency
-FROM finance.payments p
-WHERE p.payment_id >= 398
-  AND p.payment_id IS NOT NULL
-GO
-
--- Query 853
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 399
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 854
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 25
-GO
-
--- Query 855
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 26
-GO
-
--- Query 856
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 27
-GO
-
--- Query 857
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 28
-GO
-
--- Query 858
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 588) IS NULL THEN 0 WHEN COALESCE(o.amount, 588) < 0 THEN 0 ELSE COALESCE(o.amount, 588) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2023
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 456
-GO
-
--- Query 859
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 546) IS NULL THEN 0 WHEN COALESCE(o.amount, 546) < 0 THEN 0 ELSE COALESCE(o.amount, 546) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2024
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 457
-GO
-
--- Query 860
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 874) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2025
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 458
-GO
-
--- Query 861
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 246), 452) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2026
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 459
-GO
-
--- Query 862
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 174) IS NULL THEN 0 WHEN COALESCE(o.amount, 174) < 0 THEN 0 ELSE COALESCE(o.amount, 174) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2020
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 460
-GO
-
--- Query 863
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 11) IS NULL THEN 0 WHEN COALESCE(o.amount, 11) < 0 THEN 0 ELSE COALESCE(o.amount, 11) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2021
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 461
-GO
-
--- Query 864
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 865
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'shipped') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Tel Aviv%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 866
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'pending'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 867
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'pending', N'completed', N'open')) AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Haifa%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 868
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active', N'cancelled', N'completed')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 869
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 518
-  AND o.status = N'shipped'
-GO
-
--- Query 870
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 519
-  AND o.status IN (N'pending')
-GO
-
--- Query 871
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 520
-  AND o.status = N'active'
-GO
-
--- Query 872
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 521
-  AND o.status IN (N'cancelled', N'active', N'open')
-GO
-
--- Query 873
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 522
-  AND o.status IN (N'shipped', N'open', N'cancelled')
-GO
-
--- Query 874
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 523
-  AND o.status IN (N'completed', N'open', N'cancelled')
-GO
-
--- Query 875
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 870), 173) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 870), 173) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 870), 173) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 49
-GO
-
--- Query 876
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 252), 312) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 252), 312) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 252), 312) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'sample'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 50
-GO
-
--- Query 877
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 831)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'IL'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 51
-GO
-
--- Query 878
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 567), 111)) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'US'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 52
-GO
-
--- Query 879
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 95), 826) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 95), 826) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 95), 826) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'DE'
-       OR c.country_code IS NOT NULL)
-GROUP BY CUBE(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 53
-GO
-
--- Query 880
-SELECT o.customer_id, o.currency, o.status,
-       COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 259), 433) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 259), 433) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 259), 433) END) AS gross
-FROM dbo.orders o
-INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
-WHERE 1=1
-  AND (c.country_code = N'GB'
-       OR c.country_code IS NOT NULL)
-GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
-HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 54
-GO
-
--- Query 881
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6611
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 11
-   OR o.discount IS NOT NULL
-GO
-
--- Query 882
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6612
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 12
-   OR o.discount IS NOT NULL
-GO
-
--- Query 883
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6613
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 13
-   OR o.discount IS NOT NULL
-GO
-
--- Query 884
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6614
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 14
-   OR o.discount IS NOT NULL
-GO
-
--- Query 885
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6615
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 15
-   OR o.discount IS NOT NULL
-GO
-
--- Query 886
-WITH line_agg AS (
-    SELECT ol.order_id,
-           SUM(ol.quantity * ol.unit_price) AS ext_price,
-           SUM(ol.net_amount) AS net_sum
-    FROM dbo.order_lines ol
-    WHERE ol.product_id = 6616
-    GROUP BY ol.order_id
-)
-SELECT o.order_id, o.amount, la.ext_price, la.net_sum
-FROM dbo.orders o
-INNER JOIN line_agg la ON la.order_id = o.order_id
-WHERE ABS(o.amount - la.ext_price) >= 16
-   OR o.discount IS NOT NULL
-GO
-
--- Query 887
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status IN (N'void', N'open', N'posted')
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 42
-  AND YEAR(i.due_date) = 2021
-GO
-
--- Query 888
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'paid'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 43
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
-GO
-
--- Query 889
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'posted'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 44
-  AND YEAR(i.due_date) = 2023
-GO
-
--- Query 890
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'void'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 45
-  AND DATEPART(year, i.due_date) = 2024
-GO
-
--- Query 891
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'posted'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 46
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
-GO
-
--- Query 892
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'active'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 47
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2026'
-GO
-
--- Query 893
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
-  AND (c.country_code = N'sample'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 894
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 1 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Tel Aviv%')
-  AND (c.country_code = N'US'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 895
-SELECT c.customer_id, c.customer_name, c.email,
-       CASE WHEN c.is_active = 0 THEN N'Y'
-            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
-            ELSE N'N' END AS active_flag
-FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
-  AND (c.country_code = N'DE'
-       OR c.email LIKE N'%@%')
-  AND 1=1
-GO
-
--- Query 896
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 5
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'open'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.08
-  )
-GO
-
--- Query 897
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 6
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'shipped'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.09
-  )
-GO
-
--- Query 898
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 7
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'completed', N'open')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.01
-  )
-GO
-
--- Query 899
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 8
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'shipped', N'active', N'pending')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.02
-  )
-GO
-
--- Query 900
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 9
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'active', N'pending', N'open')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.03
-  )
-GO
-
--- Query 901
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 10
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'shipped', N'active')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.04
-  )
-GO
-
--- Query 902
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 3
-GO
-
--- Query 903
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 4
-GO
-
--- Query 904
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2024
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 5
-GO
-
--- Query 905
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE DATEPART(year, o.created_at) = 2025
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 6
-GO
-
--- Query 906
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 7
-GO
-
--- Query 907
-WITH c_base AS (
-    SELECT c.customer_id, c.customer_name
-    FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 1
-),
-o_base AS (
-    SELECT o.order_id, o.customer_id, o.amount,
-           o.created_at
-    FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2022
-),
-fin AS (
-    SELECT i.order_id, SUM(i.net_amount) AS inv_net
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-logi AS (
-    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
-    FROM logistics.shipments s
-    GROUP BY s.order_id
-)
-SELECT cb.customer_id, cb.customer_name, ob.order_id,
-       ob.amount, fin.inv_net, logi.last_ship_st
-FROM c_base cb
-INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
-LEFT JOIN fin ON fin.order_id = ob.order_id
-LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 8
-GO
-
--- Query 908
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 878
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 28
-  )
-GO
-
--- Query 909
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 879
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 29
-  )
-GO
-
--- Query 910
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 880
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 30
-  )
-GO
-
--- Query 911
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 881
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 31
-  )
-GO
-
--- Query 912
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 882
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 32
-  )
-GO
-
--- Query 913
-SELECT o.order_id, o.customer_id, o.amount
-FROM dbo.orders o
-WHERE o.amount > 883
-  AND NOT EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.status = N'paid'
-  )
-  AND EXISTS (
-      SELECT 1 FROM (
-          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
-          FROM dbo.order_lines ol
-          GROUP BY ol.order_id
-      ) lg
-      WHERE lg.order_id = o.order_id
-        AND lg.line_total > 33
-  )
-GO
-
--- Query 914
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2021
-GO
-
--- Query 915
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'ILS' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2022
-GO
-
--- Query 916
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2023
-GO
-
--- Query 917
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2024
-GO
-
--- Query 918
-SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
-       c.customer_name, i.net_amount, s.tracking_number
-FROM dbo.customers c
-FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
-FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
-FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'USD' OR o.currency IS NULL)
-  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2025'
-GO
-
--- Query 919
-SELECT p.payment_status, p.currency
-FROM finance.payments p
-WHERE p.payment_id >= 890
-  AND p.payment_id IS NOT NULL
-GO
-
--- Query 920
-SELECT s.warehouse_id, s.shipment_id
-FROM logistics.shipments s
-WHERE s.shipment_id >= 891
-  AND s.shipment_id IS NOT NULL
-GO
-
--- Query 921
-SELECT c.country_code, c.phone
-FROM dbo.customers c
-WHERE c.customer_id >= 892
-  AND c.customer_id IS NOT NULL
-GO
-
--- Query 922
-SELECT o.discount, o.currency
-FROM dbo.orders o
-WHERE o.order_id >= 893
-  AND o.status = N'cancelled'
-GO
-
--- Query 923
-SELECT ol.line_id, ol.order_id
-FROM dbo.order_lines ol
-WHERE ol.line_id >= 894
-  AND ol.line_id IS NOT NULL
-GO
-
--- Query 924
-SELECT i.invoice_id, i.order_id
-FROM finance.invoices i
-WHERE i.invoice_id >= 895
-  AND i.status IN (N'active', N'pending', N'shipped')
-GO
-
--- Query 925
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 21
-GO
-
--- Query 926
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 22
-GO
-
--- Query 927
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 23
-GO
-
--- Query 928
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 24
-GO
-
--- Query 929
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 64), 263) AS order_amt,
+           COALESCE(o.amount, 213) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND YEAR(o.created_at) = 2022
@@ -17378,268 +6678,17 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 452
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 107
 GO
 
--- Query 930
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 579) IS NULL THEN 0 WHEN COALESCE(o.amount, 579) < 0 THEN 0 ELSE COALESCE(o.amount, 579) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 453
-GO
-
--- Query 931
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 200) AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2024
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 454
-GO
-
--- Query 932
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 94), 38) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 94), 38) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 94), 38) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2025
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 455
-GO
-
--- Query 933
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 760) IS NULL THEN 0 WHEN COALESCE(o.amount, 760) < 0 THEN 0 ELSE COALESCE(o.amount, 760) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2026
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 456
-GO
-
--- Query 934
-WITH order_totals AS (
-    SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 603), 692) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 603), 692) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 603), 692) END AS order_amt,
-           o.created_at
-    FROM dbo.orders o
-    WHERE 1=1 AND YEAR(o.created_at) = 2020
-),
-invoice_roll AS (
-    SELECT i.order_id,
-           SUM(i.net_amount) AS inv_net,
-           MAX(i.status) AS inv_status
-    FROM finance.invoices i
-    GROUP BY i.order_id
-),
-pay_bal AS (
-    SELECT i.order_id,
-           SUM(p.amount) AS paid_amt
-    FROM finance.invoices i
-    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
-    GROUP BY i.order_id
-)
-SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
-FROM order_totals ot
-LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
-LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
-WHERE EXISTS (
-    SELECT 1 FROM finance.payments px
-    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
-    WHERE ix.order_id = ot.order_id
-      AND px.paid_at IS NOT NULL
-)
-AND NOT EXISTS (
-    SELECT 1 FROM pay_bal pb2
-    WHERE pb2.order_id = ot.order_id
-      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
-)
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 457
-GO
-
--- Query 935
+-- Query 354
+/* ama-bench-q00354 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active', N'completed')) AS order_cnt
+          AND o2.status IN (N'completed')) AS order_cnt
 FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'delivered'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 936
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status IN (N'active', N'open')) AS order_cnt
-FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
-  AND EXISTS (
-        SELECT 1 FROM dbo.orders o
-        WHERE o.customer_id = c.customer_id
-          AND EXISTS (
-                SELECT 1 FROM logistics.shipments s
-                WHERE s.order_id = o.order_id
-                  AND s.shipment_status = N'active'
-          )
-  )
-  AND NOT EXISTS (
-        SELECT 1 FROM finance.invoices i
-        WHERE i.order_id IN (
-            SELECT ox.order_id FROM dbo.orders ox
-            WHERE ox.customer_id = c.customer_id
-        )
-        AND i.status = N'void'
-  )
-GO
-
--- Query 937
-SELECT c.customer_id, c.customer_name,
-       (SELECT COUNT(*) FROM dbo.orders o2
-        WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
-FROM dbo.customers c
-WHERE c.customer_name LIKE N'%Beer Sheva%'
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -17659,13 +6708,14 @@ WHERE c.customer_name LIKE N'%Beer Sheva%'
   )
 GO
 
--- Query 938
+-- Query 355
+/* ama-bench-q00355 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'cancelled') AS order_cnt
+          AND o2.status = N'pending') AS order_cnt
 FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+WHERE c.customer_name LIKE N'%Jerusalem%'
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -17685,13 +6735,14 @@ WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
   )
 GO
 
--- Query 939
+-- Query 356
+/* ama-bench-q00356 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'cancelled') AS order_cnt
+          AND o2.status IN (N'pending')) AS order_cnt
 FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
+WHERE c.customer_name LIKE N'%Jerusalem%'
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -17711,13 +6762,14 @@ WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
   )
 GO
 
--- Query 940
+-- Query 357
+/* ama-bench-q00357 */
 SELECT c.customer_id, c.customer_name,
        (SELECT COUNT(*) FROM dbo.orders o2
         WHERE o2.customer_id = c.customer_id
-          AND o2.status = N'pending') AS order_cnt
+          AND o2.status IN (N'cancelled', N'completed', N'pending')) AS order_cnt
 FROM dbo.customers c
-WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
+WHERE c.customer_name LIKE N'%Beer Sheva%'
   AND EXISTS (
         SELECT 1 FROM dbo.orders o
         WHERE o.customer_id = c.customer_id
@@ -17737,23 +6789,62 @@ WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
   )
 GO
 
--- Query 941
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 14
-  AND o.status = N'open'
+-- Query 358
+/* ama-bench-q00358 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'completed') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
 GO
 
--- Query 942
+-- Query 359
+/* ama-bench-q00359 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'pending') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 360
+/* ama-bench-q00360 */
 SELECT o.order_id, o.customer_id, o.amount, o.created_at,
        SUM(o.amount) OVER (
            PARTITION BY o.customer_id
@@ -17765,78 +6856,100 @@ SELECT o.order_id, o.customer_id, o.amount, o.created_at,
            ORDER BY o.amount DESC, o.order_id
        ) AS rn
 FROM dbo.orders o
-WHERE o.order_id >= 15
-  AND o.status = N'shipped'
-GO
-
--- Query 943
-SELECT o.order_id, o.currency, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.currency
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.currency
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 16
-  AND o.status = N'active'
-GO
-
--- Query 944
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 17
-  AND o.status = N'completed'
-GO
-
--- Query 945
-SELECT o.order_id, o.customer_id, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       ROW_NUMBER() OVER (
-           PARTITION BY o.customer_id
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 18
-  AND o.status = N'open'
-GO
-
--- Query 946
-SELECT o.order_id, o.status, o.amount, o.created_at,
-       SUM(o.amount) OVER (
-           PARTITION BY o.status
-           ORDER BY o.created_at
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-       ) AS run_amt,
-       DENSE_RANK() OVER (
-           PARTITION BY o.status
-           ORDER BY o.amount DESC, o.order_id
-       ) AS rn
-FROM dbo.orders o
-WHERE o.order_id >= 19
+WHERE o.order_id >= 664
   AND o.status = N'pending'
 GO
 
--- Query 947
+-- Query 361
+/* ama-bench-q00361 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 665
+  AND o.status IN (N'completed', N'open', N'cancelled')
+GO
+
+-- Query 362
+/* ama-bench-q00362 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 666
+  AND o.status = N'active'
+GO
+
+-- Query 363
+/* ama-bench-q00363 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 667
+  AND o.status = N'completed'
+GO
+
+-- Query 364
+/* ama-bench-q00364 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 668
+  AND o.status = N'open'
+GO
+
+-- Query 365
+/* ama-bench-q00365 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 669
+  AND o.status IN (N'active', N'open')
+GO
+
+-- Query 366
+/* ama-bench-q00366 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 900), 101)) AS gross
+       SUM(COALESCE(COALESCE(o.amount, 931), 598)) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
@@ -17844,13 +6957,14 @@ WHERE 1=1
        OR c.country_code IS NOT NULL)
 GROUP BY CUBE(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 45
+   AND SUM(o.amount) >= 95
 GO
 
--- Query 948
+-- Query 367
+/* ama-bench-q00367 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 671), 911) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 671), 911) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 671), 911) END) AS gross
+       SUM(COALESCE(o.amount, 836)) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
@@ -17858,13 +6972,14 @@ WHERE 1=1
        OR c.country_code IS NOT NULL)
 GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 46
+   AND SUM(o.amount) >= 96
 GO
 
--- Query 949
+-- Query 368
+/* ama-bench-q00368 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 163)) AS gross
+       SUM(CASE WHEN COALESCE(o.amount, 207) IS NULL THEN 0 WHEN COALESCE(o.amount, 207) < 0 THEN 0 ELSE COALESCE(o.amount, 207) END) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
@@ -17872,13 +6987,14 @@ WHERE 1=1
        OR c.country_code IS NOT NULL)
 GROUP BY CUBE(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 47
+   AND SUM(o.amount) >= 97
 GO
 
--- Query 950
+-- Query 369
+/* ama-bench-q00369 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(COALESCE(o.amount, 389), 884)) AS gross
+       SUM(CASE WHEN COALESCE(o.amount, 605) IS NULL THEN 0 WHEN COALESCE(o.amount, 605) < 0 THEN 0 ELSE COALESCE(o.amount, 605) END) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
@@ -17886,13 +7002,14 @@ WHERE 1=1
        OR c.country_code IS NOT NULL)
 GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 1
-   AND SUM(o.amount) >= 48
+   AND SUM(o.amount) >= 98
 GO
 
--- Query 951
+-- Query 370
+/* ama-bench-q00370 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(COALESCE(o.amount, 365)) AS gross
+       SUM(COALESCE(COALESCE(o.amount, 558), 424)) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
@@ -17900,13 +7017,14 @@ WHERE 1=1
        OR c.country_code IS NOT NULL)
 GROUP BY CUBE(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 2
-   AND SUM(o.amount) >= 49
+   AND SUM(o.amount) >= 99
 GO
 
--- Query 952
+-- Query 371
+/* ama-bench-q00371 */
 SELECT o.customer_id, o.currency, o.status,
        COUNT(DISTINCT o.order_id) AS orders,
-       SUM(CASE WHEN COALESCE(o.amount, 688) IS NULL THEN 0 WHEN COALESCE(o.amount, 688) < 0 THEN 0 ELSE COALESCE(o.amount, 688) END) AS gross
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 646), 60) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 646), 60) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 646), 60) END) AS gross
 FROM dbo.orders o
 INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
 WHERE 1=1
@@ -17914,16 +7032,17 @@ WHERE 1=1
        OR c.country_code IS NOT NULL)
 GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
 HAVING COUNT(DISTINCT o.order_id) >= 3
-   AND SUM(o.amount) >= 50
+   AND SUM(o.amount) >= 0
 GO
 
--- Query 953
+-- Query 372
+/* ama-bench-q00372 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 7107
+    WHERE ol.product_id = 2757
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -17933,13 +7052,14 @@ WHERE ABS(o.amount - la.ext_price) >= 7
    OR o.discount IS NOT NULL
 GO
 
--- Query 954
+-- Query 373
+/* ama-bench-q00373 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 7108
+    WHERE ol.product_id = 2758
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -17949,13 +7069,14 @@ WHERE ABS(o.amount - la.ext_price) >= 8
    OR o.discount IS NOT NULL
 GO
 
--- Query 955
+-- Query 374
+/* ama-bench-q00374 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 7109
+    WHERE ol.product_id = 2759
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -17965,13 +7086,14 @@ WHERE ABS(o.amount - la.ext_price) >= 9
    OR o.discount IS NOT NULL
 GO
 
--- Query 956
+-- Query 375
+/* ama-bench-q00375 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 7110
+    WHERE ol.product_id = 2760
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -17981,13 +7103,14 @@ WHERE ABS(o.amount - la.ext_price) >= 10
    OR o.discount IS NOT NULL
 GO
 
--- Query 957
+-- Query 376
+/* ama-bench-q00376 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 7111
+    WHERE ol.product_id = 2761
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -17997,13 +7120,14 @@ WHERE ABS(o.amount - la.ext_price) >= 11
    OR o.discount IS NOT NULL
 GO
 
--- Query 958
+-- Query 377
+/* ama-bench-q00377 */
 WITH line_agg AS (
     SELECT ol.order_id,
            SUM(ol.quantity * ol.unit_price) AS ext_price,
            SUM(ol.net_amount) AS net_sum
     FROM dbo.order_lines ol
-    WHERE ol.product_id = 7112
+    WHERE ol.product_id = 2762
     GROUP BY ol.order_id
 )
 SELECT o.order_id, o.amount, la.ext_price, la.net_sum
@@ -18013,109 +7137,131 @@ WHERE ABS(o.amount - la.ext_price) >= 12
    OR o.discount IS NOT NULL
 GO
 
--- Query 959
+-- Query 378
+/* ama-bench-q00378 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
 FROM finance.invoices i
-WHERE i.status = N'active'
+WHERE i.status = N'open'
   AND i.amount - COALESCE((
         SELECT SUM(p3.amount) FROM finance.payments p3
         WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 138
-  AND DATEPART(year, i.due_date) = 2021
+  ), 0) >= 188
+  AND YEAR(i.due_date) = 2023
 GO
 
--- Query 960
+-- Query 379
+/* ama-bench-q00379 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
 FROM finance.invoices i
-WHERE i.status IN (N'posted', N'void', N'open')
+WHERE i.status = N'posted'
   AND i.amount - COALESCE((
         SELECT SUM(p3.amount) FROM finance.payments p3
         WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 139
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2022'
+  ), 0) >= 189
+  AND YEAR(i.due_date) = 2024
 GO
 
--- Query 961
+-- Query 380
+/* ama-bench-q00380 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
 FROM finance.invoices i
-WHERE i.status IN (N'open', N'posted', N'void')
+WHERE i.status IN (N'open', N'active', N'paid')
   AND i.amount - COALESCE((
         SELECT SUM(p3.amount) FROM finance.payments p3
         WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 140
-  AND DATEPART(year, i.due_date) = 2023
-GO
-
--- Query 962
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'active'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 141
-  AND DATEPART(year, i.due_date) = 2024
-GO
-
--- Query 963
-SELECT i.invoice_id, i.order_id, i.amount,
-       (SELECT SUM(p2.amount) FROM finance.payments p2
-        WHERE p2.invoice_id = i.invoice_id) AS paid
-FROM finance.invoices i
-WHERE i.status = N'paid'
-  AND i.amount - COALESCE((
-        SELECT SUM(p3.amount) FROM finance.payments p3
-        WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 142
+  ), 0) >= 190
   AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
 GO
 
--- Query 964
+-- Query 381
+/* ama-bench-q00381 */
 SELECT i.invoice_id, i.order_id, i.amount,
        (SELECT SUM(p2.amount) FROM finance.payments p2
         WHERE p2.invoice_id = i.invoice_id) AS paid
 FROM finance.invoices i
-WHERE i.status IN (N'active', N'open', N'void')
+WHERE i.status = N'open'
   AND i.amount - COALESCE((
         SELECT SUM(p3.amount) FROM finance.payments p3
         WHERE p3.invoice_id = i.invoice_id
-  ), 0) >= 143
-  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2026'
+  ), 0) >= 191
+  AND YEAR(i.due_date) = 2026
 GO
 
--- Query 965
+-- Query 382
+/* ama-bench-q00382 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'posted'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 192
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2019'
+GO
+
+-- Query 383
+/* ama-bench-q00383 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'open', N'paid', N'active')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 193
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2020'
+GO
+
+-- Query 384
+/* ama-bench-q00384 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 1 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
             ELSE N'N' END AS active_flag
 FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Haifa%')
+WHERE c.city LIKE N'%Netanya%'
   AND (c.country_code = N'GB'
        OR c.email LIKE N'%@%')
   AND 1=1
 GO
 
--- Query 966
+-- Query 385
+/* ama-bench-q00385 */
 SELECT c.customer_id, c.customer_name, c.email,
        CASE WHEN c.is_active = 0 THEN N'Y'
             WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
             ELSE N'N' END AS active_flag
 FROM dbo.customers c
-WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
-  AND (c.country_code = N'GB'
+WHERE c.city LIKE N'%Netanya%'
+  AND (c.country_code = N'sample'
        OR c.email LIKE N'%@%')
   AND 1=1
 GO
 
--- Query 967
+-- Query 386
+/* ama-bench-q00386 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 387
+/* ama-bench-q00387 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -18124,21 +7270,22 @@ WITH ship_rank AS (
                ORDER BY s.shipped_at DESC
            ) AS rn
     FROM logistics.shipments s
-    WHERE s.warehouse_id = 1
+    WHERE s.warehouse_id = 11
 )
 SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
 INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
 WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'cancelled')
+  AND o.status IN (N'completed', N'shipped', N'pending')
   AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.09
+        AND i.vat_rate >= 0.06
   )
 GO
 
--- Query 968
+-- Query 388
+/* ama-bench-q00388 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -18147,21 +7294,22 @@ WITH ship_rank AS (
                ORDER BY s.shipped_at DESC
            ) AS rn
     FROM logistics.shipments s
-    WHERE s.warehouse_id = 2
+    WHERE s.warehouse_id = 12
 )
 SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
 INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
 WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'pending'
+  AND o.status = N'shipped'
   AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.01
+        AND i.vat_rate >= 0.07
   )
 GO
 
--- Query 969
+-- Query 389
+/* ama-bench-q00389 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -18170,21 +7318,22 @@ WITH ship_rank AS (
                ORDER BY s.shipped_at DESC
            ) AS rn
     FROM logistics.shipments s
-    WHERE s.warehouse_id = 3
+    WHERE s.warehouse_id = 13
 )
 SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
 INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
 WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'cancelled'
+  AND o.status IN (N'pending', N'active', N'cancelled')
   AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.02
+        AND i.vat_rate >= 0.08
   )
 GO
 
--- Query 970
+-- Query 390
+/* ama-bench-q00390 */
 WITH ship_rank AS (
     SELECT s.shipment_id, s.order_id, s.shipped_at,
            s.warehouse_id,
@@ -18193,53 +7342,7 @@ WITH ship_rank AS (
                ORDER BY s.shipped_at DESC
            ) AS rn
     FROM logistics.shipments s
-    WHERE s.warehouse_id = 4
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status = N'cancelled'
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.03
-  )
-GO
-
--- Query 971
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 5
-)
-SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
-FROM dbo.orders o
-INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
-WHERE o.sales_rep_id IS NOT NULL
-  AND o.status IN (N'open', N'shipped', N'active')
-  AND EXISTS (
-      SELECT 1 FROM finance.invoices i
-      WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.04
-  )
-GO
-
--- Query 972
-WITH ship_rank AS (
-    SELECT s.shipment_id, s.order_id, s.shipped_at,
-           s.warehouse_id,
-           ROW_NUMBER() OVER (
-               PARTITION BY s.order_id
-               ORDER BY s.shipped_at DESC
-           ) AS rn
-    FROM logistics.shipments s
-    WHERE s.warehouse_id = 6
+    WHERE s.warehouse_id = 14
 )
 SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
 FROM dbo.orders o
@@ -18249,11 +7352,132 @@ WHERE o.sales_rep_id IS NOT NULL
   AND EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
-        AND i.vat_rate >= 0.05
+        AND i.vat_rate >= 0.09
   )
 GO
 
--- Query 973
+-- Query 391
+/* ama-bench-q00391 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 15
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'active'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.01
+  )
+GO
+
+-- Query 392
+/* ama-bench-q00392 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 16
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'open', N'shipped', N'active')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.02
+  )
+GO
+
+-- Query 393
+/* ama-bench-q00393 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'ILS'
+  AND p.payment_status = N'posted'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2023-01-01'
+GO
+
+-- Query 394
+/* ama-bench-q00394 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'EUR'
+  AND p.payment_status = N'pending'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2024-01-01'
+GO
+
+-- Query 395
+/* ama-bench-q00395 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'GBP'
+  AND p.payment_status = N'failed'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2025-01-01'
+GO
+
+-- Query 396
+/* ama-bench-q00396 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'USD'
+  AND p.payment_status = N'active'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2026-01-01'
+GO
+
+-- Query 397
+/* ama-bench-q00397 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'ILS'
+  AND p.payment_status = N'posted'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2020-01-01'
+GO
+
+-- Query 398
+/* ama-bench-q00398 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'EUR'
+  AND p.payment_status = N'pending'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2021-01-01'
+GO
+
+-- Query 399
+/* ama-bench-q00399 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -18263,7 +7487,7 @@ o_base AS (
     SELECT o.order_id, o.customer_id, o.amount,
            o.created_at
     FROM dbo.orders o
-    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
+    WHERE DATEPART(year, o.created_at) = 2023
 ),
 fin AS (
     SELECT i.order_id, SUM(i.net_amount) AS inv_net
@@ -18281,10 +7505,11 @@ FROM c_base cb
 INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
 LEFT JOIN fin ON fin.order_id = ob.order_id
 LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 6
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 15
 GO
 
--- Query 974
+-- Query 400
+/* ama-bench-q00400 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -18312,10 +7537,11 @@ FROM c_base cb
 INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
 LEFT JOIN fin ON fin.order_id = ob.order_id
 LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 7
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 16
 GO
 
--- Query 975
+-- Query 401
+/* ama-bench-q00401 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -18343,20 +7569,21 @@ FROM c_base cb
 INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
 LEFT JOIN fin ON fin.order_id = ob.order_id
 LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 8
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 0
 GO
 
--- Query 976
+-- Query 402
+/* ama-bench-q00402 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
-    WHERE TRY_CAST(c.is_active AS INT) = 0
+    WHERE TRY_CAST(c.is_active AS INT) = 1
 ),
 o_base AS (
     SELECT o.order_id, o.customer_id, o.amount,
            o.created_at
     FROM dbo.orders o
-    WHERE YEAR(o.created_at) = 2022
+    WHERE YEAR(o.created_at) = 2021
 ),
 fin AS (
     SELECT i.order_id, SUM(i.net_amount) AS inv_net
@@ -18374,10 +7601,43 @@ FROM c_base cb
 INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
 LEFT JOIN fin ON fin.order_id = ob.order_id
 LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 10
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 1
 GO
 
--- Query 977
+-- Query 403
+/* ama-bench-q00403 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 2
+GO
+
+-- Query 404
+/* ama-bench-q00404 */
 WITH c_base AS (
     SELECT c.customer_id, c.customer_name
     FROM dbo.customers c
@@ -18405,13 +7665,82 @@ FROM c_base cb
 INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
 LEFT JOIN fin ON fin.order_id = ob.order_id
 LEFT JOIN logi ON logi.order_id = ob.order_id
-WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 11
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 3
 GO
 
--- Query 978
+-- Query 405
+/* ama-bench-q00405 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 4 = 3
+GO
+
+-- Query 406
+/* ama-bench-q00406 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 6 = 1
+GO
+
+-- Query 407
+/* ama-bench-q00407 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 8 = 3
+GO
+
+-- Query 408
+/* ama-bench-q00408 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 2 = 0
+GO
+
+-- Query 409
+/* ama-bench-q00409 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
-WHERE o.amount > 1374
+WHERE o.amount > 1024
   AND NOT EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -18424,14 +7753,15 @@ WHERE o.amount > 1374
           GROUP BY ol.order_id
       ) lg
       WHERE lg.order_id = o.order_id
-        AND lg.line_total > 24
+        AND lg.line_total > 74
   )
 GO
 
--- Query 979
+-- Query 410
+/* ama-bench-q00410 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
-WHERE o.amount > 1375
+WHERE o.amount > 1025
   AND NOT EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -18444,14 +7774,15 @@ WHERE o.amount > 1375
           GROUP BY ol.order_id
       ) lg
       WHERE lg.order_id = o.order_id
-        AND lg.line_total > 25
+        AND lg.line_total > 75
   )
 GO
 
--- Query 980
+-- Query 411
+/* ama-bench-q00411 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
-WHERE o.amount > 1376
+WHERE o.amount > 1026
   AND NOT EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -18464,14 +7795,15 @@ WHERE o.amount > 1376
           GROUP BY ol.order_id
       ) lg
       WHERE lg.order_id = o.order_id
-        AND lg.line_total > 26
+        AND lg.line_total > 76
   )
 GO
 
--- Query 981
+-- Query 412
+/* ama-bench-q00412 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
-WHERE o.amount > 1377
+WHERE o.amount > 1027
   AND NOT EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -18484,14 +7816,15 @@ WHERE o.amount > 1377
           GROUP BY ol.order_id
       ) lg
       WHERE lg.order_id = o.order_id
-        AND lg.line_total > 27
+        AND lg.line_total > 77
   )
 GO
 
--- Query 982
+-- Query 413
+/* ama-bench-q00413 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
-WHERE o.amount > 1378
+WHERE o.amount > 1028
   AND NOT EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -18504,14 +7837,15 @@ WHERE o.amount > 1378
           GROUP BY ol.order_id
       ) lg
       WHERE lg.order_id = o.order_id
-        AND lg.line_total > 28
+        AND lg.line_total > 78
   )
 GO
 
--- Query 983
+-- Query 414
+/* ama-bench-q00414 */
 SELECT o.order_id, o.customer_id, o.amount
 FROM dbo.orders o
-WHERE o.amount > 1379
+WHERE o.amount > 1029
   AND NOT EXISTS (
       SELECT 1 FROM finance.invoices i
       WHERE i.order_id = o.order_id
@@ -18524,22 +7858,24 @@ WHERE o.amount > 1379
           GROUP BY ol.order_id
       ) lg
       WHERE lg.order_id = o.order_id
-        AND lg.line_total > 29
+        AND lg.line_total > 79
   )
 GO
 
--- Query 984
+-- Query 415
+/* ama-bench-q00415 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
 FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
 FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
 FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
-WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2026
+WHERE (o.currency = N'ILS' OR o.currency IS NULL)
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2021'
 GO
 
--- Query 985
+-- Query 416
+/* ama-bench-q00416 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
@@ -18547,10 +7883,11 @@ FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
 FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
 FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
 WHERE (o.currency = N'EUR' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2022
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2022
 GO
 
--- Query 986
+-- Query 417
+/* ama-bench-q00417 */
 SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
        c.customer_name, i.net_amount, s.tracking_number
 FROM dbo.customers c
@@ -18558,76 +7895,95 @@ FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
 FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
 FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
 WHERE (o.currency = N'GBP' OR o.currency IS NULL)
-  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2023
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2023
 GO
 
--- Query 987
-SELECT ol.product_id, ol.quantity
+-- Query 418
+/* ama-bench-q00418 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'USD' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2024
+GO
+
+-- Query 419
+/* ama-bench-q00419 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'ILS' OR o.currency IS NULL)
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2025'
+GO
+
+-- Query 420
+/* ama-bench-q00420 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'EUR' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2026
+GO
+
+-- Query 421
+/* ama-bench-q00421 */
+SELECT ol.unit_price, ol.discount
 FROM dbo.order_lines ol
-WHERE ol.line_id >= 386
+WHERE ol.line_id >= 36
   AND ol.line_id IS NOT NULL
 GO
 
--- Query 988
-SELECT i.status, i.due_date
+-- Query 422
+/* ama-bench-q00422 */
+SELECT i.net_amount, i.vat_amount
 FROM finance.invoices i
-WHERE i.invoice_id >= 387
+WHERE i.invoice_id >= 37
   AND i.status = N'completed'
 GO
 
--- Query 989
+-- Query 423
+/* ama-bench-q00423 */
 SELECT p.payment_status, p.currency
 FROM finance.payments p
-WHERE p.payment_id >= 388
+WHERE p.payment_id >= 38
   AND p.payment_id IS NOT NULL
 GO
 
--- Query 990
+-- Query 424
+/* ama-bench-q00424 */
 SELECT s.warehouse_id, s.shipment_id
 FROM logistics.shipments s
-WHERE s.shipment_id >= 389
+WHERE s.shipment_id >= 39
   AND s.shipment_id IS NOT NULL
 GO
 
--- Query 991
-SELECT c.is_active, c.created_at
+-- Query 425
+/* ama-bench-q00425 */
+SELECT c.customer_id, c.customer_name
 FROM dbo.customers c
-WHERE c.customer_id >= 390
+WHERE c.customer_id >= 40
   AND c.customer_id IS NOT NULL
 GO
 
--- Query 992
-SELECT o.sales_rep_id, o.order_id
+-- Query 426
+/* ama-bench-q00426 */
+SELECT o.customer_id, o.status
 FROM dbo.orders o
-WHERE o.order_id >= 391
-  AND o.status IN (N'active')
+WHERE o.order_id >= 41
+  AND o.status IN (N'cancelled', N'completed', N'active')
 GO
 
--- Query 993
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'ILS'
-  AND p.amount <= i.amount + 17
-GO
-
--- Query 994
-SELECT c.customer_id, o.order_id, i.invoice_id,
-       o.amount AS order_amount,
-       i.net_amount AS invoice_net
-FROM dbo.customers c
-INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
-INNER JOIN finance.invoices i ON o.order_id = i.order_id
-INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
-WHERE o.currency = N'EUR'
-  AND p.amount <= i.amount + 18
-GO
-
--- Query 995
+-- Query 427
+/* ama-bench-q00427 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -18636,10 +7992,11 @@ INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
 INNER JOIN finance.invoices i ON o.order_id = i.order_id
 INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
 WHERE o.currency = N'GBP'
-  AND p.amount <= i.amount + 19
+  AND p.amount <= i.amount + 21
 GO
 
--- Query 996
+-- Query 428
+/* ama-bench-q00428 */
 SELECT c.customer_id, o.order_id, i.invoice_id,
        o.amount AS order_amount,
        i.net_amount AS invoice_net
@@ -18648,13 +8005,269 @@ INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
 INNER JOIN finance.invoices i ON o.order_id = i.order_id
 INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
 WHERE o.currency = N'USD'
-  AND p.amount <= i.amount + 20
+  AND p.amount <= i.amount + 22
 GO
 
--- Query 997
+-- Query 429
+/* ama-bench-q00429 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 102
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
+GO
+
+-- Query 430
+/* ama-bench-q00430 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 103
+  AND (h.[סטטוס] = N'paid'
+       OR i.status = N'void')
+GO
+
+-- Query 431
+/* ama-bench-q00431 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2026
+  AND o.[סכום] > 29
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 432
+/* ama-bench-q00432 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2020
+  AND o.[סכום] > 30
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 433
+/* ama-bench-q00433 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2021
+  AND o.[סכום] > 31
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 434
+/* ama-bench-q00434 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2022
+  AND o.[סכום] > 32
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 435
+/* ama-bench-q00435 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2023
+  AND o.[סכום] > 33
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 436
+/* ama-bench-q00436 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2024
+  AND o.[סכום] > 34
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 437
+/* ama-bench-q00437 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 14
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 438
+/* ama-bench-q00438 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 1
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 15
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 439
+/* ama-bench-q00439 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(COALESCE(o.amount, 239), 736) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 239), 736) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 239), 736) END AS order_amt,
+           CASE WHEN COALESCE(COALESCE(o.amount, 885), 391) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 885), 391) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 885), 391) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 191
+GO
+
+-- Query 440
+/* ama-bench-q00440 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 627), 350) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2026
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 192
+GO
+
+-- Query 441
+/* ama-bench-q00441 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 399), 384) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2020
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 193
+GO
+
+-- Query 442
+/* ama-bench-q00442 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(o.amount, 902) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND YEAR(o.created_at) = 2021
@@ -18688,16 +8301,17 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 448
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 194
 GO
 
--- Query 998
+-- Query 443
+/* ama-bench-q00443 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           COALESCE(o.amount, 990) AS order_amt,
+           CASE WHEN COALESCE(COALESCE(o.amount, 382), 580) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 382), 580) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 382), 580) END AS order_amt,
            o.created_at
     FROM dbo.orders o
-    WHERE 1=1 AND DATEPART(year, o.created_at) = 2022
+    WHERE 1=1 AND YEAR(o.created_at) = 2022
 ),
 invoice_roll AS (
     SELECT i.order_id,
@@ -18728,13 +8342,14 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 449
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 195
 GO
 
--- Query 999
+-- Query 444
+/* ama-bench-q00444 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           CASE WHEN COALESCE(o.amount, 844) IS NULL THEN 0 WHEN COALESCE(o.amount, 844) < 0 THEN 0 ELSE COALESCE(o.amount, 844) END AS order_amt,
+           COALESCE(COALESCE(o.amount, 892), 635) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND DATEPART(year, o.created_at) = 2023
@@ -18768,13 +8383,4789 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 450
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 196
 GO
 
--- Query 1000
+-- Query 445
+/* ama-bench-q00445 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'pending')) AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Netanya%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 446
+/* ama-bench-q00446 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'active') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 447
+/* ama-bench-q00447 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'open', N'cancelled', N'pending')) AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Jerusalem%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 448
+/* ama-bench-q00448 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'completed') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Tel Aviv%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 449
+/* ama-bench-q00449 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'cancelled', N'open', N'active')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 450
+/* ama-bench-q00450 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'completed') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Beer Sheva%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 451
+/* ama-bench-q00451 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 253
+  AND o.status IN (N'active', N'open')
+GO
+
+-- Query 452
+/* ama-bench-q00452 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 254
+  AND o.status = N'active'
+GO
+
+-- Query 453
+/* ama-bench-q00453 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 255
+  AND o.status IN (N'open', N'cancelled', N'completed')
+GO
+
+-- Query 454
+/* ama-bench-q00454 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 256
+  AND o.status = N'open'
+GO
+
+-- Query 455
+/* ama-bench-q00455 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 257
+  AND o.status = N'completed'
+GO
+
+-- Query 456
+/* ama-bench-q00456 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 258
+  AND o.status IN (N'open')
+GO
+
+-- Query 457
+/* ama-bench-q00457 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 767), 415) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 767), 415) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 767), 415) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 84
+GO
+
+-- Query 458
+/* ama-bench-q00458 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 590) IS NULL THEN 0 WHEN COALESCE(o.amount, 590) < 0 THEN 0 ELSE COALESCE(o.amount, 590) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 85
+GO
+
+-- Query 459
+/* ama-bench-q00459 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 34) IS NULL THEN 0 WHEN COALESCE(o.amount, 34) < 0 THEN 0 ELSE COALESCE(o.amount, 34) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 86
+GO
+
+-- Query 460
+/* ama-bench-q00460 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 565), 160) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 565), 160) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 565), 160) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'US'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 87
+GO
+
+-- Query 461
+/* ama-bench-q00461 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(o.amount, 499)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 88
+GO
+
+-- Query 462
+/* ama-bench-q00462 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 429) IS NULL THEN 0 WHEN COALESCE(o.amount, 429) < 0 THEN 0 ELSE COALESCE(o.amount, 429) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 89
+GO
+
+-- Query 463
+/* ama-bench-q00463 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3346
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 21
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 464
+/* ama-bench-q00464 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3347
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 22
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 465
+/* ama-bench-q00465 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3348
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 23
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 466
+/* ama-bench-q00466 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3349
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 24
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 467
+/* ama-bench-q00467 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3350
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 0
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 468
+/* ama-bench-q00468 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3351
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 1
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 469
+/* ama-bench-q00469 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'active'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 177
+  AND DATEPART(year, i.due_date) = 2020
+GO
+
+-- Query 470
+/* ama-bench-q00470 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'posted'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 178
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2021'
+GO
+
+-- Query 471
+/* ama-bench-q00471 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'open'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 179
+  AND DATEPART(year, i.due_date) = 2022
+GO
+
+-- Query 472
+/* ama-bench-q00472 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'open'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 180
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2023'
+GO
+
+-- Query 473
+/* ama-bench-q00473 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'active'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 181
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2024'
+GO
+
+-- Query 474
+/* ama-bench-q00474 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'paid')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 182
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
+GO
+
+-- Query 475
+/* ama-bench-q00475 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Jerusalem%'
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 476
+/* ama-bench-q00476 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Tel Aviv%'
+  AND (c.country_code = N'GB'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 477
+/* ama-bench-q00477 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Tel Aviv%')
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 478
+/* ama-bench-q00478 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Tel Aviv%'
+  AND (c.country_code = N'IL'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 479
+/* ama-bench-q00479 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Tel Aviv%')
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 480
+/* ama-bench-q00480 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 20
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'shipped'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.01
+  )
+GO
+
+-- Query 481
+/* ama-bench-q00481 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 1
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'open'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.02
+  )
+GO
+
+-- Query 482
+/* ama-bench-q00482 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 2
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'open'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.03
+  )
+GO
+
+-- Query 483
+/* ama-bench-q00483 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 3
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.04
+  )
+GO
+
+-- Query 484
+/* ama-bench-q00484 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 4
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.05
+  )
+GO
+
+-- Query 485
+/* ama-bench-q00485 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 5
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'active'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.06
+  )
+GO
+
+-- Query 486
+/* ama-bench-q00486 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'GBP'
+  AND p.payment_status = N'failed'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2022-01-01'
+GO
+
+-- Query 487
+/* ama-bench-q00487 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 9
+GO
+
+-- Query 488
+/* ama-bench-q00488 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2023
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 10
+GO
+
+-- Query 489
+/* ama-bench-q00489 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 11
+GO
+
+-- Query 490
+/* ama-bench-q00490 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2025
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 12
+GO
+
+-- Query 491
+/* ama-bench-q00491 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 13
+GO
+
+-- Query 492
+/* ama-bench-q00492 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 14
+GO
+
+-- Query 493
+/* ama-bench-q00493 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 8 = 7
+GO
+
+-- Query 494
+/* ama-bench-q00494 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1613
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 63
+  )
+GO
+
+-- Query 495
+/* ama-bench-q00495 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1614
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 64
+  )
+GO
+
+-- Query 496
+/* ama-bench-q00496 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1615
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 65
+  )
+GO
+
+-- Query 497
+/* ama-bench-q00497 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1616
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 66
+  )
+GO
+
+-- Query 498
+/* ama-bench-q00498 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1617
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 67
+  )
+GO
+
+-- Query 499
+/* ama-bench-q00499 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 1618
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 68
+  )
+GO
+
+-- Query 500
+/* ama-bench-q00500 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'EUR' OR o.currency IS NULL)
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2022'
+GO
+
+-- Query 501
+/* ama-bench-q00501 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'USD' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2024
+GO
+
+-- Query 502
+/* ama-bench-q00502 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'ILS' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2025
+GO
+
+-- Query 503
+/* ama-bench-q00503 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'EUR' OR o.currency IS NULL)
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2026'
+GO
+
+-- Query 504
+/* ama-bench-q00504 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'GBP' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2020
+GO
+
+-- Query 505
+/* ama-bench-q00505 */
+SELECT i.status, i.due_date
+FROM finance.invoices i
+WHERE i.invoice_id >= 625
+  AND i.status IN (N'completed', N'pending')
+GO
+
+-- Query 506
+/* ama-bench-q00506 */
+SELECT p.payment_status, p.currency
+FROM finance.payments p
+WHERE p.payment_id >= 626
+  AND p.payment_id IS NOT NULL
+GO
+
+-- Query 507
+/* ama-bench-q00507 */
+SELECT s.warehouse_id, s.shipment_id
+FROM logistics.shipments s
+WHERE s.shipment_id >= 627
+  AND s.shipment_id IS NOT NULL
+GO
+
+-- Query 508
+/* ama-bench-q00508 */
+SELECT c.country_code, c.phone
+FROM dbo.customers c
+WHERE c.customer_id >= 628
+  AND c.customer_id IS NOT NULL
+GO
+
+-- Query 509
+/* ama-bench-q00509 */
+SELECT o.discount, o.currency
+FROM dbo.orders o
+WHERE o.order_id >= 629
+  AND o.status = N'shipped'
+GO
+
+-- Query 510
+/* ama-bench-q00510 */
+SELECT ol.quantity, ol.unit_price
+FROM dbo.order_lines ol
+WHERE ol.line_id >= 630
+  AND ol.line_id IS NOT NULL
+GO
+
+-- Query 511
+/* ama-bench-q00511 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'USD'
+  AND p.amount <= i.amount + 10
+GO
+
+-- Query 512
+/* ama-bench-q00512 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 11
+GO
+
+-- Query 513
+/* ama-bench-q00513 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 91
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
+GO
+
+-- Query 514
+/* ama-bench-q00514 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 92
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
+GO
+
+-- Query 515
+/* ama-bench-q00515 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2020
+  AND o.[סכום] > 18
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 516
+/* ama-bench-q00516 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2021
+  AND o.[סכום] > 19
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 517
+/* ama-bench-q00517 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2022
+  AND o.[סכום] > 20
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 518
+/* ama-bench-q00518 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2023
+  AND o.[סכום] > 21
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 519
+/* ama-bench-q00519 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2024
+  AND o.[סכום] > 22
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 520
+/* ama-bench-q00520 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2025
+  AND o.[סכום] > 23
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 521
+/* ama-bench-q00521 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 3
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 522
+/* ama-bench-q00522 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 4
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 523
+/* ama-bench-q00523 */
 WITH order_totals AS (
     SELECT o.order_id, o.customer_id,
-           COALESCE(COALESCE(o.amount, 704), 223) AS order_amt,
+           CASE WHEN COALESCE(COALESCE(o.amount, 349), 950) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 349), 950) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 349), 950) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2026
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 280
+GO
+
+-- Query 524
+/* ama-bench-q00524 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(o.amount, 896) IS NULL THEN 0 WHEN COALESCE(o.amount, 896) < 0 THEN 0 ELSE COALESCE(o.amount, 896) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2020
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 281
+GO
+
+-- Query 525
+/* ama-bench-q00525 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(o.amount, 612) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2021
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 282
+GO
+
+-- Query 526
+/* ama-bench-q00526 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 446), 883) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 283
+GO
+
+-- Query 527
+/* ama-bench-q00527 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 967), 737) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 967), 737) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 967), 737) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2023
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 284
+GO
+
+-- Query 528
+/* ama-bench-q00528 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 470), 401) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 470), 401) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 470), 401) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2024
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 285
+GO
+
+-- Query 529
+/* ama-bench-q00529 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'active')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 530
+/* ama-bench-q00530 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'cancelled')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 531
+/* ama-bench-q00531 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'pending') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Tel Aviv%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 532
+/* ama-bench-q00532 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'cancelled')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 533
+/* ama-bench-q00533 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'completed') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Haifa%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 534
+/* ama-bench-q00534 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'pending', N'cancelled', N'open')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 535
+/* ama-bench-q00535 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 842
+  AND o.status IN (N'pending', N'completed')
+GO
+
+-- Query 536
+/* ama-bench-q00536 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 843
+  AND o.status = N'open'
+GO
+
+-- Query 537
+/* ama-bench-q00537 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 844
+  AND o.status IN (N'shipped', N'active', N'pending')
+GO
+
+-- Query 538
+/* ama-bench-q00538 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 845
+  AND o.status IN (N'pending', N'cancelled')
+GO
+
+-- Query 539
+/* ama-bench-q00539 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 846
+  AND o.status = N'completed'
+GO
+
+-- Query 540
+/* ama-bench-q00540 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 847
+  AND o.status IN (N'pending', N'cancelled', N'active')
+GO
+
+-- Query 541
+/* ama-bench-q00541 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 37) IS NULL THEN 0 WHEN COALESCE(o.amount, 37) < 0 THEN 0 ELSE COALESCE(o.amount, 37) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 73
+GO
+
+-- Query 542
+/* ama-bench-q00542 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 824), 960) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 824), 960) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 824), 960) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 74
+GO
+
+-- Query 543
+/* ama-bench-q00543 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 351) IS NULL THEN 0 WHEN COALESCE(o.amount, 351) < 0 THEN 0 ELSE COALESCE(o.amount, 351) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 75
+GO
+
+-- Query 544
+/* ama-bench-q00544 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(o.amount, 870)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 76
+GO
+
+-- Query 545
+/* ama-bench-q00545 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 421), 660) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 421), 660) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 421), 660) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'US'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 77
+GO
+
+-- Query 546
+/* ama-bench-q00546 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(COALESCE(o.amount, 982), 11)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 78
+GO
+
+-- Query 547
+/* ama-bench-q00547 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3935
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 10
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 548
+/* ama-bench-q00548 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3936
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 11
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 549
+/* ama-bench-q00549 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3937
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 12
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 550
+/* ama-bench-q00550 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3938
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 13
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 551
+/* ama-bench-q00551 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3939
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 14
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 552
+/* ama-bench-q00552 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 3940
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 15
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 553
+/* ama-bench-q00553 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'active')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 166
+  AND DATEPART(year, i.due_date) = 2025
+GO
+
+-- Query 554
+/* ama-bench-q00554 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'active', N'void')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 167
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2026'
+GO
+
+-- Query 555
+/* ama-bench-q00555 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'posted', N'active')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 168
+  AND DATEPART(year, i.due_date) = 2019
+GO
+
+-- Query 556
+/* ama-bench-q00556 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'open', N'posted')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 169
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2020'
+GO
+
+-- Query 557
+/* ama-bench-q00557 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'active'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 170
+  AND DATEPART(year, i.due_date) = 2021
+GO
+
+-- Query 558
+/* ama-bench-q00558 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 171
+  AND DATEPART(year, i.due_date) = 2022
+GO
+
+-- Query 559
+/* ama-bench-q00559 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 560
+/* ama-bench-q00560 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Jerusalem%')
+  AND (c.country_code = N'GB'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 561
+/* ama-bench-q00561 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Haifa%')
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 562
+/* ama-bench-q00562 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 9
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'shipped', N'open')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.05
+  )
+GO
+
+-- Query 563
+/* ama-bench-q00563 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 10
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'active'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.06
+  )
+GO
+
+-- Query 564
+/* ama-bench-q00564 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 11
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.07
+  )
+GO
+
+-- Query 565
+/* ama-bench-q00565 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 12
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'active'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.08
+  )
+GO
+
+-- Query 566
+/* ama-bench-q00566 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 13
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'shipped')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.09
+  )
+GO
+
+-- Query 567
+/* ama-bench-q00567 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 14
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'completed'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.01
+  )
+GO
+
+-- Query 568
+/* ama-bench-q00568 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'USD'
+  AND p.payment_status = N'active'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2023-01-01'
+GO
+
+-- Query 569
+/* ama-bench-q00569 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2021
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 3
+GO
+
+-- Query 570
+/* ama-bench-q00570 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 4
+GO
+
+-- Query 571
+/* ama-bench-q00571 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 5
+GO
+
+-- Query 572
+/* ama-bench-q00572 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2024
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 6
+GO
+
+-- Query 573
+/* ama-bench-q00573 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 7
+GO
+
+-- Query 574
+/* ama-bench-q00574 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 8
+GO
+
+-- Query 575
+/* ama-bench-q00575 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 4 = 2
+GO
+
+-- Query 576
+/* ama-bench-q00576 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2202
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 52
+  )
+GO
+
+-- Query 577
+/* ama-bench-q00577 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2203
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 53
+  )
+GO
+
+-- Query 578
+/* ama-bench-q00578 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2204
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 54
+  )
+GO
+
+-- Query 579
+/* ama-bench-q00579 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2205
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 55
+  )
+GO
+
+-- Query 580
+/* ama-bench-q00580 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2206
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 56
+  )
+GO
+
+-- Query 581
+/* ama-bench-q00581 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2207
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 57
+  )
+GO
+
+-- Query 582
+/* ama-bench-q00582 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'GBP' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2023
+GO
+
+-- Query 583
+/* ama-bench-q00583 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'USD' OR o.currency IS NULL)
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2024'
+GO
+
+-- Query 584
+/* ama-bench-q00584 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'USD' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2021
+GO
+
+-- Query 585
+/* ama-bench-q00585 */
+SELECT p.payment_status, p.currency
+FROM finance.payments p
+WHERE p.payment_id >= 214
+  AND p.payment_id IS NOT NULL
+GO
+
+-- Query 586
+/* ama-bench-q00586 */
+SELECT s.warehouse_id, s.shipment_id
+FROM logistics.shipments s
+WHERE s.shipment_id >= 215
+  AND s.shipment_id IS NOT NULL
+GO
+
+-- Query 587
+/* ama-bench-q00587 */
+SELECT c.customer_id, c.customer_name
+FROM dbo.customers c
+WHERE c.customer_id >= 216
+  AND c.customer_id IS NOT NULL
+GO
+
+-- Query 588
+/* ama-bench-q00588 */
+SELECT o.customer_id, o.status
+FROM dbo.orders o
+WHERE o.order_id >= 217
+  AND o.status IN (N'pending', N'cancelled', N'shipped')
+GO
+
+-- Query 589
+/* ama-bench-q00589 */
+SELECT ol.quantity, ol.unit_price
+FROM dbo.order_lines ol
+WHERE ol.line_id >= 218
+  AND ol.line_id IS NOT NULL
+GO
+
+-- Query 590
+/* ama-bench-q00590 */
+SELECT i.status, i.due_date
+FROM finance.invoices i
+WHERE i.invoice_id >= 219
+  AND i.status = N'pending'
+GO
+
+-- Query 591
+/* ama-bench-q00591 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 49
+GO
+
+-- Query 592
+/* ama-bench-q00592 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'EUR'
+  AND p.amount <= i.amount + 0
+GO
+
+-- Query 593
+/* ama-bench-q00593 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 80
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
+GO
+
+-- Query 594
+/* ama-bench-q00594 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 81
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
+GO
+
+-- Query 595
+/* ama-bench-q00595 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2021
+  AND o.[סכום] > 7
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 596
+/* ama-bench-q00596 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2022
+  AND o.[סכום] > 8
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 597
+/* ama-bench-q00597 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2023
+  AND o.[סכום] > 9
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 598
+/* ama-bench-q00598 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2024
+  AND o.[סכום] > 10
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 599
+/* ama-bench-q00599 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2025
+  AND o.[סכום] > 11
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 600
+/* ama-bench-q00600 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2026
+  AND o.[סכום] > 12
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 601
+/* ama-bench-q00601 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 17
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 602
+/* ama-bench-q00602 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 18
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 603
+/* ama-bench-q00603 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 445), 300) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2020
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 369
+GO
+
+-- Query 604
+/* ama-bench-q00604 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(o.amount, 897) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2021
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 370
+GO
+
+-- Query 605
+/* ama-bench-q00605 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(o.amount, 206) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 371
+GO
+
+-- Query 606
+/* ama-bench-q00606 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(o.amount, 395) IS NULL THEN 0 WHEN COALESCE(o.amount, 395) < 0 THEN 0 ELSE COALESCE(o.amount, 395) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2023
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 372
+GO
+
+-- Query 607
+/* ama-bench-q00607 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 480), 827) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2024
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 373
+GO
+
+-- Query 608
+/* ama-bench-q00608 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(o.amount, 665) IS NULL THEN 0 WHEN COALESCE(o.amount, 665) < 0 THEN 0 ELSE COALESCE(o.amount, 665) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2025
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 374
+GO
+
+-- Query 609
+/* ama-bench-q00609 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'shipped') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 610
+/* ama-bench-q00610 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'active', N'open')) AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Beer Sheva%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 611
+/* ama-bench-q00611 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'open', N'active')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 612
+/* ama-bench-q00612 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'cancelled') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Haifa%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 613
+/* ama-bench-q00613 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'pending') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Jerusalem%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 614
+/* ama-bench-q00614 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'pending') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Jerusalem%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 615
+/* ama-bench-q00615 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 431
+  AND o.status = N'pending'
+GO
+
+-- Query 616
+/* ama-bench-q00616 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 432
+  AND o.status = N'shipped'
+GO
+
+-- Query 617
+/* ama-bench-q00617 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 433
+  AND o.status = N'open'
+GO
+
+-- Query 618
+/* ama-bench-q00618 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 434
+  AND o.status = N'shipped'
+GO
+
+-- Query 619
+/* ama-bench-q00619 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 435
+  AND o.status = N'active'
+GO
+
+-- Query 620
+/* ama-bench-q00620 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 436
+  AND o.status IN (N'active', N'pending')
+GO
+
+-- Query 621
+/* ama-bench-q00621 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 602) IS NULL THEN 0 WHEN COALESCE(o.amount, 602) < 0 THEN 0 ELSE COALESCE(o.amount, 602) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'US'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 62
+GO
+
+-- Query 622
+/* ama-bench-q00622 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 765) IS NULL THEN 0 WHEN COALESCE(o.amount, 765) < 0 THEN 0 ELSE COALESCE(o.amount, 765) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 63
+GO
+
+-- Query 623
+/* ama-bench-q00623 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 473) IS NULL THEN 0 WHEN COALESCE(o.amount, 473) < 0 THEN 0 ELSE COALESCE(o.amount, 473) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 64
+GO
+
+-- Query 624
+/* ama-bench-q00624 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 295) IS NULL THEN 0 WHEN COALESCE(o.amount, 295) < 0 THEN 0 ELSE COALESCE(o.amount, 295) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 65
+GO
+
+-- Query 625
+/* ama-bench-q00625 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 587), 549) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 587), 549) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 587), 549) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 66
+GO
+
+-- Query 626
+/* ama-bench-q00626 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 860) IS NULL THEN 0 WHEN COALESCE(o.amount, 860) < 0 THEN 0 ELSE COALESCE(o.amount, 860) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'US'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 67
+GO
+
+-- Query 627
+/* ama-bench-q00627 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 4524
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 24
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 628
+/* ama-bench-q00628 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 4525
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 0
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 629
+/* ama-bench-q00629 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 4526
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 1
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 630
+/* ama-bench-q00630 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 4527
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 2
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 631
+/* ama-bench-q00631 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 4528
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 3
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 632
+/* ama-bench-q00632 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 4529
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 4
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 633
+/* ama-bench-q00633 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'open'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 155
+  AND DATEPART(year, i.due_date) = 2022
+GO
+
+-- Query 634
+/* ama-bench-q00634 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'void'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 156
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2023'
+GO
+
+-- Query 635
+/* ama-bench-q00635 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'void'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 157
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2024'
+GO
+
+-- Query 636
+/* ama-bench-q00636 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'void', N'open')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 158
+  AND DATEPART(year, i.due_date) = 2025
+GO
+
+-- Query 637
+/* ama-bench-q00637 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'posted')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 159
+  AND DATEPART(year, i.due_date) = 2026
+GO
+
+-- Query 638
+/* ama-bench-q00638 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'open', N'paid', N'void')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 160
+  AND YEAR(i.due_date) = 2019
+GO
+
+-- Query 639
+/* ama-bench-q00639 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
+  AND (c.country_code = N'IL'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 640
+/* ama-bench-q00640 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Tel Aviv%')
+  AND (c.country_code = N'US'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 641
+/* ama-bench-q00641 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Tel Aviv%')
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 642
+/* ama-bench-q00642 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Haifa%'
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 643
+/* ama-bench-q00643 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Jerusalem%')
+  AND (c.country_code = N'IL'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 644
+/* ama-bench-q00644 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 18
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.09
+  )
+GO
+
+-- Query 645
+/* ama-bench-q00645 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 19
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'completed'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.01
+  )
+GO
+
+-- Query 646
+/* ama-bench-q00646 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 20
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.02
+  )
+GO
+
+-- Query 647
+/* ama-bench-q00647 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 1
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.03
+  )
+GO
+
+-- Query 648
+/* ama-bench-q00648 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 2
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'pending')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.04
+  )
+GO
+
+-- Query 649
+/* ama-bench-q00649 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 3
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'shipped'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.05
+  )
+GO
+
+-- Query 650
+/* ama-bench-q00650 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'ILS'
+  AND p.payment_status = N'posted'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2024-01-01'
+GO
+
+-- Query 651
+/* ama-bench-q00651 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2025
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 14
+GO
+
+-- Query 652
+/* ama-bench-q00652 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2021
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 15
+GO
+
+-- Query 653
+/* ama-bench-q00653 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 16
+GO
+
+-- Query 654
+/* ama-bench-q00654 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2023'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 0
+GO
+
+-- Query 655
+/* ama-bench-q00655 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2024
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 1
+GO
+
+-- Query 656
+/* ama-bench-q00656 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 2
+GO
+
+-- Query 657
+/* ama-bench-q00657 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 5 = 0
+GO
+
+-- Query 658
+/* ama-bench-q00658 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2791
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 41
+  )
+GO
+
+-- Query 659
+/* ama-bench-q00659 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2792
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 42
+  )
+GO
+
+-- Query 660
+/* ama-bench-q00660 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2793
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 43
+  )
+GO
+
+-- Query 661
+/* ama-bench-q00661 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2794
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 44
+  )
+GO
+
+-- Query 662
+/* ama-bench-q00662 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2795
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 45
+  )
+GO
+
+-- Query 663
+/* ama-bench-q00663 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 2796
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 46
+  )
+GO
+
+-- Query 664
+/* ama-bench-q00664 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'ILS' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2025
+GO
+
+-- Query 665
+/* ama-bench-q00665 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'GBP' OR o.currency IS NULL)
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2020'
+GO
+
+-- Query 666
+/* ama-bench-q00666 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'ILS' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2022
+GO
+
+-- Query 667
+/* ama-bench-q00667 */
+SELECT s.warehouse_id, s.shipment_id
+FROM logistics.shipments s
+WHERE s.shipment_id >= 803
+  AND s.shipment_id IS NOT NULL
+GO
+
+-- Query 668
+/* ama-bench-q00668 */
+SELECT c.country_code, c.phone
+FROM dbo.customers c
+WHERE c.customer_id >= 804
+  AND c.customer_id IS NOT NULL
+GO
+
+-- Query 669
+/* ama-bench-q00669 */
+SELECT o.discount, o.currency
+FROM dbo.orders o
+WHERE o.order_id >= 805
+  AND o.status IN (N'shipped', N'active')
+GO
+
+-- Query 670
+/* ama-bench-q00670 */
+SELECT ol.quantity, ol.unit_price
+FROM dbo.order_lines ol
+WHERE ol.line_id >= 806
+  AND ol.line_id IS NOT NULL
+GO
+
+-- Query 671
+/* ama-bench-q00671 */
+SELECT i.invoice_id, i.order_id
+FROM finance.invoices i
+WHERE i.invoice_id >= 807
+  AND i.status IN (N'active', N'open', N'shipped')
+GO
+
+-- Query 672
+/* ama-bench-q00672 */
+SELECT p.payment_status, p.currency
+FROM finance.payments p
+WHERE p.payment_id >= 808
+  AND p.payment_id IS NOT NULL
+GO
+
+-- Query 673
+/* ama-bench-q00673 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'EUR'
+  AND p.amount <= i.amount + 34
+GO
+
+-- Query 674
+/* ama-bench-q00674 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'GBP'
+  AND p.amount <= i.amount + 35
+GO
+
+-- Query 675
+/* ama-bench-q00675 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'USD'
+  AND p.amount <= i.amount + 36
+GO
+
+-- Query 676
+/* ama-bench-q00676 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 37
+GO
+
+-- Query 677
+/* ama-bench-q00677 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'EUR'
+  AND p.amount <= i.amount + 38
+GO
+
+-- Query 678
+/* ama-bench-q00678 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'GBP'
+  AND p.amount <= i.amount + 39
+GO
+
+-- Query 679
+/* ama-bench-q00679 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 65
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
+GO
+
+-- Query 680
+/* ama-bench-q00680 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 66
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
+GO
+
+-- Query 681
+/* ama-bench-q00681 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 67
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
+GO
+
+-- Query 682
+/* ama-bench-q00682 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 68
+  AND (h.[סטטוס] = N'paid'
+       OR i.status = N'void')
+GO
+
+-- Query 683
+/* ama-bench-q00683 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 69
+  AND (h.[סטטוס] = N'void'
+       OR i.status = N'active')
+GO
+
+-- Query 684
+/* ama-bench-q00684 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 70
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
+GO
+
+-- Query 685
+/* ama-bench-q00685 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2022
+  AND o.[סכום] > 96
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 686
+/* ama-bench-q00686 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2023
+  AND o.[סכום] > 97
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 687
+/* ama-bench-q00687 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2024
+  AND o.[סכום] > 98
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 688
+/* ama-bench-q00688 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2025
+  AND o.[סכום] > 99
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 689
+/* ama-bench-q00689 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2026
+  AND o.[סכום] > 0
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 690
+/* ama-bench-q00690 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2020
+  AND o.[סכום] > 1
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 691
+/* ama-bench-q00691 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 2
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 692
+/* ama-bench-q00692 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 3
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 693
+/* ama-bench-q00693 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 4
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 694
+/* ama-bench-q00694 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 1
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 5
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 695
+/* ama-bench-q00695 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 2
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 6
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 696
+/* ama-bench-q00696 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 7
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 697
+/* ama-bench-q00697 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(o.amount, 107) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2021
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 458
+GO
+
+-- Query 698
+/* ama-bench-q00698 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 180), 881) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 180), 881) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 180), 881) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2022
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 459
+GO
+
+-- Query 699
+/* ama-bench-q00699 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 147), 591) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 147), 591) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 147), 591) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2023
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 460
+GO
+
+-- Query 700
+/* ama-bench-q00700 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 695), 876) AS order_amt,
            o.created_at
     FROM dbo.orders o
     WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
@@ -18808,5 +13199,5604 @@ AND NOT EXISTS (
     WHERE pb2.order_id = ot.order_id
       AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
 )
-AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 451
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 461
+GO
+
+-- Query 701
+/* ama-bench-q00701 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 953), 511) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 462
+GO
+
+-- Query 702
+/* ama-bench-q00702 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(o.amount, 758) IS NULL THEN 0 WHEN COALESCE(o.amount, 758) < 0 THEN 0 ELSE COALESCE(o.amount, 758) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2026
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 463
+GO
+
+-- Query 703
+/* ama-bench-q00703 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'cancelled') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 704
+/* ama-bench-q00704 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'pending', N'cancelled', N'shipped')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 705
+/* ama-bench-q00705 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'completed') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 706
+/* ama-bench-q00706 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'open', N'shipped')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 707
+/* ama-bench-q00707 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'active', N'completed')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 708
+/* ama-bench-q00708 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'shipped')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 709
+/* ama-bench-q00709 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 20
+  AND o.status = N'open'
+GO
+
+-- Query 710
+/* ama-bench-q00710 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 21
+  AND o.status = N'open'
+GO
+
+-- Query 711
+/* ama-bench-q00711 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 22
+  AND o.status = N'shipped'
+GO
+
+-- Query 712
+/* ama-bench-q00712 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 23
+  AND o.status = N'completed'
+GO
+
+-- Query 713
+/* ama-bench-q00713 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 24
+  AND o.status IN (N'cancelled')
+GO
+
+-- Query 714
+/* ama-bench-q00714 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 25
+  AND o.status = N'pending'
+GO
+
+-- Query 715
+/* ama-bench-q00715 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 965), 155) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 965), 155) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 965), 155) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 51
+GO
+
+-- Query 716
+/* ama-bench-q00716 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(COALESCE(o.amount, 452), 523)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'US'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 52
+GO
+
+-- Query 717
+/* ama-bench-q00717 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(COALESCE(o.amount, 438), 479)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 53
+GO
+
+-- Query 718
+/* ama-bench-q00718 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(COALESCE(o.amount, 724), 173)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 54
+GO
+
+-- Query 719
+/* ama-bench-q00719 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 242), 937) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 242), 937) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 242), 937) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 55
+GO
+
+-- Query 720
+/* ama-bench-q00720 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 948) IS NULL THEN 0 WHEN COALESCE(o.amount, 948) < 0 THEN 0 ELSE COALESCE(o.amount, 948) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 56
+GO
+
+-- Query 721
+/* ama-bench-q00721 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5113
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 13
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 722
+/* ama-bench-q00722 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5114
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 14
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 723
+/* ama-bench-q00723 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5115
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 15
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 724
+/* ama-bench-q00724 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5116
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 16
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 725
+/* ama-bench-q00725 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5117
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 17
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 726
+/* ama-bench-q00726 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5118
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 18
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 727
+/* ama-bench-q00727 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 144
+  AND DATEPART(year, i.due_date) = 2019
+GO
+
+-- Query 728
+/* ama-bench-q00728 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'posted'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 145
+  AND DATEPART(year, i.due_date) = 2020
+GO
+
+-- Query 729
+/* ama-bench-q00729 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'open'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 146
+  AND DATEPART(year, i.due_date) = 2021
+GO
+
+-- Query 730
+/* ama-bench-q00730 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'posted', N'void', N'active')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 147
+  AND DATEPART(year, i.due_date) = 2022
+GO
+
+-- Query 731
+/* ama-bench-q00731 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 148
+  AND YEAR(i.due_date) = 2023
+GO
+
+-- Query 732
+/* ama-bench-q00732 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'void'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 149
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2024'
+GO
+
+-- Query 733
+/* ama-bench-q00733 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Tel Aviv%')
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 734
+/* ama-bench-q00734 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Jerusalem%'
+  AND (c.country_code = N'US'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 735
+/* ama-bench-q00735 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 736
+/* ama-bench-q00736 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Haifa%'
+  AND (c.country_code = N'GB'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 737
+/* ama-bench-q00737 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 738
+/* ama-bench-q00738 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 7
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'completed'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.04
+  )
+GO
+
+-- Query 739
+/* ama-bench-q00739 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 8
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'cancelled', N'active')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.05
+  )
+GO
+
+-- Query 740
+/* ama-bench-q00740 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 9
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'pending'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.06
+  )
+GO
+
+-- Query 741
+/* ama-bench-q00741 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 10
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'pending', N'completed', N'cancelled')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.07
+  )
+GO
+
+-- Query 742
+/* ama-bench-q00742 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 11
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'shipped'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.08
+  )
+GO
+
+-- Query 743
+/* ama-bench-q00743 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 12
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'active'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.09
+  )
+GO
+
+-- Query 744
+/* ama-bench-q00744 */
+SELECT p.payment_id, p.invoice_id, p.amount,
+       p.paid_at, p.payment_status, p.currency,
+       i.status AS invoice_status
+FROM finance.payments p
+INNER JOIN finance.invoices i ON p.invoice_id = i.invoice_id
+WHERE p.currency = N'EUR'
+  AND p.payment_status = N'pending'
+  AND CONVERT(VARCHAR(10), p.paid_at, 120) >= '2025-01-01'
+GO
+
+-- Query 745
+/* ama-bench-q00745 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2024
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 8
+GO
+
+-- Query 746
+/* ama-bench-q00746 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2025
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 9
+GO
+
+-- Query 747
+/* ama-bench-q00747 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2021
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 10
+GO
+
+-- Query 748
+/* ama-bench-q00748 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2022
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 11
+GO
+
+-- Query 749
+/* ama-bench-q00749 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2023
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 12
+GO
+
+-- Query 750
+/* ama-bench-q00750 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 13
+GO
+
+-- Query 751
+/* ama-bench-q00751 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 5 = 3
+GO
+
+-- Query 752
+/* ama-bench-q00752 */
+SELECT ol.line_id, ol.order_id, ol.product_id,
+       ol.quantity, ol.unit_price,
+       DENSE_RANK() OVER (
+           PARTITION BY ol.order_id
+           ORDER BY ol.net_amount DESC
+       ) AS line_rank,
+       SUM(ol.quantity) OVER (
+           PARTITION BY ol.product_id
+           ORDER BY ol.order_id
+       ) AS prod_running_qty
+FROM dbo.order_lines ol
+WHERE ol.unit_price * ol.quantity <> COALESCE(ol.net_amount, 0)
+  AND ol.order_id % 6 = 2
+GO
+
+-- Query 753
+/* ama-bench-q00753 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3380
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 30
+  )
+GO
+
+-- Query 754
+/* ama-bench-q00754 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3381
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 31
+  )
+GO
+
+-- Query 755
+/* ama-bench-q00755 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3382
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 32
+  )
+GO
+
+-- Query 756
+/* ama-bench-q00756 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3383
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 33
+  )
+GO
+
+-- Query 757
+/* ama-bench-q00757 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3384
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 34
+  )
+GO
+
+-- Query 758
+/* ama-bench-q00758 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3385
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 35
+  )
+GO
+
+-- Query 759
+/* ama-bench-q00759 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'USD' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2021
+GO
+
+-- Query 760
+/* ama-bench-q00760 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'ILS' OR o.currency IS NULL)
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2022'
+GO
+
+-- Query 761
+/* ama-bench-q00761 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'EUR' OR o.currency IS NULL)
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2023'
+GO
+
+-- Query 762
+/* ama-bench-q00762 */
+SELECT c.customer_id, c.customer_name
+FROM dbo.customers c
+WHERE c.customer_id >= 392
+  AND c.customer_id IS NOT NULL
+GO
+
+-- Query 763
+/* ama-bench-q00763 */
+SELECT o.customer_id, o.status
+FROM dbo.orders o
+WHERE o.order_id >= 393
+  AND o.status = N'pending'
+GO
+
+-- Query 764
+/* ama-bench-q00764 */
+SELECT ol.quantity, ol.unit_price
+FROM dbo.order_lines ol
+WHERE ol.line_id >= 394
+  AND ol.line_id IS NOT NULL
+GO
+
+-- Query 765
+/* ama-bench-q00765 */
+SELECT i.net_amount, i.vat_amount
+FROM finance.invoices i
+WHERE i.invoice_id >= 395
+  AND i.status = N'shipped'
+GO
+
+-- Query 766
+/* ama-bench-q00766 */
+SELECT p.payment_status, p.currency
+FROM finance.payments p
+WHERE p.payment_id >= 396
+  AND p.payment_id IS NOT NULL
+GO
+
+-- Query 767
+/* ama-bench-q00767 */
+SELECT s.warehouse_id, s.shipment_id
+FROM logistics.shipments s
+WHERE s.shipment_id >= 397
+  AND s.shipment_id IS NOT NULL
+GO
+
+-- Query 768
+/* ama-bench-q00768 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'GBP'
+  AND p.amount <= i.amount + 23
+GO
+
+-- Query 769
+/* ama-bench-q00769 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'USD'
+  AND p.amount <= i.amount + 24
+GO
+
+-- Query 770
+/* ama-bench-q00770 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 25
+GO
+
+-- Query 771
+/* ama-bench-q00771 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'EUR'
+  AND p.amount <= i.amount + 26
+GO
+
+-- Query 772
+/* ama-bench-q00772 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'GBP'
+  AND p.amount <= i.amount + 27
+GO
+
+-- Query 773
+/* ama-bench-q00773 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'USD'
+  AND p.amount <= i.amount + 28
+GO
+
+-- Query 774
+/* ama-bench-q00774 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 54
+  AND (h.[סטטוס] = N'void'
+       OR i.status = N'active')
+GO
+
+-- Query 775
+/* ama-bench-q00775 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 55
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
+GO
+
+-- Query 776
+/* ama-bench-q00776 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 56
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
+GO
+
+-- Query 777
+/* ama-bench-q00777 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 57
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
+GO
+
+-- Query 778
+/* ama-bench-q00778 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 58
+  AND (h.[סטטוס] = N'paid'
+       OR i.status = N'void')
+GO
+
+-- Query 779
+/* ama-bench-q00779 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 59
+  AND (h.[סטטוס] = N'void'
+       OR i.status = N'active')
+GO
+
+-- Query 780
+/* ama-bench-q00780 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2023
+  AND o.[סכום] > 85
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 781
+/* ama-bench-q00781 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2024
+  AND o.[סכום] > 86
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 782
+/* ama-bench-q00782 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2025
+  AND o.[סכום] > 87
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 783
+/* ama-bench-q00783 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2026
+  AND o.[סכום] > 88
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 784
+/* ama-bench-q00784 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2020
+  AND o.[סכום] > 89
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 785
+/* ama-bench-q00785 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2021
+  AND o.[סכום] > 90
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 786
+/* ama-bench-q00786 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 2
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 16
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 787
+/* ama-bench-q00787 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 17
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 788
+/* ama-bench-q00788 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 18
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 789
+/* ama-bench-q00789 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 19
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 790
+/* ama-bench-q00790 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 1
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 20
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 791
+/* ama-bench-q00791 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 2
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 21
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 792
+/* ama-bench-q00792 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(o.amount, 133) IS NULL THEN 0 WHEN COALESCE(o.amount, 133) < 0 THEN 0 ELSE COALESCE(o.amount, 133) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 47
+GO
+
+-- Query 793
+/* ama-bench-q00793 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 475), 26) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2023
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 48
+GO
+
+-- Query 794
+/* ama-bench-q00794 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 288), 531) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2024
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 49
+GO
+
+-- Query 795
+/* ama-bench-q00795 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 201), 556) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 201), 556) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 201), 556) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2025'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 50
+GO
+
+-- Query 796
+/* ama-bench-q00796 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 370), 870) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2026
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 51
+GO
+
+-- Query 797
+/* ama-bench-q00797 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 183), 723) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 183), 723) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 183), 723) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2020'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 52
+GO
+
+-- Query 798
+/* ama-bench-q00798 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'open')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 799
+/* ama-bench-q00799 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'active', N'shipped')) AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Beer Sheva%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 800
+/* ama-bench-q00800 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'completed') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 801
+/* ama-bench-q00801 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'pending') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 802
+/* ama-bench-q00802 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'pending')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 803
+/* ama-bench-q00803 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 609
+  AND o.status IN (N'pending', N'shipped', N'open')
+GO
+
+-- Query 804
+/* ama-bench-q00804 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 610
+  AND o.status = N'shipped'
+GO
+
+-- Query 805
+/* ama-bench-q00805 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 611
+  AND o.status = N'pending'
+GO
+
+-- Query 806
+/* ama-bench-q00806 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 612
+  AND o.status = N'open'
+GO
+
+-- Query 807
+/* ama-bench-q00807 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 613
+  AND o.status = N'open'
+GO
+
+-- Query 808
+/* ama-bench-q00808 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 614
+  AND o.status IN (N'shipped', N'completed', N'active')
+GO
+
+-- Query 809
+/* ama-bench-q00809 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 432), 472) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 432), 472) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 432), 472) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 40
+GO
+
+-- Query 810
+/* ama-bench-q00810 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 889), 182) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 889), 182) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 889), 182) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 41
+GO
+
+-- Query 811
+/* ama-bench-q00811 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 963), 335) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 963), 335) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 963), 335) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'US'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 42
+GO
+
+-- Query 812
+/* ama-bench-q00812 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(COALESCE(o.amount, 901), 246)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 43
+GO
+
+-- Query 813
+/* ama-bench-q00813 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 655) IS NULL THEN 0 WHEN COALESCE(o.amount, 655) < 0 THEN 0 ELSE COALESCE(o.amount, 655) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 44
+GO
+
+-- Query 814
+/* ama-bench-q00814 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 196) IS NULL THEN 0 WHEN COALESCE(o.amount, 196) < 0 THEN 0 ELSE COALESCE(o.amount, 196) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 45
+GO
+
+-- Query 815
+/* ama-bench-q00815 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5702
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 2
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 816
+/* ama-bench-q00816 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5703
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 3
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 817
+/* ama-bench-q00817 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5704
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 4
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 818
+/* ama-bench-q00818 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5705
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 5
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 819
+/* ama-bench-q00819 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5706
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 6
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 820
+/* ama-bench-q00820 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 5707
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 7
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 821
+/* ama-bench-q00821 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'active')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 133
+  AND DATEPART(year, i.due_date) = 2024
+GO
+
+-- Query 822
+/* ama-bench-q00822 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 134
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2025'
+GO
+
+-- Query 823
+/* ama-bench-q00823 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 135
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2026'
+GO
+
+-- Query 824
+/* ama-bench-q00824 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'active'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 136
+  AND YEAR(i.due_date) = 2019
+GO
+
+-- Query 825
+/* ama-bench-q00825 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 137
+  AND DATEPART(year, i.due_date) = 2020
+GO
+
+-- Query 826
+/* ama-bench-q00826 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'posted', N'open', N'void')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 138
+  AND DATEPART(year, i.due_date) = 2021
+GO
+
+-- Query 827
+/* ama-bench-q00827 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Beer Sheva%'
+  AND (c.country_code = N'GB'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 828
+/* ama-bench-q00828 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Netanya%')
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 829
+/* ama-bench-q00829 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Jerusalem%'
+  AND (c.country_code = N'GB'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 830
+/* ama-bench-q00830 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 16
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'pending'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.08
+  )
+GO
+
+-- Query 831
+/* ama-bench-q00831 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 17
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'pending'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.09
+  )
+GO
+
+-- Query 832
+/* ama-bench-q00832 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 18
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'active'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.01
+  )
+GO
+
+-- Query 833
+/* ama-bench-q00833 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 19
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'completed'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.02
+  )
+GO
+
+-- Query 834
+/* ama-bench-q00834 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 20
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'shipped'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.03
+  )
+GO
+
+-- Query 835
+/* ama-bench-q00835 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 1
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'completed'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.04
+  )
+GO
+
+-- Query 836
+/* ama-bench-q00836 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2023
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 2
+GO
+
+-- Query 837
+/* ama-bench-q00837 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2024
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 3
+GO
+
+-- Query 838
+/* ama-bench-q00838 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2025
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 4
+GO
+
+-- Query 839
+/* ama-bench-q00839 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2021'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 5
+GO
+
+-- Query 840
+/* ama-bench-q00840 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 6
+GO
+
+-- Query 841
+/* ama-bench-q00841 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2023
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 7
+GO
+
+-- Query 842
+/* ama-bench-q00842 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3969
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 19
+  )
+GO
+
+-- Query 843
+/* ama-bench-q00843 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3970
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 20
+  )
+GO
+
+-- Query 844
+/* ama-bench-q00844 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3971
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 21
+  )
+GO
+
+-- Query 845
+/* ama-bench-q00845 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3972
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 22
+  )
+GO
+
+-- Query 846
+/* ama-bench-q00846 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3973
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 23
+  )
+GO
+
+-- Query 847
+/* ama-bench-q00847 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 3974
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 24
+  )
+GO
+
+-- Query 848
+/* ama-bench-q00848 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'EUR' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2026
+GO
+
+-- Query 849
+/* ama-bench-q00849 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'GBP' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2020
+GO
+
+-- Query 850
+/* ama-bench-q00850 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'GBP' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2024
+GO
+
+-- Query 851
+/* ama-bench-q00851 */
+SELECT o.discount, o.currency
+FROM dbo.orders o
+WHERE o.order_id >= 981
+  AND o.status IN (N'cancelled', N'pending', N'active')
+GO
+
+-- Query 852
+/* ama-bench-q00852 */
+SELECT ol.quantity, ol.unit_price
+FROM dbo.order_lines ol
+WHERE ol.line_id >= 982
+  AND ol.line_id IS NOT NULL
+GO
+
+-- Query 853
+/* ama-bench-q00853 */
+SELECT i.status, i.due_date
+FROM finance.invoices i
+WHERE i.invoice_id >= 983
+  AND i.status = N'completed'
+GO
+
+-- Query 854
+/* ama-bench-q00854 */
+SELECT p.payment_status, p.currency
+FROM finance.payments p
+WHERE p.payment_id >= 984
+  AND p.payment_id IS NOT NULL
+GO
+
+-- Query 855
+/* ama-bench-q00855 */
+SELECT s.warehouse_id, s.shipment_id
+FROM logistics.shipments s
+WHERE s.shipment_id >= 985
+  AND s.shipment_id IS NOT NULL
+GO
+
+-- Query 856
+/* ama-bench-q00856 */
+SELECT c.email, c.city
+FROM dbo.customers c
+WHERE c.customer_id >= 986
+  AND c.customer_id IS NOT NULL
+GO
+
+-- Query 857
+/* ama-bench-q00857 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'USD'
+  AND p.amount <= i.amount + 12
+GO
+
+-- Query 858
+/* ama-bench-q00858 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 13
+GO
+
+-- Query 859
+/* ama-bench-q00859 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'EUR'
+  AND p.amount <= i.amount + 14
+GO
+
+-- Query 860
+/* ama-bench-q00860 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'GBP'
+  AND p.amount <= i.amount + 15
+GO
+
+-- Query 861
+/* ama-bench-q00861 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'USD'
+  AND p.amount <= i.amount + 16
+GO
+
+-- Query 862
+/* ama-bench-q00862 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 17
+GO
+
+-- Query 863
+/* ama-bench-q00863 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 43
+  AND (h.[סטטוס] = N'paid'
+       OR i.status = N'void')
+GO
+
+-- Query 864
+/* ama-bench-q00864 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 44
+  AND (h.[סטטוס] = N'void'
+       OR i.status = N'active')
+GO
+
+-- Query 865
+/* ama-bench-q00865 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 45
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
+GO
+
+-- Query 866
+/* ama-bench-q00866 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 46
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
+GO
+
+-- Query 867
+/* ama-bench-q00867 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 47
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
+GO
+
+-- Query 868
+/* ama-bench-q00868 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 48
+  AND (h.[סטטוס] = N'paid'
+       OR i.status = N'void')
+GO
+
+-- Query 869
+/* ama-bench-q00869 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2024
+  AND o.[סכום] > 74
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 870
+/* ama-bench-q00870 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2025
+  AND o.[סכום] > 75
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 871
+/* ama-bench-q00871 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2026
+  AND o.[סכום] > 76
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 872
+/* ama-bench-q00872 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2020
+  AND o.[סכום] > 77
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 873
+/* ama-bench-q00873 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2021
+  AND o.[סכום] > 78
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 874
+/* ama-bench-q00874 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2022
+  AND o.[סכום] > 79
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 875
+/* ama-bench-q00875 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 1
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 5
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 876
+/* ama-bench-q00876 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 2
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 6
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 877
+/* ama-bench-q00877 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 7
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 878
+/* ama-bench-q00878 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 8
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 879
+/* ama-bench-q00879 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 9
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 880
+/* ama-bench-q00880 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 1
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 10
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 881
+/* ama-bench-q00881 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 674), 302) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2023
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 136
+GO
+
+-- Query 882
+/* ama-bench-q00882 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(o.amount, 735) IS NULL THEN 0 WHEN COALESCE(o.amount, 735) < 0 THEN 0 ELSE COALESCE(o.amount, 735) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 137
+GO
+
+-- Query 883
+/* ama-bench-q00883 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(o.amount, 902) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2025
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 138
+GO
+
+-- Query 884
+/* ama-bench-q00884 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(o.amount, 798) IS NULL THEN 0 WHEN COALESCE(o.amount, 798) < 0 THEN 0 ELSE COALESCE(o.amount, 798) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2026'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 139
+GO
+
+-- Query 885
+/* ama-bench-q00885 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 636), 307) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 636), 307) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 636), 307) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2020
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 140
+GO
+
+-- Query 886
+/* ama-bench-q00886 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 697), 416) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2021
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 141
+GO
+
+-- Query 887
+/* ama-bench-q00887 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'shipped') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Netanya%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 888
+/* ama-bench-q00888 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'active')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 889
+/* ama-bench-q00889 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'pending', N'shipped', N'active')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 890
+/* ama-bench-q00890 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'open') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Jerusalem%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 891
+/* ama-bench-q00891 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'pending') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 892
+/* ama-bench-q00892 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'completed', N'active')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Haifa%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 893
+/* ama-bench-q00893 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 198
+  AND o.status = N'cancelled'
+GO
+
+-- Query 894
+/* ama-bench-q00894 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 199
+  AND o.status = N'completed'
+GO
+
+-- Query 895
+/* ama-bench-q00895 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 200
+  AND o.status IN (N'shipped', N'cancelled', N'active')
+GO
+
+-- Query 896
+/* ama-bench-q00896 */
+SELECT o.order_id, o.status, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.status
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.status
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 201
+  AND o.status IN (N'cancelled', N'completed')
+GO
+
+-- Query 897
+/* ama-bench-q00897 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 202
+  AND o.status = N'cancelled'
+GO
+
+-- Query 898
+/* ama-bench-q00898 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 203
+  AND o.status = N'completed'
+GO
+
+-- Query 899
+/* ama-bench-q00899 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 610), 842) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 610), 842) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 610), 842) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 29
+GO
+
+-- Query 900
+/* ama-bench-q00900 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(o.amount, 637)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 30
+GO
+
+-- Query 901
+/* ama-bench-q00901 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 78) IS NULL THEN 0 WHEN COALESCE(o.amount, 78) < 0 THEN 0 ELSE COALESCE(o.amount, 78) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 31
+GO
+
+-- Query 902
+/* ama-bench-q00902 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 454), 107) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 454), 107) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 454), 107) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'US'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 32
+GO
+
+-- Query 903
+/* ama-bench-q00903 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 319), 932) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 319), 932) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 319), 932) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 33
+GO
+
+-- Query 904
+/* ama-bench-q00904 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(o.amount, 934)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 34
+GO
+
+-- Query 905
+/* ama-bench-q00905 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6291
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 16
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 906
+/* ama-bench-q00906 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6292
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 17
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 907
+/* ama-bench-q00907 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6293
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 18
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 908
+/* ama-bench-q00908 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6294
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 19
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 909
+/* ama-bench-q00909 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6295
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 20
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 910
+/* ama-bench-q00910 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6296
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 21
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 911
+/* ama-bench-q00911 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'paid', N'open', N'posted')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 122
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2021'
+GO
+
+-- Query 912
+/* ama-bench-q00912 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'open'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 123
+  AND YEAR(i.due_date) = 2022
+GO
+
+-- Query 913
+/* ama-bench-q00913 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 124
+  AND CONVERT(VARCHAR(4), i.due_date, 120) = '2023'
+GO
+
+-- Query 914
+/* ama-bench-q00914 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'paid'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 125
+  AND DATEPART(year, i.due_date) = 2024
+GO
+
+-- Query 915
+/* ama-bench-q00915 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status = N'open'
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 126
+  AND DATEPART(year, i.due_date) = 2025
+GO
+
+-- Query 916
+/* ama-bench-q00916 */
+SELECT i.invoice_id, i.order_id, i.amount,
+       (SELECT SUM(p2.amount) FROM finance.payments p2
+        WHERE p2.invoice_id = i.invoice_id) AS paid
+FROM finance.invoices i
+WHERE i.status IN (N'void', N'active')
+  AND i.amount - COALESCE((
+        SELECT SUM(p3.amount) FROM finance.payments p3
+        WHERE p3.invoice_id = i.invoice_id
+  ), 0) >= 127
+  AND DATEPART(year, i.due_date) = 2026
+GO
+
+-- Query 917
+/* ama-bench-q00917 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Tel Aviv%'
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 918
+/* ama-bench-q00918 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Beer Sheva%')
+  AND (c.country_code = N'sample'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 919
+/* ama-bench-q00919 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Netanya%'
+  AND (c.country_code = N'IL'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 920
+/* ama-bench-q00920 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 1 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 1 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE UPPER(c.city) LIKE UPPER(N'%Haifa%')
+  AND (c.country_code = N'US'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 921
+/* ama-bench-q00921 */
+SELECT c.customer_id, c.customer_name, c.email,
+       CASE WHEN c.is_active = 0 THEN N'Y'
+            WHEN TRY_CAST(c.is_active AS INT) = 0 THEN N'Y2'
+            ELSE N'N' END AS active_flag
+FROM dbo.customers c
+WHERE c.city LIKE N'%Tel Aviv%'
+  AND (c.country_code = N'DE'
+       OR c.email LIKE N'%@%')
+  AND 1=1
+GO
+
+-- Query 922
+/* ama-bench-q00922 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 5
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'open', N'completed', N'cancelled')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.03
+  )
+GO
+
+-- Query 923
+/* ama-bench-q00923 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 6
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'cancelled'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.04
+  )
+GO
+
+-- Query 924
+/* ama-bench-q00924 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 7
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'open'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.05
+  )
+GO
+
+-- Query 925
+/* ama-bench-q00925 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 9
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status = N'shipped'
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.07
+  )
+GO
+
+-- Query 926
+/* ama-bench-q00926 */
+WITH ship_rank AS (
+    SELECT s.shipment_id, s.order_id, s.shipped_at,
+           s.warehouse_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.order_id
+               ORDER BY s.shipped_at DESC
+           ) AS rn
+    FROM logistics.shipments s
+    WHERE s.warehouse_id = 10
+)
+SELECT o.order_id, o.customer_id, sr.shipment_id, sr.rn
+FROM dbo.orders o
+INNER JOIN ship_rank sr ON sr.order_id = o.order_id AND sr.rn = 1
+WHERE o.sales_rep_id IS NOT NULL
+  AND o.status IN (N'active', N'pending', N'completed')
+  AND EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.vat_rate >= 0.08
+  )
+GO
+
+-- Query 927
+/* ama-bench-q00927 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2022
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 13
+GO
+
+-- Query 928
+/* ama-bench-q00928 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2023
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 14
+GO
+
+-- Query 929
+/* ama-bench-q00929 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2024
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 15
+GO
+
+-- Query 930
+/* ama-bench-q00930 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE YEAR(o.created_at) = 2025
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 16
+GO
+
+-- Query 931
+/* ama-bench-q00931 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 0
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE DATEPART(year, o.created_at) = 2021
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 0
+GO
+
+-- Query 932
+/* ama-bench-q00932 */
+WITH c_base AS (
+    SELECT c.customer_id, c.customer_name
+    FROM dbo.customers c
+    WHERE TRY_CAST(c.is_active AS INT) = 1
+),
+o_base AS (
+    SELECT o.order_id, o.customer_id, o.amount,
+           o.created_at
+    FROM dbo.orders o
+    WHERE CONVERT(VARCHAR(4), o.created_at, 120) = '2022'
+),
+fin AS (
+    SELECT i.order_id, SUM(i.net_amount) AS inv_net
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+logi AS (
+    SELECT s.order_id, MAX(s.shipment_status) AS last_ship_st
+    FROM logistics.shipments s
+    GROUP BY s.order_id
+)
+SELECT cb.customer_id, cb.customer_name, ob.order_id,
+       ob.amount, fin.inv_net, logi.last_ship_st
+FROM c_base cb
+INNER JOIN o_base ob ON cb.customer_id = ob.customer_id
+LEFT JOIN fin ON fin.order_id = ob.order_id
+LEFT JOIN logi ON logi.order_id = ob.order_id
+WHERE COALESCE(fin.inv_net, 0) <= ob.amount + 1
+GO
+
+-- Query 933
+/* ama-bench-q00933 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 4558
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 8
+  )
+GO
+
+-- Query 934
+/* ama-bench-q00934 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 4559
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 9
+  )
+GO
+
+-- Query 935
+/* ama-bench-q00935 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 4560
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 10
+  )
+GO
+
+-- Query 936
+/* ama-bench-q00936 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 4561
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 11
+  )
+GO
+
+-- Query 937
+/* ama-bench-q00937 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 4562
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 12
+  )
+GO
+
+-- Query 938
+/* ama-bench-q00938 */
+SELECT o.order_id, o.customer_id, o.amount
+FROM dbo.orders o
+WHERE o.amount > 4563
+  AND NOT EXISTS (
+      SELECT 1 FROM finance.invoices i
+      WHERE i.order_id = o.order_id
+        AND i.status = N'paid'
+  )
+  AND EXISTS (
+      SELECT 1 FROM (
+          SELECT ol.order_id, SUM(ol.net_amount) AS line_total
+          FROM dbo.order_lines ol
+          GROUP BY ol.order_id
+      ) lg
+      WHERE lg.order_id = o.order_id
+        AND lg.line_total > 13
+  )
+GO
+
+-- Query 939
+/* ama-bench-q00939 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'ILS' OR o.currency IS NULL)
+  AND DATEPART(year, COALESCE(o.created_at, i.created_at)) = 2022
+GO
+
+-- Query 940
+/* ama-bench-q00940 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'EUR' OR o.currency IS NULL)
+  AND YEAR(COALESCE(o.created_at, i.created_at)) = 2023
+GO
+
+-- Query 941
+/* ama-bench-q00941 */
+SELECT COALESCE(o.order_id, i.order_id, s.order_id) AS oid,
+       c.customer_name, i.net_amount, s.tracking_number
+FROM dbo.customers c
+FULL OUTER JOIN dbo.orders o ON c.customer_id = o.customer_id
+FULL OUTER JOIN finance.invoices i ON o.order_id = i.order_id
+FULL OUTER JOIN logistics.shipments s ON s.order_id = o.order_id
+WHERE (o.currency = N'USD' OR o.currency IS NULL)
+  AND CONVERT(VARCHAR(4), COALESCE(o.created_at, i.created_at), 120) = '2025'
+GO
+
+-- Query 942
+/* ama-bench-q00942 */
+SELECT ol.quantity, ol.unit_price
+FROM dbo.order_lines ol
+WHERE ol.line_id >= 570
+  AND ol.line_id IS NOT NULL
+GO
+
+-- Query 943
+/* ama-bench-q00943 */
+SELECT i.invoice_id, i.order_id
+FROM finance.invoices i
+WHERE i.invoice_id >= 571
+  AND i.status = N'pending'
+GO
+
+-- Query 944
+/* ama-bench-q00944 */
+SELECT p.payment_status, p.currency
+FROM finance.payments p
+WHERE p.payment_id >= 572
+  AND p.payment_id IS NOT NULL
+GO
+
+-- Query 945
+/* ama-bench-q00945 */
+SELECT s.warehouse_id, s.shipment_id
+FROM logistics.shipments s
+WHERE s.shipment_id >= 573
+  AND s.shipment_id IS NOT NULL
+GO
+
+-- Query 946
+/* ama-bench-q00946 */
+SELECT c.is_active, c.created_at
+FROM dbo.customers c
+WHERE c.customer_id >= 574
+  AND c.customer_id IS NOT NULL
+GO
+
+-- Query 947
+/* ama-bench-q00947 */
+SELECT o.sales_rep_id, o.order_id
+FROM dbo.orders o
+WHERE o.order_id >= 575
+  AND o.status IN (N'cancelled', N'open', N'active')
+GO
+
+-- Query 948
+/* ama-bench-q00948 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 1
+GO
+
+-- Query 949
+/* ama-bench-q00949 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'EUR'
+  AND p.amount <= i.amount + 2
+GO
+
+-- Query 950
+/* ama-bench-q00950 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'GBP'
+  AND p.amount <= i.amount + 3
+GO
+
+-- Query 951
+/* ama-bench-q00951 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'USD'
+  AND p.amount <= i.amount + 4
+GO
+
+-- Query 952
+/* ama-bench-q00952 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'ILS'
+  AND p.amount <= i.amount + 5
+GO
+
+-- Query 953
+/* ama-bench-q00953 */
+SELECT c.customer_id, o.order_id, i.invoice_id,
+       o.amount AS order_amount,
+       i.net_amount AS invoice_net
+FROM dbo.customers c
+INNER JOIN dbo.orders o ON c.customer_id = o.customer_id
+INNER JOIN finance.invoices i ON o.order_id = i.order_id
+INNER JOIN finance.payments p ON p.invoice_id = i.invoice_id
+WHERE o.currency = N'EUR'
+  AND p.amount <= i.amount + 6
+GO
+
+-- Query 954
+/* ama-bench-q00954 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 32
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
+GO
+
+-- Query 955
+/* ama-bench-q00955 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 33
+  AND (h.[סטטוס] = N'paid'
+       OR i.status = N'void')
+GO
+
+-- Query 956
+/* ama-bench-q00956 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 34
+  AND (h.[סטטוס] = N'void'
+       OR i.status = N'active')
+GO
+
+-- Query 957
+/* ama-bench-q00957 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 35
+  AND (h.[סטטוס] = N'active'
+       OR i.status = N'open')
+GO
+
+-- Query 958
+/* ama-bench-q00958 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 36
+  AND (h.[סטטוס] = N'open'
+       OR i.status = N'posted')
+GO
+
+-- Query 959
+/* ama-bench-q00959 */
+SELECT h.[חשבונית], h.[סכום], h.[סכום_נטו], h.[סטטוס], i.invoice_id, i.net_amount
+FROM legacy_hebrew.[חשבוניות] h
+LEFT JOIN finance.invoices i ON h.[חשבונית] = i.invoice_id
+WHERE h.[סכום] IS NOT NULL
+  AND COALESCE(h.[סכום], 0) >= 37
+  AND (h.[סטטוס] = N'posted'
+       OR i.status = N'paid')
+GO
+
+-- Query 960
+/* ama-bench-q00960 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2025
+  AND o.[סכום] > 63
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 961
+/* ama-bench-q00961 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2026
+  AND o.[סכום] > 64
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 962
+/* ama-bench-q00962 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2020
+  AND o.[סכום] > 65
+  AND (s.[סטטוס_משלוח] = N'pending'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 963
+/* ama-bench-q00963 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2021
+  AND o.[סכום] > 66
+  AND (s.[סטטוס_משלוח] = N'in_transit'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 964
+/* ama-bench-q00964 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2022
+  AND o.[סכום] > 67
+  AND (s.[סטטוס_משלוח] = N'delivered'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 965
+/* ama-bench-q00965 */
+SELECT c.[שם_לקוח], o.[הזמנה], o.[סכום] AS order_amt,
+       h.[חשבונית], h.[סכום] AS invoice_amt, s.[מספר_מעקב], s.[סטטוס_משלוח]
+FROM legacy_hebrew.[לקוחות] c
+INNER JOIN legacy_hebrew.[הזמנות] o ON c.[לקוח] = o.[לקוח]
+LEFT JOIN legacy_hebrew.[חשבוניות] h ON o.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[משלוחים] s ON o.[הזמנה] = s.[הזמנה]
+WHERE YEAR(o.[תאריך_יצירה]) = 2023
+  AND o.[סכום] > 68
+  AND (s.[סטטוס_משלוח] = N'active'
+       OR s.[מזהה_משלוח] IS NULL)
+GO
+
+-- Query 966
+/* ama-bench-q00966 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 19
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 967
+/* ama-bench-q00967 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 1
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 20
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 968
+/* ama-bench-q00968 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 2
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 21
+  AND (p.[סטטוס_תשלום] = N'active'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 969
+/* ama-bench-q00969 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 3
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 22
+  AND (p.[סטטוס_תשלום] = N'posted'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 970
+/* ama-bench-q00970 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 4
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 23
+  AND (p.[סטטוס_תשלום] = N'pending'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 971
+/* ama-bench-q00971 */
+SELECT ol.[מזהה_שורה], ol.[הזמנה], ol.[כמות], ol.[מחיר_יחידה], ol.[סכום_נטו],
+       p.[תשלום], p.[סכום] AS paid_amt, p.[סטטוס_תשלום], h.[חשבונית]
+FROM legacy_hebrew.[שורות_הזמנה] ol
+INNER JOIN legacy_hebrew.[חשבוניות] h ON ol.[הזמנה] = h.[הזמנה]
+LEFT JOIN legacy_hebrew.[תשלומים] p ON h.[חשבונית] = p.[חשבונית]
+WHERE ol.[כמות] >= 5
+  AND COALESCE(p.[סכום], 0) <= COALESCE(h.[סכום], 0) + 24
+  AND (p.[סטטוס_תשלום] = N'failed'
+       OR p.[תשלום] IS NULL)
+GO
+
+-- Query 972
+/* ama-bench-q00972 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 248), 818) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2024'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 225
+GO
+
+-- Query 973
+/* ama-bench-q00973 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(o.amount, 28) IS NULL THEN 0 WHEN COALESCE(o.amount, 28) < 0 THEN 0 ELSE COALESCE(o.amount, 28) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2025
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 226
+GO
+
+-- Query 974
+/* ama-bench-q00974 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 829), 339) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 829), 339) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 829), 339) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2026'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 227
+GO
+
+-- Query 975
+/* ama-bench-q00975 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 581), 749) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND CONVERT(VARCHAR(4), o.created_at, 120) = '2020'
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 228
+GO
+
+-- Query 976
+/* ama-bench-q00976 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           COALESCE(COALESCE(o.amount, 663), 586) AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND YEAR(o.created_at) = 2021
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 229
+GO
+
+-- Query 977
+/* ama-bench-q00977 */
+WITH order_totals AS (
+    SELECT o.order_id, o.customer_id,
+           CASE WHEN COALESCE(COALESCE(o.amount, 622), 624) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 622), 624) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 622), 624) END AS order_amt,
+           o.created_at
+    FROM dbo.orders o
+    WHERE 1=1 AND DATEPART(year, o.created_at) = 2022
+),
+invoice_roll AS (
+    SELECT i.order_id,
+           SUM(i.net_amount) AS inv_net,
+           MAX(i.status) AS inv_status
+    FROM finance.invoices i
+    GROUP BY i.order_id
+),
+pay_bal AS (
+    SELECT i.order_id,
+           SUM(p.amount) AS paid_amt
+    FROM finance.invoices i
+    INNER JOIN finance.payments p ON i.invoice_id = p.invoice_id
+    GROUP BY i.order_id
+)
+SELECT ot.order_id, ot.order_amt, ir.inv_net, pb.paid_amt
+FROM order_totals ot
+LEFT JOIN invoice_roll ir ON ot.order_id = ir.order_id
+LEFT JOIN pay_bal pb ON ot.order_id = pb.order_id
+WHERE EXISTS (
+    SELECT 1 FROM finance.payments px
+    INNER JOIN finance.invoices ix ON px.invoice_id = ix.invoice_id
+    WHERE ix.order_id = ot.order_id
+      AND px.paid_at IS NOT NULL
+)
+AND NOT EXISTS (
+    SELECT 1 FROM pay_bal pb2
+    WHERE pb2.order_id = ot.order_id
+      AND COALESCE(pb2.paid_amt, 0) >= ot.order_amt
+)
+AND ot.order_amt - COALESCE(pb.paid_amt, 0) > 230
+GO
+
+-- Query 978
+/* ama-bench-q00978 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'open', N'completed')) AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Jerusalem%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 979
+/* ama-bench-q00979 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'open') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 980
+/* ama-bench-q00980 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'cancelled') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'in_transit'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 981
+/* ama-bench-q00981 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'open') AS order_cnt
+FROM dbo.customers c
+WHERE c.customer_name LIKE N'%Tel Aviv%'
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'delivered'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 982
+/* ama-bench-q00982 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status = N'shipped') AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Beer Sheva%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'active'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 983
+/* ama-bench-q00983 */
+SELECT c.customer_id, c.customer_name,
+       (SELECT COUNT(*) FROM dbo.orders o2
+        WHERE o2.customer_id = c.customer_id
+          AND o2.status IN (N'pending', N'active', N'completed')) AS order_cnt
+FROM dbo.customers c
+WHERE UPPER(c.customer_name) LIKE UPPER(N'%Tel Aviv%')
+  AND EXISTS (
+        SELECT 1 FROM dbo.orders o
+        WHERE o.customer_id = c.customer_id
+          AND EXISTS (
+                SELECT 1 FROM logistics.shipments s
+                WHERE s.order_id = o.order_id
+                  AND s.shipment_status = N'pending'
+          )
+  )
+  AND NOT EXISTS (
+        SELECT 1 FROM finance.invoices i
+        WHERE i.order_id IN (
+            SELECT ox.order_id FROM dbo.orders ox
+            WHERE ox.customer_id = c.customer_id
+        )
+        AND i.status = N'void'
+  )
+GO
+
+-- Query 984
+/* ama-bench-q00984 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 787
+  AND o.status = N'pending'
+GO
+
+-- Query 985
+/* ama-bench-q00985 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 788
+  AND o.status = N'pending'
+GO
+
+-- Query 986
+/* ama-bench-q00986 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 789
+  AND o.status = N'active'
+GO
+
+-- Query 987
+/* ama-bench-q00987 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       ROW_NUMBER() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 790
+  AND o.status = N'shipped'
+GO
+
+-- Query 988
+/* ama-bench-q00988 */
+SELECT o.order_id, o.customer_id, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.customer_id
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 791
+  AND o.status = N'completed'
+GO
+
+-- Query 989
+/* ama-bench-q00989 */
+SELECT o.order_id, o.currency, o.amount, o.created_at,
+       SUM(o.amount) OVER (
+           PARTITION BY o.currency
+           ORDER BY o.created_at
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS run_amt,
+       DENSE_RANK() OVER (
+           PARTITION BY o.currency
+           ORDER BY o.amount DESC, o.order_id
+       ) AS rn
+FROM dbo.orders o
+WHERE o.order_id >= 792
+  AND o.status = N'pending'
+GO
+
+-- Query 990
+/* ama-bench-q00990 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 453) IS NULL THEN 0 WHEN COALESCE(o.amount, 453) < 0 THEN 0 ELSE COALESCE(o.amount, 453) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 18
+GO
+
+-- Query 991
+/* ama-bench-q00991 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 421) IS NULL THEN 0 WHEN COALESCE(o.amount, 421) < 0 THEN 0 ELSE COALESCE(o.amount, 421) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'GB'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 19
+GO
+
+-- Query 992
+/* ama-bench-q00992 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 679) IS NULL THEN 0 WHEN COALESCE(o.amount, 679) < 0 THEN 0 ELSE COALESCE(o.amount, 679) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'sample'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 20
+GO
+
+-- Query 993
+/* ama-bench-q00993 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(o.amount, 63) IS NULL THEN 0 WHEN COALESCE(o.amount, 63) < 0 THEN 0 ELSE COALESCE(o.amount, 63) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'IL'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 2
+   AND SUM(o.amount) >= 21
+GO
+
+-- Query 994
+/* ama-bench-q00994 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(CASE WHEN COALESCE(COALESCE(o.amount, 95), 950) IS NULL THEN 0 WHEN COALESCE(COALESCE(o.amount, 95), 950) < 0 THEN 0 ELSE COALESCE(COALESCE(o.amount, 95), 950) END) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'US'
+       OR c.country_code IS NOT NULL)
+GROUP BY ROLLUP(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 3
+   AND SUM(o.amount) >= 22
+GO
+
+-- Query 995
+/* ama-bench-q00995 */
+SELECT o.customer_id, o.currency, o.status,
+       COUNT(DISTINCT o.order_id) AS orders,
+       SUM(COALESCE(o.amount, 883)) AS gross
+FROM dbo.orders o
+INNER JOIN dbo.customers c ON c.customer_id = o.customer_id
+WHERE 1=1
+  AND (c.country_code = N'DE'
+       OR c.country_code IS NOT NULL)
+GROUP BY CUBE(o.customer_id, o.currency, o.status)
+HAVING COUNT(DISTINCT o.order_id) >= 1
+   AND SUM(o.amount) >= 23
+GO
+
+-- Query 996
+/* ama-bench-q00996 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6880
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 5
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 997
+/* ama-bench-q00997 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6881
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 6
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 998
+/* ama-bench-q00998 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6882
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 7
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 999
+/* ama-bench-q00999 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6883
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 8
+   OR o.discount IS NOT NULL
+GO
+
+-- Query 1000
+/* ama-bench-q01000 */
+WITH line_agg AS (
+    SELECT ol.order_id,
+           SUM(ol.quantity * ol.unit_price) AS ext_price,
+           SUM(ol.net_amount) AS net_sum
+    FROM dbo.order_lines ol
+    WHERE ol.product_id = 6884
+    GROUP BY ol.order_id
+)
+SELECT o.order_id, o.amount, la.ext_price, la.net_sum
+FROM dbo.orders o
+INNER JOIN line_agg la ON la.order_id = o.order_id
+WHERE ABS(o.amount - la.ext_price) >= 9
+   OR o.discount IS NOT NULL
 GO
