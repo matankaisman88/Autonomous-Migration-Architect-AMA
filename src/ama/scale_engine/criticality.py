@@ -29,11 +29,11 @@ def score_criticality(*, inventory_row: dict[str, Any], report: dict[str, Any]) 
     if downstream <= 0:
         lineage_points = 0
     elif downstream == 1:
-        lineage_points = 10
+        lineage_points = 15
     elif downstream == 2:
-        lineage_points = 20
+        lineage_points = 25
     else:
-        lineage_points = 35
+        lineage_points = 40
 
     try:
         qcount = int(inventory_row.get("query_count") or 0)
@@ -42,13 +42,13 @@ def score_criticality(*, inventory_row: dict[str, Any], report: dict[str, Any]) 
     if qcount <= 10:
         usage_points = 0
     elif qcount <= 50:
-        usage_points = 8
+        usage_points = 10
     elif qcount <= 200:
-        usage_points = 15
+        usage_points = 20
     elif qcount <= 500:
-        usage_points = 22
+        usage_points = 30
     else:
-        usage_points = 25
+        usage_points = 35
 
     naming_hit = bool(_SENSITIVE_NAME_RE.search(full_name))
     if not naming_hit:

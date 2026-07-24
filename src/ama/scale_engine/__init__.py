@@ -5,10 +5,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ama.ddl_manifest import normalize_manifest_table_key
 from ama.scale_engine.anomaly import AnomalyFlag, detect_anomalies, hitl_rejection_flags
 from ama.scale_engine.contract import MigrationContract, build_contract
 from ama.scale_engine.criticality import CriticalityResult, score_criticality
 from ama.scale_engine.scorer import ConfidenceResult, score_confidence
+from ama.schemas.report import manifest_scope_block_enabled, prepare_report_for_scoring
 
 # Bulk gate defaults — must match POST /scale/{id}/evaluate (EvaluateRequest).
 DEFAULT_CONF_FLOOR = 70
@@ -138,14 +140,26 @@ def evaluate_batch(
     crit_ceil: int = DEFAULT_CRIT_CEIL,
 ) -> BatchEvaluationResult:
     _ = dry_run  # scoring is always non-mutating; kept for API compatibility
+    prepare_report_for_scoring(report, strict=False)
     inv = (report.get("discovery") or {}).get("inventory") if isinstance(report.get("discovery"), dict) else []
     rows = [r for r in inv if isinstance(r, dict)] if isinstance(inv, list) else []
     manifest_cols = _load_manifest_columns(report)
     manifest_table_keys = {
-        str(k).strip()
+        normalize_manifest_table_key(str(k))
         for k in (report.get("ddl_manifest_table_keys") or [])
         if str(k).strip()
     }
+    manifest_table_keys.discard("")
+    apply_manifest_scope, scope_skip_reason = manifest_scope_block_enabled(report)
+    if scope_skip_reason:
+        stats = report.get("ingestion_stats")
+        if isinstance(stats, dict):
+            existing = stats.get("report_normalization_warnings")
+            if isinstance(existing, list):
+                if scope_skip_reason not in existing:
+                    stats["report_normalization_warnings"] = existing + [scope_skip_reason]
+            else:
+                stats["report_normalization_warnings"] = [scope_skip_reason]
 
     cluster_rows: dict[str, list[dict[str, Any]]] = {}
     cluster_types: dict[str, dict[str, dict[str, str]]] = {}
@@ -162,6 +176,7 @@ def evaluate_batch(
     blocked_reasons: list[dict[str, str]] = []
     for row in rows:
         table_key = str(row.get("full_name") or "")
+        table_key_norm = normalize_manifest_table_key(table_key)
         domain = str(row.get("business_domain") or "Unknown")
         defs = _column_defs_for_table(table_key, report, manifest_cols)
         conf = score_confidence(inventory_row=row, report=report, column_defs=defs)
@@ -175,7 +190,7 @@ def evaluate_batch(
         )
         flags.extend(hitl_rejection_flags(report, table_key))
         # Discovery can include non-manifest technical/legacy tables; keep bulk focused on migration scope.
-        if manifest_table_keys and table_key not in manifest_table_keys:
+        if apply_manifest_scope and manifest_table_keys and table_key_norm not in manifest_table_keys:
             flags.append(
                 AnomalyFlag(
                     level="BLOCK",

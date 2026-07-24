@@ -1,9 +1,6 @@
 {
   "alias_merge": {
-    "account_identifier": "account_id",
-    "customer_identifier": "customer_id",
     "ddl_manifest": "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\scale_engine_chaos\\chaos_manifest.json",
-    "legacy_reference": "legacy_ref",
     "merged_entities": [
       {
         "canonical_column": "invoice_id",
@@ -304,9 +301,1583 @@
           "glossary",
           "exact"
         ]
+      },
+      {
+        "canonical_column": "journal_col_0",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_0"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_1",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_1"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_2",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_2"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_3",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_3"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_4",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_4"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_5",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_5"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_6",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_6"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_7",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_7"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_8",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_8"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_9",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_9"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_10",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_10"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_11",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_11"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_12",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_12"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_13",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_13"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_14",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_14"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_15",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_15"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_16",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_16"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_17",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_17"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_18",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_18"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_19",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_19"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_20",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_20"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_21",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_21"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_22",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_22"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_23",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_23"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_24",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_24"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_25",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_25"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_26",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_26"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_27",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_27"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_28",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_28"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_29",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_29"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_30",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_30"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_31",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_31"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_32",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_32"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_33",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_33"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_34",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_34"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_35",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_35"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_36",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_36"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_37",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_37"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_38",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_38"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_39",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_39"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_40",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_40"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_41",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_41"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_42",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_42"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_43",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_43"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_44",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_44"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_45",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_45"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_46",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_46"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_47",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_47"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_48",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_48"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_49",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_49"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_50",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_50"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_51",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_51"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_52",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_52"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_53",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_53"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_54",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_54"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_55",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_55"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_56",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_56"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_57",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_57"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_58",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_58"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "journal_col_59",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "journal_col_59"
+        ],
+        "source_table": "finance.mega_journal",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_0",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_0"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_1",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_1"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_2",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_2"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_3",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_3"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_4",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_4"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_5",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_5"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_6",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_6"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_7",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_7"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_8",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_8"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_9",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_9"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_10",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_10"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_11",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_11"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_12",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_12"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_13",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_13"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_14",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_14"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_15",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_15"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_16",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_16"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_17",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_17"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_18",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_18"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_19",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_19"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_20",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_20"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_21",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_21"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_22",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_22"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_23",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_23"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_24",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_24"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_25",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_25"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_26",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_26"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_27",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_27"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_28",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_28"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_29",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_29"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_30",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_30"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_31",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_31"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_32",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_32"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_33",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_33"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_34",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_34"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_35",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_35"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_36",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_36"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_37",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_37"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_38",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_38"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_39",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_39"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_40",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_40"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_41",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_41"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_42",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_42"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_43",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_43"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
+      },
+      {
+        "canonical_column": "stg_col_44",
+        "citations": [
+          "chaos outlier width"
+        ],
+        "merge_confidence": 0.93,
+        "source_columns": [
+          "stg_col_44"
+        ],
+        "source_table": "operations.wide_staging",
+        "strategies": [
+          "glossary",
+          "exact"
+        ]
       }
     ],
-    "order_identifier": "order_id",
     "review_candidates": [
       {
         "category": "review",
@@ -445,60 +2016,110 @@
         "strategy": "noise",
         "suggested_ddl": "y_col_1"
       }
-    ],
-    "unused_term_alpha": "orphan_alpha",
-    "unused_term_beta": "orphan_beta",
-    "unused_term_delta": "orphan_delta",
-    "unused_term_epsilon": "orphan_epsilon",
-    "unused_term_gamma": "orphan_gamma",
-    "דואל": "email_address",
-    "הערות": "notes",
-    "זיכוי_מס": "tax_credit",
-    "יתרה": "balance",
-    "כתובת_יעד": "destination_address",
-    "מזהה_הזמנה": "order_id",
-    "מזהה_חשבונית": "invoice_id",
-    "מזהה_לקוח": "customer_id",
-    "מזהה_מסמך": "doc_id",
-    "מזהה_מקור": "source_id",
-    "מזהה_משלוח": "shipment_id",
-    "מזהה_פרופיל": "profile_id",
-    "מטען_גולמי": "raw_payload",
-    "סטטוס": "status",
-    "סטטוס_משלוח": "shipment_status",
-    "סכום": "amount",
-    "סכום_כולל": "total_amount",
-    "ערך_מעמ": "tax_value",
-    "קוד_מוביל": "carrier_code",
-    "קוד_מסלול": "route_code",
-    "שדה_ביניים_1": "y_col_1",
-    "שדה_ביניים_10": "y_col_10",
-    "שדה_ביניים_2": "y_col_2",
-    "שדה_ביניים_3": "y_col_3",
-    "שדה_ביניים_4": "y_col_4",
-    "שדה_ביניים_5": "y_col_5",
-    "שדה_ביניים_6": "y_col_6",
-    "שדה_ביניים_7": "y_col_7",
-    "שדה_ביניים_8": "y_col_8",
-    "שדה_ביניים_9": "y_col_9",
-    "שדה_מסירה_1": "ds_col_1",
-    "שדה_מסירה_10": "ds_col_10",
-    "שדה_מסירה_2": "ds_col_2",
-    "שדה_מסירה_3": "ds_col_3",
-    "שדה_מסירה_4": "ds_col_4",
-    "שדה_מסירה_5": "ds_col_5",
-    "שדה_מסירה_6": "ds_col_6",
-    "שדה_מסירה_7": "ds_col_7",
-    "שדה_מסירה_8": "ds_col_8",
-    "שדה_מסירה_9": "ds_col_9",
-    "שם_לקוח": "customer_name",
-    "שם_משפחה": "last_name",
-    "שם_פרטי": "first_name",
-    "תאריך_יצירה": "created_at",
-    "תאריך_מסירה": "delivered_at",
-    "תאריך_עדכון": "updated_at",
-    "תאריך_קבלה": "received_at"
+    ]
   },
+  "ddl_manifest_table_keys": [
+    "crm.CustomerProfiles",
+    "crm.chaos_green_018",
+    "crm.chaos_green_028",
+    "crm.chaos_green_038",
+    "crm.chaos_green_043",
+    "crm.chaos_green_048",
+    "crm.chaos_green_053",
+    "crm.chaos_green_068",
+    "crm.chaos_green_073",
+    "crm.chaos_yellow_003",
+    "crm.chaos_yellow_008",
+    "crm.chaos_yellow_013",
+    "crm.chaos_yellow_023",
+    "crm.chaos_yellow_033",
+    "crm.chaos_yellow_058",
+    "crm.chaos_yellow_063",
+    "crm.chaos_yellow_078",
+    "crm.orders",
+    "finance.chaos_green_005",
+    "finance.chaos_green_015",
+    "finance.chaos_green_030",
+    "finance.chaos_green_045",
+    "finance.chaos_green_050",
+    "finance.chaos_green_075",
+    "finance.chaos_green_080",
+    "finance.chaos_red_010",
+    "finance.chaos_red_020",
+    "finance.chaos_red_025",
+    "finance.chaos_red_065",
+    "finance.chaos_red_070",
+    "finance.chaos_yellow_000",
+    "finance.chaos_yellow_035",
+    "finance.chaos_yellow_040",
+    "finance.chaos_yellow_055",
+    "finance.chaos_yellow_060",
+    "finance.core_ledger",
+    "finance.invoice_attachments",
+    "finance.mega_journal",
+    "finance.payment_staging",
+    "legacy.document_archive",
+    "logistics.chaos_green_037",
+    "logistics.chaos_green_077",
+    "logistics.chaos_red_012",
+    "logistics.chaos_red_027",
+    "logistics.chaos_red_047",
+    "logistics.chaos_red_082",
+    "logistics.chaos_yellow_002",
+    "logistics.chaos_yellow_007",
+    "logistics.chaos_yellow_017",
+    "logistics.chaos_yellow_022",
+    "logistics.chaos_yellow_032",
+    "logistics.chaos_yellow_042",
+    "logistics.chaos_yellow_052",
+    "logistics.chaos_yellow_057",
+    "logistics.chaos_yellow_062",
+    "logistics.chaos_yellow_067",
+    "logistics.chaos_yellow_072",
+    "logistics.delivery_status",
+    "logistics.returns",
+    "logistics.shipments",
+    "operations.chaos_green_006",
+    "operations.chaos_green_021",
+    "operations.chaos_green_031",
+    "operations.chaos_green_041",
+    "operations.chaos_green_056",
+    "operations.chaos_green_071",
+    "operations.chaos_green_076",
+    "operations.chaos_green_081",
+    "operations.chaos_red_001",
+    "operations.chaos_red_016",
+    "operations.chaos_red_026",
+    "operations.chaos_red_036",
+    "operations.chaos_red_051",
+    "operations.chaos_red_061",
+    "operations.chaos_red_066",
+    "operations.chaos_yellow_011",
+    "operations.chaos_yellow_046",
+    "operations.import_staging",
+    "operations.wide_staging",
+    "sales.orders",
+    "technical_debt.chaos_green_029",
+    "technical_debt.chaos_green_034",
+    "technical_debt.chaos_green_044",
+    "technical_debt.chaos_green_064",
+    "technical_debt.chaos_red_014",
+    "technical_debt.chaos_red_059",
+    "technical_debt.chaos_red_069",
+    "technical_debt.chaos_red_074",
+    "technical_debt.chaos_yellow_004",
+    "technical_debt.chaos_yellow_009",
+    "technical_debt.chaos_yellow_019",
+    "technical_debt.chaos_yellow_024",
+    "technical_debt.chaos_yellow_039",
+    "technical_debt.chaos_yellow_049",
+    "technical_debt.chaos_yellow_054",
+    "technical_debt.chaos_yellow_079",
+    "technical_debt.tbl_junk_7",
+    "unclassified.mystery_a",
+    "unclassified.mystery_b",
+    "unclassified.mystery_c"
+  ],
   "discovery": {
     "inventory": [
       {
@@ -704,7 +2325,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_002",
         "full_name": "logistics.chaos_yellow_002",
         "priority_score": 1.0,
-        "query_count": 82,
+        "query_count": 252,
         "status": "active"
       },
       {
@@ -713,7 +2334,7 @@
         "description": "Chaos dataset table crm.chaos_yellow_003",
         "full_name": "crm.chaos_yellow_003",
         "priority_score": 0.1,
-        "query_count": 83,
+        "query_count": 253,
         "status": "active"
       },
       {
@@ -722,7 +2343,7 @@
         "description": "Chaos dataset table technical_debt.chaos_yellow_004",
         "full_name": "technical_debt.chaos_yellow_004",
         "priority_score": 0.2,
-        "query_count": 84,
+        "query_count": 254,
         "status": "active"
       },
       {
@@ -749,7 +2370,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_007",
         "full_name": "logistics.chaos_yellow_007",
         "priority_score": 0.5,
-        "query_count": 87,
+        "query_count": 257,
         "status": "active"
       },
       {
@@ -758,7 +2379,7 @@
         "description": "Chaos dataset table crm.chaos_yellow_008",
         "full_name": "crm.chaos_yellow_008",
         "priority_score": 0.6,
-        "query_count": 88,
+        "query_count": 258,
         "status": "active"
       },
       {
@@ -767,7 +2388,7 @@
         "description": "Chaos dataset table technical_debt.chaos_yellow_009",
         "full_name": "technical_debt.chaos_yellow_009",
         "priority_score": 0.7,
-        "query_count": 89,
+        "query_count": 259,
         "status": "active"
       },
       {
@@ -785,7 +2406,7 @@
         "description": "Chaos dataset table operations.chaos_yellow_011",
         "full_name": "operations.chaos_yellow_011",
         "priority_score": 0.9,
-        "query_count": 91,
+        "query_count": 261,
         "status": "active"
       },
       {
@@ -803,7 +2424,7 @@
         "description": "Chaos dataset table crm.chaos_yellow_013",
         "full_name": "crm.chaos_yellow_013",
         "priority_score": 0.1,
-        "query_count": 93,
+        "query_count": 263,
         "status": "active"
       },
       {
@@ -839,7 +2460,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_017",
         "full_name": "logistics.chaos_yellow_017",
         "priority_score": 0.5,
-        "query_count": 97,
+        "query_count": 267,
         "status": "active"
       },
       {
@@ -884,7 +2505,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_022",
         "full_name": "logistics.chaos_yellow_022",
         "priority_score": 1.0,
-        "query_count": 102,
+        "query_count": 272,
         "status": "active"
       },
       {
@@ -893,7 +2514,7 @@
         "description": "Chaos dataset table crm.chaos_yellow_023",
         "full_name": "crm.chaos_yellow_023",
         "priority_score": 0.1,
-        "query_count": 103,
+        "query_count": 273,
         "status": "active"
       },
       {
@@ -902,7 +2523,7 @@
         "description": "Chaos dataset table technical_debt.chaos_yellow_024",
         "full_name": "technical_debt.chaos_yellow_024",
         "priority_score": 0.2,
-        "query_count": 104,
+        "query_count": 274,
         "status": "active"
       },
       {
@@ -974,7 +2595,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_032",
         "full_name": "logistics.chaos_yellow_032",
         "priority_score": 1.0,
-        "query_count": 112,
+        "query_count": 282,
         "status": "active"
       },
       {
@@ -983,7 +2604,7 @@
         "description": "Chaos dataset table crm.chaos_yellow_033",
         "full_name": "crm.chaos_yellow_033",
         "priority_score": 0.1,
-        "query_count": 113,
+        "query_count": 283,
         "status": "active"
       },
       {
@@ -1001,7 +2622,7 @@
         "description": "Chaos dataset table finance.chaos_yellow_035",
         "full_name": "finance.chaos_yellow_035",
         "priority_score": 0.3,
-        "query_count": 115,
+        "query_count": 285,
         "status": "active"
       },
       {
@@ -1037,7 +2658,7 @@
         "description": "Chaos dataset table technical_debt.chaos_yellow_039",
         "full_name": "technical_debt.chaos_yellow_039",
         "priority_score": 0.7,
-        "query_count": 119,
+        "query_count": 289,
         "status": "active"
       },
       {
@@ -1046,7 +2667,7 @@
         "description": "Chaos dataset table finance.chaos_yellow_040",
         "full_name": "finance.chaos_yellow_040",
         "priority_score": 0.8,
-        "query_count": 120,
+        "query_count": 290,
         "status": "active"
       },
       {
@@ -1064,7 +2685,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_042",
         "full_name": "logistics.chaos_yellow_042",
         "priority_score": 1.0,
-        "query_count": 122,
+        "query_count": 292,
         "status": "active"
       },
       {
@@ -1100,7 +2721,7 @@
         "description": "Chaos dataset table operations.chaos_yellow_046",
         "full_name": "operations.chaos_yellow_046",
         "priority_score": 0.4,
-        "query_count": 126,
+        "query_count": 296,
         "status": "active"
       },
       {
@@ -1127,7 +2748,7 @@
         "description": "Chaos dataset table technical_debt.chaos_yellow_049",
         "full_name": "technical_debt.chaos_yellow_049",
         "priority_score": 0.7,
-        "query_count": 129,
+        "query_count": 299,
         "status": "active"
       },
       {
@@ -1154,7 +2775,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_052",
         "full_name": "logistics.chaos_yellow_052",
         "priority_score": 1.0,
-        "query_count": 132,
+        "query_count": 302,
         "status": "active"
       },
       {
@@ -1172,7 +2793,7 @@
         "description": "Chaos dataset table technical_debt.chaos_yellow_054",
         "full_name": "technical_debt.chaos_yellow_054",
         "priority_score": 0.2,
-        "query_count": 134,
+        "query_count": 304,
         "status": "active"
       },
       {
@@ -1181,7 +2802,7 @@
         "description": "Chaos dataset table finance.chaos_yellow_055",
         "full_name": "finance.chaos_yellow_055",
         "priority_score": 0.3,
-        "query_count": 135,
+        "query_count": 305,
         "status": "active"
       },
       {
@@ -1208,7 +2829,7 @@
         "description": "Chaos dataset table crm.chaos_yellow_058",
         "full_name": "crm.chaos_yellow_058",
         "priority_score": 0.6,
-        "query_count": 138,
+        "query_count": 308,
         "status": "active"
       },
       {
@@ -1226,7 +2847,7 @@
         "description": "Chaos dataset table finance.chaos_yellow_060",
         "full_name": "finance.chaos_yellow_060",
         "priority_score": 0.8,
-        "query_count": 140,
+        "query_count": 310,
         "status": "active"
       },
       {
@@ -1244,7 +2865,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_062",
         "full_name": "logistics.chaos_yellow_062",
         "priority_score": 1.0,
-        "query_count": 142,
+        "query_count": 312,
         "status": "active"
       },
       {
@@ -1253,7 +2874,7 @@
         "description": "Chaos dataset table crm.chaos_yellow_063",
         "full_name": "crm.chaos_yellow_063",
         "priority_score": 0.1,
-        "query_count": 143,
+        "query_count": 313,
         "status": "active"
       },
       {
@@ -1289,7 +2910,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_067",
         "full_name": "logistics.chaos_yellow_067",
         "priority_score": 0.5,
-        "query_count": 147,
+        "query_count": 317,
         "status": "active"
       },
       {
@@ -1334,7 +2955,7 @@
         "description": "Chaos dataset table logistics.chaos_yellow_072",
         "full_name": "logistics.chaos_yellow_072",
         "priority_score": 1.0,
-        "query_count": 152,
+        "query_count": 322,
         "status": "active"
       },
       {
@@ -1388,7 +3009,7 @@
         "description": "Chaos dataset table crm.chaos_yellow_078",
         "full_name": "crm.chaos_yellow_078",
         "priority_score": 0.6,
-        "query_count": 158,
+        "query_count": 328,
         "status": "active"
       },
       {
@@ -1397,7 +3018,7 @@
         "description": "Chaos dataset table technical_debt.chaos_yellow_079",
         "full_name": "technical_debt.chaos_yellow_079",
         "priority_score": 0.7,
-        "query_count": 159,
+        "query_count": 329,
         "status": "active"
       },
       {
@@ -1430,6 +3051,247 @@
     ]
   },
   "generated_at": "2026-01-01T00:00:00Z",
+  "glossary_source": {
+    "glossary_paths_resolved": [
+      "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\scale_engine_chaos\\chaos_glossary.json"
+    ],
+    "layers": [
+      {
+        "entries": [
+          {
+            "source_term": "account_identifier",
+            "target_column": "account_id"
+          },
+          {
+            "source_term": "סכום",
+            "target_column": "amount"
+          },
+          {
+            "source_term": "יתרה",
+            "target_column": "balance"
+          },
+          {
+            "source_term": "קוד_מוביל",
+            "target_column": "carrier_code"
+          },
+          {
+            "source_term": "תאריך_יצירה",
+            "target_column": "created_at"
+          },
+          {
+            "source_term": "customer_identifier",
+            "target_column": "customer_id"
+          },
+          {
+            "source_term": "מזהה_לקוח",
+            "target_column": "customer_id"
+          },
+          {
+            "source_term": "שם_לקוח",
+            "target_column": "customer_name"
+          },
+          {
+            "source_term": "תאריך_מסירה",
+            "target_column": "delivered_at"
+          },
+          {
+            "source_term": "כתובת_יעד",
+            "target_column": "destination_address"
+          },
+          {
+            "source_term": "מזהה_מסמך",
+            "target_column": "doc_id"
+          },
+          {
+            "source_term": "שדה_מסירה_1",
+            "target_column": "ds_col_1"
+          },
+          {
+            "source_term": "שדה_מסירה_10",
+            "target_column": "ds_col_10"
+          },
+          {
+            "source_term": "שדה_מסירה_2",
+            "target_column": "ds_col_2"
+          },
+          {
+            "source_term": "שדה_מסירה_3",
+            "target_column": "ds_col_3"
+          },
+          {
+            "source_term": "שדה_מסירה_4",
+            "target_column": "ds_col_4"
+          },
+          {
+            "source_term": "שדה_מסירה_5",
+            "target_column": "ds_col_5"
+          },
+          {
+            "source_term": "שדה_מסירה_6",
+            "target_column": "ds_col_6"
+          },
+          {
+            "source_term": "שדה_מסירה_7",
+            "target_column": "ds_col_7"
+          },
+          {
+            "source_term": "שדה_מסירה_8",
+            "target_column": "ds_col_8"
+          },
+          {
+            "source_term": "שדה_מסירה_9",
+            "target_column": "ds_col_9"
+          },
+          {
+            "source_term": "דואל",
+            "target_column": "email_address"
+          },
+          {
+            "source_term": "שם_פרטי",
+            "target_column": "first_name"
+          },
+          {
+            "source_term": "מזהה_חשבונית",
+            "target_column": "invoice_id"
+          },
+          {
+            "source_term": "שם_משפחה",
+            "target_column": "last_name"
+          },
+          {
+            "source_term": "legacy_reference",
+            "target_column": "legacy_ref"
+          },
+          {
+            "source_term": "הערות",
+            "target_column": "notes"
+          },
+          {
+            "source_term": "order_identifier",
+            "target_column": "order_id"
+          },
+          {
+            "source_term": "מזהה_הזמנה",
+            "target_column": "order_id"
+          },
+          {
+            "source_term": "unused_term_alpha",
+            "target_column": "orphan_alpha"
+          },
+          {
+            "source_term": "unused_term_beta",
+            "target_column": "orphan_beta"
+          },
+          {
+            "source_term": "unused_term_delta",
+            "target_column": "orphan_delta"
+          },
+          {
+            "source_term": "unused_term_epsilon",
+            "target_column": "orphan_epsilon"
+          },
+          {
+            "source_term": "unused_term_gamma",
+            "target_column": "orphan_gamma"
+          },
+          {
+            "source_term": "מזהה_פרופיל",
+            "target_column": "profile_id"
+          },
+          {
+            "source_term": "מטען_גולמי",
+            "target_column": "raw_payload"
+          },
+          {
+            "source_term": "תאריך_קבלה",
+            "target_column": "received_at"
+          },
+          {
+            "source_term": "קוד_מסלול",
+            "target_column": "route_code"
+          },
+          {
+            "source_term": "מזהה_משלוח",
+            "target_column": "shipment_id"
+          },
+          {
+            "source_term": "סטטוס_משלוח",
+            "target_column": "shipment_status"
+          },
+          {
+            "source_term": "מזהה_מקור",
+            "target_column": "source_id"
+          },
+          {
+            "source_term": "סטטוס",
+            "target_column": "status"
+          },
+          {
+            "source_term": "זיכוי_מס",
+            "target_column": "tax_credit"
+          },
+          {
+            "source_term": "ערך_מעמ",
+            "target_column": "tax_value"
+          },
+          {
+            "source_term": "סכום_כולל",
+            "target_column": "total_amount"
+          },
+          {
+            "source_term": "תאריך_עדכון",
+            "target_column": "updated_at"
+          },
+          {
+            "source_term": "שדה_ביניים_1",
+            "target_column": "y_col_1"
+          },
+          {
+            "source_term": "שדה_ביניים_10",
+            "target_column": "y_col_10"
+          },
+          {
+            "source_term": "שדה_ביניים_2",
+            "target_column": "y_col_2"
+          },
+          {
+            "source_term": "שדה_ביניים_3",
+            "target_column": "y_col_3"
+          },
+          {
+            "source_term": "שדה_ביניים_4",
+            "target_column": "y_col_4"
+          },
+          {
+            "source_term": "שדה_ביניים_5",
+            "target_column": "y_col_5"
+          },
+          {
+            "source_term": "שדה_ביניים_6",
+            "target_column": "y_col_6"
+          },
+          {
+            "source_term": "שדה_ביניים_7",
+            "target_column": "y_col_7"
+          },
+          {
+            "source_term": "שדה_ביניים_8",
+            "target_column": "y_col_8"
+          },
+          {
+            "source_term": "שדה_ביניים_9",
+            "target_column": "y_col_9"
+          }
+        ],
+        "entry_count": 56,
+        "file": "chaos_glossary.json",
+        "layer": "clean",
+        "path_absolute": "C:\\Autonomous-Migration-Architect-AMA\\sample_data\\scale_engine_chaos\\chaos_glossary.json",
+        "path_relative": "chaos_glossary.json"
+      }
+    ],
+    "total_entries": 56
+  },
   "importance_ddl": [
     {
       "column": "invoice_id",
@@ -7223,10 +9085,10 @@
     }
   ],
   "ingestion_stats": {
-    "parse_ok": 9908,
+    "parse_ok": 15178,
     "regex_fallback": 0,
     "skipped_empty": 0,
-    "total_rows": 9908
+    "total_rows": 15178
   },
   "lineage": {
     "edges": [
@@ -7287,6 +9149,30 @@
         "target": "finance.invoice_attachments"
       },
       {
+        "source": "logistics.chaos_yellow_002",
+        "target": "crm.chaos_yellow_033"
+      },
+      {
+        "source": "crm.chaos_yellow_003",
+        "target": "legacy.document_archive"
+      },
+      {
+        "source": "technical_debt.chaos_yellow_004",
+        "target": "technical_debt.chaos_yellow_079"
+      },
+      {
+        "source": "logistics.chaos_yellow_007",
+        "target": "operations.chaos_yellow_046"
+      },
+      {
+        "source": "crm.chaos_yellow_008",
+        "target": "crm.chaos_yellow_003"
+      },
+      {
+        "source": "technical_debt.chaos_yellow_009",
+        "target": "finance.chaos_yellow_055"
+      },
+      {
         "source": "operations.chaos_yellow_011",
         "target": "crm.chaos_green_068"
       },
@@ -7307,6 +9193,18 @@
         "target": "finance.core_ledger"
       },
       {
+        "source": "crm.chaos_yellow_013",
+        "target": "finance.chaos_yellow_055"
+      },
+      {
+        "source": "logistics.chaos_yellow_017",
+        "target": "technical_debt.chaos_yellow_024"
+      },
+      {
+        "source": "technical_debt.chaos_yellow_019",
+        "target": "logistics.chaos_yellow_017"
+      },
+      {
         "source": "logistics.chaos_yellow_022",
         "target": "operations.chaos_red_036"
       },
@@ -7323,6 +9221,18 @@
         "target": "finance.chaos_red_070"
       },
       {
+        "source": "crm.chaos_yellow_023",
+        "target": "operations.chaos_green_006"
+      },
+      {
+        "source": "technical_debt.chaos_yellow_024",
+        "target": "logistics.chaos_yellow_007"
+      },
+      {
+        "source": "logistics.chaos_yellow_032",
+        "target": "operations.chaos_green_041"
+      },
+      {
         "source": "crm.chaos_yellow_033",
         "target": "crm.chaos_yellow_013"
       },
@@ -7333,6 +9243,22 @@
       {
         "source": "crm.chaos_yellow_033",
         "target": "technical_debt.chaos_yellow_019"
+      },
+      {
+        "source": "finance.chaos_yellow_035",
+        "target": "technical_debt.chaos_green_034"
+      },
+      {
+        "source": "technical_debt.chaos_yellow_039",
+        "target": "operations.chaos_green_006"
+      },
+      {
+        "source": "finance.chaos_yellow_040",
+        "target": "crm.chaos_green_018"
+      },
+      {
+        "source": "logistics.chaos_yellow_042",
+        "target": "unclassified.mystery_b"
       },
       {
         "source": "technical_debt.chaos_green_044",
@@ -7355,6 +9281,22 @@
         "target": "logistics.chaos_yellow_072"
       },
       {
+        "source": "operations.chaos_yellow_046",
+        "target": "finance.chaos_green_005"
+      },
+      {
+        "source": "technical_debt.chaos_yellow_049",
+        "target": "logistics.chaos_yellow_022"
+      },
+      {
+        "source": "logistics.chaos_yellow_052",
+        "target": "technical_debt.chaos_yellow_049"
+      },
+      {
+        "source": "technical_debt.chaos_yellow_054",
+        "target": "operations.chaos_red_016"
+      },
+      {
         "source": "finance.chaos_yellow_055",
         "target": "crm.chaos_yellow_063"
       },
@@ -7371,6 +9313,22 @@
         "target": "logistics.chaos_yellow_062"
       },
       {
+        "source": "logistics.chaos_yellow_057",
+        "target": "finance.chaos_green_045"
+      },
+      {
+        "source": "crm.chaos_yellow_058",
+        "target": "operations.chaos_red_051"
+      },
+      {
+        "source": "finance.chaos_yellow_060",
+        "target": "operations.chaos_green_006"
+      },
+      {
+        "source": "logistics.chaos_yellow_062",
+        "target": "operations.chaos_red_001"
+      },
+      {
         "source": "operations.chaos_red_066",
         "target": "operations.chaos_green_081"
       },
@@ -7381,6 +9339,14 @@
       {
         "source": "operations.chaos_red_066",
         "target": "crm.chaos_yellow_023"
+      },
+      {
+        "source": "logistics.chaos_yellow_067",
+        "target": "logistics.chaos_red_027"
+      },
+      {
+        "source": "logistics.chaos_yellow_072",
+        "target": "operations.chaos_red_016"
       },
       {
         "source": "logistics.chaos_green_077",
@@ -7401,11 +9367,19 @@
       {
         "source": "logistics.chaos_green_077",
         "target": "technical_debt.chaos_green_034"
+      },
+      {
+        "source": "crm.chaos_yellow_078",
+        "target": "crm.chaos_yellow_033"
+      },
+      {
+        "source": "technical_debt.chaos_yellow_079",
+        "target": "finance.chaos_green_045"
       }
     ]
   },
   "migration_context": "chaos.synthetic",
-  "queries_matched": 9908,
+  "queries_matched": 15178,
   "schema_version": "1.2",
   "target_table": "chaos.synthetic"
 }

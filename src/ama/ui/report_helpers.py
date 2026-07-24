@@ -10,10 +10,14 @@ from typing import Any
 
 import pandas as pd
 
+from ama.schemas.report import prepare_report_for_scoring
+
 
 def load_report_json(path: str | Path) -> dict[str, Any]:
     p = Path(path)
-    return json.loads(p.read_text(encoding="utf-8"))
+    report = json.loads(p.read_text(encoding="utf-8"))
+    prepare_report_for_scoring(report, strict=True)
+    return report
 
 
 def _inventory_df(report: dict[str, Any]) -> pd.DataFrame:

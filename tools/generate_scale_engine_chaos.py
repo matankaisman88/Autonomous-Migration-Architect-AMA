@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ama.business_logic import build_glossary_source_report
 from ama.schemas.report import AmaReportBoundarySchema
 
 
@@ -353,7 +354,8 @@ def _mk_filler_table(idx: int, rng: random.Random, queue_hint: str) -> TableSpec
             {"name": "y_col_9", "type": "json"},
             {"name": "y_col_10", "type": "json"},
         ]
-        qcount = 80 + (idx % 90)
+        qcount = 250 + (idx % 100)
+        outgoing = 1
     else:
         cols = _exact_green_columns()
         qcount = 3 + (idx % 8)
@@ -472,13 +474,26 @@ def _build_alias_merge(specs: list[TableSpec], glossary: dict[str, str], manifes
                 "category": "trash",
             }
         )
+    for s in specs:
+        if s.full_name not in {"finance.mega_journal", "operations.wide_staging"}:
+            continue
+        for col in s.columns:
+            merged_entities.append(
+                {
+                    "canonical_column": col["name"],
+                    "source_columns": [col["name"]],
+                    "merge_confidence": 0.93,
+                    "strategies": ["glossary", "exact"],
+                    "citations": ["chaos outlier width"],
+                    "source_table": s.full_name,
+                }
+            )
     block: dict[str, Any] = {
         "merged_entities": merged_entities,
         "review_candidates": review_candidates,
         "trash_candidates": trash_candidates,
         "ddl_manifest": str(manifest_path.resolve()),
     }
-    block.update(glossary)
     return block
 
 
@@ -588,9 +603,10 @@ def generate_chaos_dataset(*, out_dir: Path, seed: int = 42, tables: int = 100) 
         manifest[s.full_name] = str(ddl_path.resolve())
 
     glossary = _build_glossary()
+    glossary_path = out_dir / "chaos_glossary.json"
     manifest_path = out_dir / "chaos_manifest.json"
     _write_json(manifest_path, manifest)
-    _write_json(out_dir / "chaos_glossary.json", glossary)
+    _write_json(glossary_path, glossary)
     _write_sql_logs(out_dir / "chaos_sql_logs.jsonl", specs)
     _write_comms(out_dir / "chaos_comms.jsonl", specs)
     _write_readme(out_dir / "README.md")
@@ -610,6 +626,8 @@ def generate_chaos_dataset(*, out_dir: Path, seed: int = 42, tables: int = 100) 
         "discovery": {"inventory": _build_inventory(specs)},
         "lineage": {"edges": _build_lineage(specs)},
         "alias_merge": _build_alias_merge(specs, glossary, manifest_path),
+        "glossary_source": build_glossary_source_report(out_dir, [glossary_path]),
+        "ddl_manifest_table_keys": sorted(k for k in manifest if not str(k).startswith("_")),
         "importance_ddl": _build_importance_ddl(specs),
     }
     # Validate full boundary shape before writing.

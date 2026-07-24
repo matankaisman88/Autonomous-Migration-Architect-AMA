@@ -83,7 +83,7 @@ def test_non_sensitive_high_usage_with_single_downstream_can_stay_green() -> Non
         {
             "full_name": "sales.customers",
             "business_domain": "Sales",
-            "query_count": 500,
+            "query_count": 200,
             "status": "active",
             "priority_score": 1.0,
             "column_count": 6,

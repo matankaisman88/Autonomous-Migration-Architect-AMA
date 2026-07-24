@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from ama.api import deps
 from ama.migration_agent import agent_tools
+from ama.schemas.report import ReportBoundaryError
 from ama.ui.report_helpers import load_report_json
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,8 @@ def load_report(body: LoadReportRequest) -> dict[str, Any]:
         report = load_report_json(report_path)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ReportBoundaryError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
         logger.exception("report load failed")
         raise HTTPException(status_code=500, detail=f"Failed to load report: {exc}") from exc
