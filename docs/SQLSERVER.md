@@ -46,10 +46,61 @@ This script:
 - recreates the `kfar_supply` database
 - injects schema from the repository’s demo DDL artifacts
 - seeds seed data for the Kfar Supply demo context
+- **applies the Legacy Hebrew bridge** — runs `tools/apply_hebrew_bridge.py`, which executes [`sample_data/kfar_supply/git_sql/legacy/hebrew_invoice_bridge.sql`](../sample_data/kfar_supply/git_sql/legacy/hebrew_invoice_bridge.sql) to create `legacy_hebrew` views and synonyms over the English base tables
 - updates the local `.env` with:
   - `MSSQL_CONNECTION_STRING` (for host-side tools — uses `127.0.0.1`)
   - `AMA_DB_CONNECTION_STRING` (for the API container — uses the SQL Server container IP)
   - Writes via direct merge (Windows-safe); if `.env` is locked by another process, the script prints redacted values to set manually
+
+### 2.1 Legacy Hebrew bridge
+
+The bridge lets Hebrew-named T-SQL compile and run against the English DDL fixture:
+
+| Artifact | Purpose |
+| --- | --- |
+| `legacy_hebrew` schema | Six **views** with Hebrew column aliases + five **synonyms** to English tables |
+| `hebrew_invoice_bridge.sql` | Source DDL (also applied by `apply_hebrew_bridge.py`) |
+| `tools/apply_hebrew_bridge.py` | Idempotent host-side applier (split on `GO`, smoke-test query) |
+
+Re-apply the bridge alone after a manual schema change:
+
+```bash
+python tools/apply_hebrew_bridge.py
+```
+
+### 2.2 Benchmark SQL for Live Connection
+
+Live extraction reads SQL that **already ran** (Query Store / plan cache). It does not read `.sql` files directly.
+
+After `setup_dev_mssql.py`, populate Query Store with the validated benchmark file:
+
+```bash
+python tools/execute_kfar_benchmark.py
+```
+
+This executes all **1,000** queries in [`tools/dirty_kfar_queries.sql`](../tools/dirty_kfar_queries.sql) (844 English + 156 Hebrew `legacy_hebrew` queries). Use `--limit N` for a quick smoke run.
+
+To regenerate the benchmark file (requires a running DB + bridge):
+
+```bash
+python tools/generate_kfar_benchmark.py --count 1000
+python tools/execute_kfar_benchmark.py
+```
+
+Smaller manual seed set: [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) in SSMS.
+
+### 2.3 Docker reset workflow
+
+`docker compose up` starts **api** and **web** only — not SQL Server. After dropping all containers:
+
+```bash
+docker compose up -d --build
+python tools/setup_dev_mssql.py
+python tools/execute_kfar_benchmark.py
+docker compose up -d --force-recreate api
+```
+
+Then run **Live connection** with log end date = today. Include **`legacy_hebrew`** in the schema list (or enable **All user schemas**) so Hebrew legacy SQL is not filtered out.
 
 ## 3. Connectivity Nuances (ODBC 18 Specifics)
 
@@ -249,7 +300,14 @@ The Live connection page performs **read-only real extraction** (see [LIVE_CONNE
 
 **Tables tab:** lineage graph shows PK/FK arrows plus shared-query counts from SQL logs; nodes show per-table query counts.
 
-When testing against the local dev fixture, seed Query Store / plan cache with sample SQL by running [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) in SSMS against the **same server** as `AMA_DB_CONNECTION_STRING`, then re-run extraction. Job logs include `Connected to server=… database=…` and dedupe stats (`unique_after_dedupe`).
+When testing against the local dev fixture, seed Query Store / plan cache after setup:
+
+```bash
+python tools/setup_dev_mssql.py          # DB + Legacy Hebrew bridge
+python tools/execute_kfar_benchmark.py   # 1,000 validated queries (incl. Hebrew legacy)
+```
+
+Or run [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) manually in SSMS. Re-run Live extraction with log end date = today and schema scope that includes `legacy_hebrew` (or **All user schemas**). Job logs include `Connected to server=… database=…` and dedupe stats (`unique_after_dedupe`).
 
 If the checkbox appears enabled but job logs show `build_report=false`, your running API image is stale. Rebuild API and web:
 

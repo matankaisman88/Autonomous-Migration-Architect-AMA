@@ -143,11 +143,37 @@ docker compose build api web; docker compose up -d
 
 ## Populating Query Store for local testing
 
-Real extraction only captures SQL that actually ran. When testing against the local **Kfar Supply dev fixture** (or any DB with no recent activity), seed some queries so there's something to extract:
+Real extraction only captures SQL that actually ran. When testing against the local **Kfar Supply dev fixture** (or any DB with no recent activity), seed queries before extraction.
 
-1. Open [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) in SSMS (this is a dev-fixture helper).
-2. Set `USE <your_database>;` if not `kfar_supply`.
-3. Execute all batches (F5). Each batch has a unique `/* ama-test-qNNN */` comment so dedupe keeps distinct entries.
+### Recommended workflow (English + Hebrew legacy)
+
+From the repo root:
+
+```bash
+python tools/setup_dev_mssql.py          # SQL container, kfar_supply, Legacy Hebrew bridge
+python tools/execute_kfar_benchmark.py   # runs tools/dirty_kfar_queries.sql (1,000 queries)
+docker compose up -d --force-recreate api   # if SQL container IP changed in .env
+```
+
+Then in **Live connection**:
+
+- **Log end date** = today
+- **All user schemas**, or schemas: `dbo, finance, logistics, legacy_hebrew` (default `dbo` only hides Hebrew legacy SQL)
+
+The benchmark file includes **156** queries against `legacy_hebrew.*` views (invoice bridge, multi-view joins, payments/lines). These require the bridge applied by `setup_dev_mssql.py` (or `python tools/apply_hebrew_bridge.py`).
+
+Regenerate the benchmark (optional):
+
+```bash
+python tools/generate_kfar_benchmark.py --count 1000
+python tools/execute_kfar_benchmark.py
+```
+
+### Manual alternative
+
+1. Open [`tools/kfar_test_queries.sql`](../tools/kfar_test_queries.sql) in SSMS.
+2. Set `USE kfar_supply;` if needed.
+3. Execute all batches (F5). Each batch has a unique `/* ama-test-qNNN */` comment.
 4. Re-run extraction with log end date = today.
 
 ## Docker / paths
@@ -160,9 +186,10 @@ Real extraction only captures SQL that actually ran. When testing against the lo
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| Empty or sparse `prod.jsonl` | No app SQL in Query Store / plan cache for date range | Run workloads; widen dates; use `tools/kfar_test_queries.sql` |
+| Empty or sparse `prod.jsonl` | No app SQL in Query Store / plan cache for date range | Run `python tools/execute_kfar_benchmark.py` after `setup_dev_mssql.py`; widen dates |
 | Only system-catalog SQL | Query Store dominated by tooling queries | Fixed by application-SQL filter; re-run after app queries |
-| Only tables from one schema | Default `schemas: ["dbo"]` only | Enable **All user schemas** or add other schemas, e.g. `finance, logistics` |
+| No Hebrew legacy SQL in logs | Schema filter excludes `legacy_hebrew` | Enable **All user schemas** or add `legacy_hebrew` to the schema list |
+| Only tables from one schema | Default `schemas: ["dbo"]` only | Enable **All user schemas** or add other schemas, e.g. `finance, logistics, legacy_hebrew` |
 | Log row count unchanged after re-run | Dedupe by SQL text | Run **new distinct** SQL; check `unique_after_dedupe` in job log |
 | `build_report=false` in logs | Stale API image | Rebuild `api` and `web` services |
 | `no BASE TABLEs found in schemas: dbo` | Wrong DB or empty schema | Check connection database; list tables in SSMS |

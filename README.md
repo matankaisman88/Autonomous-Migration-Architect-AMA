@@ -36,13 +36,21 @@ See [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md) and [docs/SQLSERVER.md](d
 If you don't have a real company database to point at, use the bundled **Kfar Supply** fixture — a synthetic dataset for local development and testing only (not part of the production flow):
 
 ```bash
-# Spin up a local SQL Server loaded with the synthetic fixture
+# Spin up SQL Server + kfar_supply + Legacy Hebrew bridge
 python tools/setup_dev_mssql.py
-# (Re)generate the on-disk fixture artifacts under sample_data/kfar_supply/
+
+# Populate Query Store for Live extraction (1,000 English + Hebrew legacy queries)
+python tools/execute_kfar_benchmark.py
+
+# Start UI + API (recreate api if .env SQL IP changed)
+docker compose up -d --build
+docker compose up -d --force-recreate api
+
+# (Optional) regenerate on-disk fixture artifacts under sample_data/kfar_supply/
 python tools/generate_kfar_supply.py
 ```
 
-Then point **Live connection** at the local `kfar_supply` database and run a normal real extraction against it. See [docs/SQLSERVER.md](docs/SQLSERVER.md) for local setup details.
+Then open **Live connection**, connect to `kfar_supply`, set log end date = today, and include **`legacy_hebrew`** in schema scope (or **All user schemas**). See [docs/SQLSERVER.md](docs/SQLSERVER.md) for local setup details.
 
 **Docker default report:** the React UI pre-fills `/app/sample_data/kfar_supply/kfar_report.json` — click **Load** on the dashboard to start with the Kfar fixture without typing a path.
 
@@ -151,7 +159,14 @@ docker compose build api web && docker compose up -d
 # → Build report → Tables tab
 ```
 
-To seed Query Store / plan cache with sample application SQL when testing against the **local dev fixture**, see [tools/kfar_test_queries.sql](tools/kfar_test_queries.sql).
+To seed Query Store / plan cache when testing against the **local dev fixture**:
+
+```bash
+python tools/setup_dev_mssql.py
+python tools/execute_kfar_benchmark.py
+```
+
+See [`tools/dirty_kfar_queries.sql`](tools/dirty_kfar_queries.sql) (1,000 validated queries) and [`tools/kfar_test_queries.sql`](tools/kfar_test_queries.sql) (smaller manual set).
 
 ## Enterprise Scale + Multi-Source
 

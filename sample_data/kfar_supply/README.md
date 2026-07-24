@@ -10,9 +10,9 @@ mixes Hebrew business column labels with English DDL from ERP upgrades. The team
 migrating to **Azure Synapse** and needs an evidence-backed inventory, alias mapping,
 and wave plan without building spreadsheets by hand.
 
-A legacy Hebrew billing table, **`legacy_hebrew.חשבוניות`**, still feeds finance
-reconciliation. Staging debris such as **`temp_junk.Tmp_staging`** sits outside the
-official DDL manifest so discovery can show “seen in logs but not in DDL scope.”
+A legacy Hebrew billing layer, **`legacy_hebrew`**, still feeds finance reconciliation. `setup_dev_mssql.py` applies [`git_sql/legacy/hebrew_invoice_bridge.sql`](git_sql/legacy/hebrew_invoice_bridge.sql), which creates Hebrew-named **views** and **synonyms** over the English `finance.*`, `dbo.*`, and `logistics.*` tables so legacy T-SQL compiles and appears in Query Store for Live extraction and Self-Healing demos.
+
+Staging debris such as **`temp_junk.Tmp_staging`** sits outside the official DDL manifest so discovery can show “seen in logs but not in DDL scope.”
 
 ## What does this demo show?
 
@@ -121,8 +121,15 @@ Two ways to work with the fixture during local development:
 | Approach | When to use |
 | --- | --- |
 | **File-based** (this folder + `demo.sh` / `ama-ingest run`) | Reproducible offline run, CI, Hebrew glossary + comms + git SQL from `sample_data/kfar_supply` |
-| **Local SQL Server + Live connection** | Set `MSSQL_SA_PASSWORD`, run `python tools/setup_dev_mssql.py`, then use **Live connection** — see [docs/LIVE_CONNECTION.md](../../docs/LIVE_CONNECTION.md) and [docs/SQLSERVER.md](../../docs/SQLSERVER.md) |
+| **Local SQL Server + Live connection** | `python tools/setup_dev_mssql.py` → `python tools/execute_kfar_benchmark.py` → **Live connection** with log end date = today and `legacy_hebrew` in schema scope — see [docs/LIVE_CONNECTION.md](../../docs/LIVE_CONNECTION.md) and [docs/SQLSERVER.md](../../docs/SQLSERVER.md) |
 
 `demo.sh` is bash-only. On Windows, run the equivalent `ama-ingest` commands from the Quickstart section below, or use the Live connection path above.
 
-For Query Store testing against the local fixture database, run [`tools/kfar_test_queries.sql`](../../tools/kfar_test_queries.sql) in SSMS after loading it.
+For Query Store testing against the local fixture database:
+
+```bash
+python tools/setup_dev_mssql.py
+python tools/execute_kfar_benchmark.py   # tools/dirty_kfar_queries.sql
+```
+
+Or run [`tools/kfar_test_queries.sql`](../../tools/kfar_test_queries.sql) manually in SSMS.

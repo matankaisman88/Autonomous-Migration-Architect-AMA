@@ -99,7 +99,14 @@ The live API accepts real credentials and has **no application-level auth** toda
 
 ### Local dev without a real DB
 
-Use the **Kfar Supply** dev fixture: `python tools/setup_dev_mssql.py`, then point Live connection at the local `kfar_supply` database. See [docs/SQLSERVER.md](docs/SQLSERVER.md).
+Use the **Kfar Supply** dev fixture:
+
+```bash
+python tools/setup_dev_mssql.py          # SQL + Legacy Hebrew bridge
+python tools/execute_kfar_benchmark.py   # seed Query Store for Live extraction
+```
+
+Then **Live connection** → `kfar_supply`, log end date = today, include `legacy_hebrew` in schemas (or **All user schemas**). See [docs/SQLSERVER.md](docs/SQLSERVER.md).
 
 ---
 
