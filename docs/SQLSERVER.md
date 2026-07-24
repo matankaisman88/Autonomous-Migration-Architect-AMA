@@ -331,5 +331,5 @@ Current API defaults are:
 
 This alignment ensures **Evaluate**, **Explain**, and **Bulk** use the same queue thresholds.
 
-Also, bulk scope is constrained to the DDL manifest: tables not listed in `ddl_manifest_table_keys` are BLOCKed with `outside_manifest_scope` and cannot be queued as GREEN (for example, `legacy_hebrew.*` / technical staging tables).
+Also, bulk scope is constrained to the DDL manifest: tables not listed in `ddl_manifest_table_keys` are BLOCKed with `outside_manifest_scope` and cannot be queued as GREEN (for example, `legacy_hebrew.*` / technical staging tables). When the manifest key set overlaps fewer than 5% of discovery inventory on batches of 10+ tables, scope blocks are skipped to avoid a naming mismatch blocking the whole batch — see [Report contract](../MIGRATION.md#report-contract) (`_MANIFEST_SCOPE_MIN_BATCH`, `_MANIFEST_SCOPE_MIN_OVERLAP_RATIO`).
 

@@ -41,6 +41,37 @@ Use the host path under your repo when calling from outside Docker (e.g. `C:/...
 
 **Real extraction reports** do not include bundled `sample_data/kfar_supply` glossary rows — only log + DDL discovery mappings.
 
+## Report contract
+
+AMA reports consumed by the scale engine, bulk migration, and `POST /report/load` must follow a structured contract. Legacy shapes are normalized at load time; invalid reports fail strict boundary validation.
+
+### `alias_merge` structure
+
+`alias_merge` must be an object with reserved keys only:
+
+| Key | Type | Purpose |
+| --- | --- | --- |
+| `merged_entities` | list | Confirmed column merge rows |
+| `review_candidates` | list | Pending HITL review rows |
+| `trash_candidates` | list | Rejected or low-confidence mappings |
+| `ddl_manifest` | string or null | Path to the DDL manifest JSON file |
+
+Flat `key → value` glossary pairs embedded directly under `alias_merge` are **legacy**. At load time they are auto-promoted into `glossary_source`, `alias_merge` is coerced to the structured shape above, and a warning is appended to `ingestion_stats.report_normalization_warnings`. New integrations should emit the structured form directly; flat pairs remain supported for backward compatibility only and may be removed in a future release.
+
+### Derived manifest keys
+
+When `ddl_manifest_table_keys` is absent, it is derived from `alias_merge.ddl_manifest` by loading the manifest file and normalizing table keys.
+
+### Manifest scope guard
+
+`outside_manifest_scope` blocks apply only when manifest keys overlap discovery inventory enough to indicate the same naming convention. On batches of **10 or more** tables (`_MANIFEST_SCOPE_MIN_BATCH`), if fewer than **5%** of inventory rows match manifest keys (`_MANIFEST_SCOPE_MIN_OVERLAP_RATIO`), scope blocks are skipped so a naming-convention mismatch cannot silently block an entire batch.
+
+### Strict load validation
+
+`POST /report/load` runs `prepare_report_for_scoring(strict=True)`. Reports that still fail boundary validation after normalization return **422** with a `ReportBoundaryError` detail message (for example, `alias_merge.merged_entities` not a list or row objects malformed).
+
+See also: [docs/SQLSERVER.md](docs/SQLSERVER.md#scalebulk-defaults) (manifest scope and bulk defaults), [docs/LIVE_CONNECTION.md](docs/LIVE_CONNECTION.md#report-build) (live report artifact layout).
+
 ## CLI Reference
 
 Command:

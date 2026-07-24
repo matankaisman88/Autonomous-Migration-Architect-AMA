@@ -19,6 +19,21 @@ _SENSITIVE_NAME_RE = re.compile(
 
 
 def score_criticality(*, inventory_row: dict[str, Any], report: dict[str, Any]) -> CriticalityResult:
+    """
+    Compute business criticality from lineage depth, query volume, and sensitive naming.
+
+    Weight provenance: these bands match the initial scale-engine implementation
+    (commit 57c3321, 2026-03-26) and were restored in 1e3203e after an accidental
+    reduction in 2a29a6f. No separate PRD or design doc defines the numeric tiers;
+    treat them as current best-effort defaults until a documented spec exists.
+    Tuning ownership: ``scale_engine/`` maintainers + migration ops (bulk gate uses
+    ``DEFAULT_CRIT_CEIL=40`` alongside these sums).
+
+    Bands (additive, capped at 100):
+    - **lineage** (0/15/25/40): downstream dependent count — more deps ⇒ higher blast radius.
+    - **usage** (0/10/20/30/35): ``query_count`` tiers — heavier log traffic ⇒ higher ops risk.
+    - **naming** (0/25): table or column matches sensitive-term regex (PII/finance keywords).
+    """
     full_name = str(inventory_row.get("full_name") or "").strip()
     edges = (report.get("lineage") or {}).get("edges") if isinstance(report.get("lineage"), dict) else []
     downstream = 0

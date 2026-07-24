@@ -76,6 +76,7 @@ Real-extraction manifests include `_extraction_meta` (log source, schemas, warni
 - Does **not** attach any bundled glossary, comms, or git SQL sample_data.
 - Glossary UI shows mappings from **logs + DDL merge** only.
 - Report anchor: optional `migration_context` (`schema.table`), else first manifest table alphabetically.
+- Emits structured `alias_merge` (merged_entities / review_candidates / trash_candidates / ddl_manifest). `ddl_manifest_table_keys` is derived from the manifest when absent. See [Report contract](../MIGRATION.md#report-contract) for legacy flat-pair promotion, manifest scope guards, and `POST /report/load` 422 validation.
 
 Job log line during report build:
 

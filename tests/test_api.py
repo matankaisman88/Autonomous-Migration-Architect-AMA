@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
 from fastapi.testclient import TestClient
 
 from ama.api.main import app
+from ama.schemas.report import AMA_REPORT_SCHEMA_VERSION
 
 
 def _sample_report_path() -> str:
@@ -22,6 +24,29 @@ def _evaluate(client: TestClient, report_id: str) -> dict[str, Any]:
     res = client.post(f"/scale/{report_id}/evaluate", json={})
     assert res.status_code == 200, res.text
     return res.json()
+
+
+def test_report_load_rejects_malformed_alias_merge(tmp_path: Path) -> None:
+    report_path = tmp_path / "malformed_alias_merge_report.json"
+    report_path.write_text(
+        json.dumps(
+            {
+                "schema_version": AMA_REPORT_SCHEMA_VERSION,
+                "migration_context": "test.malformed",
+                "queries_matched": 1,
+                "discovery": {"inventory": []},
+                "alias_merge": {"merged_entities": "not-a-list"},
+                "importance_ddl": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    client = TestClient(app)
+    res = client.post("/report/load", json={"path": str(report_path.resolve())})
+    assert res.status_code == 422
+    detail = str(res.json().get("detail") or "")
+    assert detail.strip()
+    assert "merged_entities" in detail or "alias_merge" in detail
 
 
 def test_report_load_and_summary() -> None:
