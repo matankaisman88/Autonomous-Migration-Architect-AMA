@@ -593,7 +593,38 @@ class SQLServerSchemaProvider(SchemaProvider):
                         f"Skipped {skipped} system/internal SQL batch(es) — keeping application SQL only"
                     )
 
-                if not filtered and qs_enabled:
+                sparse_qs = qs_enabled and len(filtered) < cap
+                if sparse_qs:
+                    warnings.append(
+                        f"Query Store returned {len(filtered)} application SQL batch(es) "
+                        f"(below max_log_rows={cap}) — supplementing from plan cache "
+                        f"({start_dt.date().isoformat()} through {end_dt.date().isoformat()})"
+                    )
+                    plan_raw = self._extract_logs_plan_cache(
+                        cur, fetch_pool, since=start_dt, until=end_dt
+                    )
+                    stats["plan_cache_batches"] = len(plan_raw)
+                    plan_filtered, plan_skipped = filter_application_sql_texts(
+                        plan_raw, norm_schemas, cap
+                    )
+                    if plan_skipped:
+                        warnings.append(
+                            f"Plan cache: skipped {plan_skipped} system/internal SQL batch(es)"
+                        )
+                    if plan_filtered:
+                        merged: list[str] = []
+                        seen_keys: set[str] = set()
+                        for sql in filtered + plan_filtered:
+                            key = normalize_sql_for_dedupe(sql)
+                            if not key or key in seen_keys:
+                                continue
+                            seen_keys.add(key)
+                            merged.append(sql)
+                        filtered = merged
+                        stats["after_schema_filter"] = len(filtered)
+                        source = "query_store+plan_cache"
+                        date_range_applied = True
+                elif not filtered and qs_enabled:
                     warnings.append(
                         "Query Store had no application SQL for the requested schemas/date range "
                         f"— supplementing from plan cache "

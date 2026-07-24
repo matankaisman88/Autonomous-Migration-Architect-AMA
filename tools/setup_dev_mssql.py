@@ -336,6 +336,10 @@ BEGIN
     DROP DATABASE [{TARGET_DB}];
 END;
 CREATE DATABASE [{TARGET_DB}];
+ALTER DATABASE [{TARGET_DB}] SET QUERY_STORE = ON (
+    OPERATION_MODE = READ_WRITE,
+    QUERY_CAPTURE_MODE = ALL
+);
 """
     _execute_sql(conn_str=master_cs, sql_text=sql)
 
@@ -606,6 +610,12 @@ def main() -> None:
     # `localhost` does NOT refer to the SQL Server container.
     final_conn = _update_env_file(sa_password=sa_password, server=api_server_host)
     _log("ENV", f"API container connection string (AMA_DB_CONNECTION_STRING):\n{_redact_connection_string(final_conn)}")
+    _log(
+        "HINT",
+        "To populate Query Store for Live extraction: "
+        "python tools/generate_kfar_benchmark.py --count 1000 && "
+        "python tools/execute_kfar_benchmark.py",
+    )
 
 
 if __name__ == "__main__":
